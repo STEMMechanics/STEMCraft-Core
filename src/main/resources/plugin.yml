@@ -1,0 +1,11 @@
+name: STEMCraft
+main: stemcraft.STEMCraft
+version: 1.0
+api-version: 1.19
+author: nomadjimbob
+website: https://github.com/STEMMechanics/STEMCraft
+commands:
+    afk:
+        description: "Toggles a player AFK"
+        usage: "Usage: /afk"
+        permission: stemcraft.afk
