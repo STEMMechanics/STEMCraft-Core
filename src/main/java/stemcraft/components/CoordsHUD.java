@@ -1,40 +1,48 @@
-package stemcraft.utils;
+package stemcraft.components;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.Bukkit;
+import stemcraft.objects.SMComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import org.bukkit.scheduler.BukkitTask;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class CoordsHUD extends JavaPlugin implements Listener {
-    private JavaPlugin plugin;
+public class CoordsHUD extends SMComponent {
     private Map<UUID, Boolean> coordsEnabled;
     private Map<UUID, Boolean> timeEnabled;
+    private BukkitTask task = null;
 
-    public CoordsHUD(JavaPlugin plugin) {
-        this.plugin = plugin;
+    public Boolean onEnable() {
         coordsEnabled = new HashMap<>();
         timeEnabled = new HashMap<>();
 
-        new BukkitRunnable() {
+        if (this.task != null) {
+            this.task.cancel();
+            this.task = null;
+        }
+
+        task = new BukkitRunnable() {
             @Override
             public void run() {
-                for (Player player : plugin.getServer().getOnlinePlayers()) {
+                for (Player player : smPlugin.getServer().getOnlinePlayers()) {
                     updateHUD(player);
                 }
             }
-        }.runTaskTimer(plugin, 20, 20); // Update every second (20 ticks)
+        }.runTaskTimer(smPlugin, 20, 20); // Update every second (20 ticks)
+
+        return true;
+    }
+
+    public void onDisable() {
+        if (this.task != null) {
+            this.task.cancel();
+            this.task = null;
+        }
     }
 
     public boolean areCoordsEnabled(Player player) {
@@ -79,16 +87,14 @@ public class CoordsHUD extends JavaPlugin implements Listener {
         int x = location.getBlockX();
         int y = location.getBlockY();
         int z = location.getBlockZ();
-        return ChatColor.GRAY + "X: " + ChatColor.WHITE + x + " " +
-                ChatColor.GRAY + "Y: " + ChatColor.WHITE + y + " " +
-                ChatColor.GRAY + "Z: " + ChatColor.WHITE + z;
+        return ChatColor.GRAY + "X: " + ChatColor.WHITE + x + " " + ChatColor.GRAY + "Y: " + ChatColor.WHITE + y + " "
+                + ChatColor.GRAY + "Z: " + ChatColor.WHITE + z;
     }
 
     private String getFormattedTime(long ticks) {
         long hours = (ticks / 1000 + 6) % 24; // Adjust for in-game time offset
         long minutes = (ticks % 1000) * 60 / 1000;
-        return ChatColor.GRAY + "Time: " + ChatColor.WHITE + hours + ":" +
-                (minutes < 10 ? "0" : "") + minutes;
+        return ChatColor.GRAY + "Time: " + ChatColor.WHITE + hours + ":" + (minutes < 10 ? "0" : "") + minutes;
     }
 
     private void sendActionBar(Player player, String message) {

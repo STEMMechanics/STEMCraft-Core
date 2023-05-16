@@ -1,3 +1,26 @@
 # STEMCraft Config
 
-afk-timeout: 300
+# Components
+ConsolePlayerDeathLocation:
+    enabled: true
+CoordsHUD:
+    enabled: true
+DropMobHeads:
+    enabled: true
+DropPlayerHeads:
+    enabled: true
+NightVision:
+    enabled: true
+NoAncientDebris:
+    enabled: true
+NoDespawnOnDeath:
+    enabled: true
+PreventEndermanPickups:
+    enabled: true
+RandomMOTD:
+    enabled: true
+    ServerName: "&fSTEM&3Mechanics"
+    RandomMOTD:
+        - Line 1
+        - Line 2
+        - Line 3

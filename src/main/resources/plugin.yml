@@ -4,6 +4,7 @@ version: 1.0
 api-version: 1.19
 author: nomadjimbob
 website: https://github.com/STEMMechanics/STEMCraft
+softdepend: [ProtocolLib]
 commands:
     afk:
         description: "Toggles a player AFK"

@@ -1,7 +1,14 @@
 {
     "cSpell.words": [
+        "Bukkit",
+        "Despawn",
         "Enderman",
+        "initalize",
+        "NIGHTVISION",
         "stemcraft"
     ],
-    "java.configuration.updateBuildConfiguration": "automatic"
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.format.settings.profile": "CustomGoogleStyle",
+    "java.format.settings.url": "formatter.xml"
 }
