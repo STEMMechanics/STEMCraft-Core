@@ -1,4 +1,4 @@
-<p align="center"><img src="https://github.com/STEMMechanics/STEMCraft/blob/main/docs/stemcraft-logo.png?raw=true" width="308" height="66"></p>
+<p align="center"><img src="https://github.com/STEMMechanics/STEMCraft/blob/main/docs/drustcraft-logo.png?raw=true" width="222" height="66"></p>
 
 STEMMechanics brings creativity to life by developing engaging resources and programs. Powered by open source by an amazing community.
 
