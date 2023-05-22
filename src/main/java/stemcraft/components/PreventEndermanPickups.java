@@ -7,14 +7,6 @@ import stemcraft.objects.SMComponent;
 
 public class PreventEndermanPickups extends SMComponent {
     /**
-     * Called when the Component is enabled.
-     */
-    public Boolean onEnable() {
-        registerEvents();
-        return true;
-    }
-
-    /**
      * When an entity changes a block.
      * 
      * @param event Information about the event.
