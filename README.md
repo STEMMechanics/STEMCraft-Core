@@ -11,3 +11,5 @@ STEMMechanics brings creativity to life by developing engaging resources and pro
 Learn more about what we're doing at [stemmechanics.com.au](https://stemmechanics.com.au).
 
 👋 [@STEMMechanics](https://twitter.com/STEMMechanics)
+
+-   Drop Mob heads when killed by a player in survival

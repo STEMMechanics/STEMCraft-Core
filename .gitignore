@@ -100,3 +100,4 @@ buildNumber.properties
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,java,maven
 .dccache
+tempCodeRunnerFile*

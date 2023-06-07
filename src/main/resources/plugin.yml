@@ -1,12 +1,7 @@
 name: STEMCraft
-main: stemcraft.STEMCraft
-version: 1.0
+main: com.stemcraft.STEMCraft
+version: ${project.version}
 api-version: 1.19
 author: nomadjimbob
-website: https://github.com/STEMMechanics/STEMCraft
-softdepend: [ProtocolLib]
-commands:
-    afk:
-        description: "Toggles a player AFK"
-        usage: "Usage: /afk"
-        permission: stemcraft.afk
+website: https://stemcraft.com.au
+description: Provides utilities for the STEMCraft server

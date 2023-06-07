@@ -1,11 +1,14 @@
 package stemcraft;
 
+import java.io.File;
 import java.lang.reflect.Field;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import javax.swing.text.StyledEditorKit.BoldAction;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.defaults.BukkitCommand;
@@ -21,7 +24,7 @@ import stemcraft.components.CoordsHUD;
 import stemcraft.components.DropMobHeads;
 import stemcraft.components.DropPlayerHeads;
 import stemcraft.components.NightVision;
-import stemcraft.components.NoAncientDebris;
+import stemcraft.components.ReduceNetheriteChance;
 import stemcraft.components.NoDespawnOnDeath;
 import stemcraft.components.PreventEndermanPickups;
 import stemcraft.components.RandomMOTD;
@@ -33,6 +36,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
     private FileConfiguration config;
     private Map<String, SMComponent> componentMap;
     private Map<UUID, SMPlayer> playerMap;
+    private Connection database;
 
     public STEMCraft() {
         super();
@@ -43,19 +47,37 @@ public class STEMCraft extends JavaPlugin implements Listener {
                 put("DropMobHeads", new DropMobHeads());
                 put("DropPlayerHeads", new DropPlayerHeads());
                 put("NightVision", new NightVision());
-                put("NoAncientDebris", new NoAncientDebris());
+                put("NoAncientDebris", new ReduceNetheriteChance());
                 put("NoDespawnOnDeath", new NoDespawnOnDeath());
                 put("PreventEndermanPickups", new PreventEndermanPickups());
                 put("RandomMOTD", new RandomMOTD());
+                put("ReduceNetheriteChance", new ReduceNetheriteChance());
             }
         };
 
         this.playerMap = new HashMap<>();
     }
 
+    public Connection getDatabase() {
+        return database;
+    }
+
     @Override
     public void onEnable() {
         this.getServer().getPluginManager().registerEvents(this, this);
+
+        File dataFolder = getDataFolder();
+        if (!dataFolder.exists()) {
+            dataFolder.mkdir();
+        }
+
+        try {
+            Class.forName("org.sqlite.JDBC");
+            database = DriverManager.getConnection("jdbc:sqlite:" + dataFolder + "/dataa.db");
+            createTable();
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+        }
 
         // Save player data every 10 minutes (20 ticks * 60 seconds * 10 minutes)
         new BukkitRunnable() {
@@ -84,7 +106,13 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        /* empty */
+        try {
+            if (database != null && !database.isClosed()) {
+                database.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @EventHandler
@@ -180,4 +208,6 @@ public class STEMCraft extends JavaPlugin implements Listener {
             smPlayer.saveData();
         }
     }
+
+
 }

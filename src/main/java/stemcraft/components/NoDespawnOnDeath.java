@@ -13,15 +13,6 @@ import org.bukkit.inventory.ItemStack;
 import stemcraft.objects.SMComponent;
 
 public class NoDespawnOnDeath extends SMComponent {
-
-    /**
-     * Called when the Component is enabled.
-     */
-    public Boolean onEnable() {
-        registerEvents();
-        return true;
-    }
-
     /**
      * When an player dies.
      * 

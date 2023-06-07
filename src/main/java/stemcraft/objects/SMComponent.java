@@ -51,6 +51,9 @@ public class SMComponent implements Listener, TabCompleter {
         }
 
         this.enabled = this.onEnable();
+        if (this.enabled == true) {
+            registerEvents();
+        }
         return this.enabled;
     }
 

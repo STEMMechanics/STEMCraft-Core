@@ -4,11 +4,13 @@
         "Despawn",
         "Enderman",
         "initalize",
+        "NETHERITE",
         "NIGHTVISION",
         "stemcraft"
     ],
     "java.configuration.updateBuildConfiguration": "automatic",
     "java.compile.nullAnalysis.mode": "automatic",
     "java.format.settings.profile": "CustomGoogleStyle",
-    "java.format.settings.url": "formatter.xml"
+    "java.format.settings.url": "formatter.xml",
+    "java.format.enabled": false
 }
