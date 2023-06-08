@@ -1,0 +1,7 @@
+site_name: STEMCraft Documentation
+site_url: https://docs.stemcraft.com.au
+theme: readthedocs
+repo_url: https://github.com/STEMMechanics/STEMCraft
+docs_dir: "docs"
+extra_css:
+    - css/extra.css
