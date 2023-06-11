@@ -5,3 +5,29 @@ api-version: 1.19
 author: nomadjimbob
 website: https://stemcraft.com.au
 description: Provides utilities for the STEMCraft server
+commands:
+    tpspawn:
+        description: Teleport to world spawn
+        permission: stemcraft.tp.spawn
+        permission-message: You do not have permission to do that.
+        usage: /tpspawn [player]
+    pweather:
+        description: Change player weather
+        permission: stemcraft.pweather
+        permission-message: You do not have permission to do that.
+        usage: /pweather <type> [player]
+    tploc:
+        description: Teleports player to a location
+        permission: stemcraft.tp.loc
+        permission-message: You do not have permission to do that.
+        usage: /tploc <name> [player]
+    addtploc:
+        description: Add a Teleport location
+        permission: stemcraft.tp.loc.add
+        permission-message: You do not have permission to do that.
+        usage: /addtploc <name>
+    deltploc:
+        description: Delete a Teleport location
+        permission: stemcraft.tp.loc.del
+        permission-message: You do not have permission to do that.
+        usage: /deltploc <name>
