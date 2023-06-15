@@ -5,26 +5,23 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import com.stemcraft.STEMCraft;
+import org.bukkit.inventory.PlayerInventory;
 
-public class TpSpawnCommand extends CommandItem {
-    public TpSpawnCommand(STEMCraft plugin) {
-        commandList.add("tpspawn");
+public class CommandClearInventory extends SMCommand {
+
+    public CommandClearInventory() {
+        addCommand("clearinventory", "clearinv", "ci");
 
         tabCompletion = new String[][]{
-            {"%player%"},
+            {"clearinventory", "%player%"},
         };
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (command.getName().equalsIgnoreCase("tpspawn")) {
+        if (command.getName().equalsIgnoreCase("clearinventory")) {
+            Player player = (Player) sender;
             Player targetPlayer = null;
-
-            if (!sender.hasPermission("stemcraft.tp.spawn") && !sender.hasPermission("stemcraft.tp.spawn.other")) {
-                sender.sendMessage(ChatColor.RED + "You don't have permission to use this command");
-                return true;
-            }
 
             if(args.length < 1) {
                 if (sender instanceof Player) {
@@ -34,7 +31,7 @@ public class TpSpawnCommand extends CommandItem {
                     return true;
                 }
             } else {
-                if (!sender.hasPermission("stemcraft.tp.spawn.other")) {
+                if (!sender.hasPermission("stemcraft.inventory.clear.other")) {
                     sender.sendMessage(ChatColor.RED + "You don't have permission to use this command on other players");
                     return true;
                 }
@@ -45,12 +42,14 @@ public class TpSpawnCommand extends CommandItem {
                     return true;
                 }
             }
-            
-            targetPlayer.teleport(targetPlayer.getWorld().getSpawnLocation());
-            sender.sendMessage("Teleported " + targetPlayer.getName() + " to the world spawn point");
+
+            PlayerInventory inventory = targetPlayer.getInventory();
+            inventory.clear();
+            inventory.setArmorContents(null);
+
+            player.sendMessage("Inventory cleared for " + targetPlayer.getName());
             return true;
         }
-        
         return false;
     }
 }

@@ -6,28 +6,58 @@ author: nomadjimbob
 website: https://stemcraft.com.au
 description: Provides utilities for the STEMCraft server
 commands:
-    tpspawn:
+    teleportspawn:
         description: Teleport to world spawn
         permission: stemcraft.tp.spawn
         permission-message: You do not have permission to do that.
         usage: /tpspawn [player]
-    pweather:
+    playerweather:
         description: Change player weather
         permission: stemcraft.pweather
         permission-message: You do not have permission to do that.
         usage: /pweather <type> [player]
-    tploc:
+    teleportlocation:
         description: Teleports player to a location
         permission: stemcraft.tp.loc
         permission-message: You do not have permission to do that.
         usage: /tploc <name> [player]
-    addtploc:
+    addteleportlocation:
         description: Add a Teleport location
         permission: stemcraft.tp.loc.add
         permission-message: You do not have permission to do that.
         usage: /addtploc <name>
-    deltploc:
+    delteleportlocation:
         description: Delete a Teleport location
         permission: stemcraft.tp.loc.del
         permission-message: You do not have permission to do that.
         usage: /deltploc <name>
+    clearinventory:
+        description: Clear a players inventory
+        permission: stemcraft.inventory.clear
+        permission-message: You do not have permission to do that.
+        usage: /clearinventory (player)
+    gma:
+        description: Set a players gamemode to adventure
+        permission: minecraft.command.gamemode
+        permission-message: You do not have permission to do that.
+        usage: /gma (player)
+    gmc:
+        description: Set a players gamemode to creative
+        permission: minecraft.command.gamemode
+        permission-message: You do not have permission to do that.
+        usage: /gmc (player)
+    gms:
+        description: Set a players gamemode to survival
+        permission: minecraft.command.gamemode
+        permission-message: You do not have permission to do that.
+        usage: /gms (player)
+    gmsp:
+        description: Set a players gamemode to spectator
+        permission: minecraft.command.gamemode
+        permission-message: You do not have permission to do that.
+        usage: /gmsp (player)
+    nickname:
+        description: Set a players nick name
+        permission: stemcraft.nickname
+        permission-message: You do not have permission to do that.
+        usage: /nickname (player) <name|off>

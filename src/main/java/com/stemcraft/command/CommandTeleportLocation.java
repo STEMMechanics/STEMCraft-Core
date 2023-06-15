@@ -8,20 +8,18 @@ import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import com.stemcraft.STEMCraft;
+import com.stemcraft.database.SMDatabase;
 
-public class TpLocCommand extends CommandItem {
-    STEMCraft plugin;
+public class CommandTeleportLocation extends SMCommand {
     ArrayList<String> locations = new ArrayList<String>();
 
-    public TpLocCommand(STEMCraft plugin) {
-        this.plugin = plugin;
-        commandList.add("tploc");
-        commandList.add("addtploc");
-        commandList.add("deltploc");
+    public CommandTeleportLocation() {
+        addCommand("teleportlocation", "teleportloc", "tploc");
+        addCommand("addteleportlocation", "addteleportloc", "addtploc");
+        addCommand("delteleportlocation", "delteleportloc", "deltploc");
 
         try {
-            PreparedStatement statement = STEMCraft.database().prepareStatement("SELECT name FROM tp_locations WHERE 1");
+            PreparedStatement statement = SMDatabase.prepareStatement("SELECT name FROM tp_locations WHERE 1");
             ResultSet resultSet = statement.executeQuery();
 
             while(resultSet.next()) {
@@ -51,7 +49,7 @@ public class TpLocCommand extends CommandItem {
 
                 String name = args[0];
 
-                PreparedStatement statement = plugin.database().prepareStatement(
+                PreparedStatement statement = SMDatabase.prepareStatement(
                     "SELECT world, x, y, z, yaw, pitch FROM tp_locations WHERE name = ?");
                 statement.setString(0, name);
                 ResultSet resultSet = statement.executeQuery();

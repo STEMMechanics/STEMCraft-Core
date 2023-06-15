@@ -1,6 +1,5 @@
 package com.stemcraft.database;
 
-import java.io.File;
 import java.lang.reflect.Constructor;
 import java.sql.*;
 import java.util.Collections;
@@ -9,24 +8,22 @@ import java.util.List;
 import com.stemcraft.STEMCraft;
 import org.sqlite.SQLiteDataSource;
 
-public class DatabaseHandler {
-    private STEMCraft plugin;
-    private Connection connection;
-    private String dbName = "database.db";
+public class SMDatabase {
+    private static Connection connection;
+    private static String dbName = "database.db";
 
-    public DatabaseHandler(STEMCraft plugin) {
-        this.plugin = plugin;
+    public SMDatabase() {
         connection = null;
     }
 
-    public void connect() {
+    public static void connect() {
         if(connection != null) {
             disconnect();
         }
 
         try {
             SQLiteDataSource dataSource = new SQLiteDataSource();
-            dataSource.setUrl("jdbc:sqlite:" + plugin.getDataFolder().getAbsolutePath() + "/" + dbName);
+            dataSource.setUrl("jdbc:sqlite:" + STEMCraft.getInstance().getDataFolder().getAbsolutePath() + "/" + dbName);
             connection = dataSource.getConnection();
             
             createMigrationTable();
@@ -36,7 +33,7 @@ public class DatabaseHandler {
         }
     }
 
-    public void disconnect() {
+    public static void disconnect() {
         try {
             if (connection != null) {
                 connection.close();
@@ -47,11 +44,11 @@ public class DatabaseHandler {
         }
     }
 
-    public Boolean isConnected() {
+    public static Boolean isConnected() {
         return connection != null;
     }
 
-    public PreparedStatement prepareStatement(String statement) {
+    public static PreparedStatement prepareStatement(String statement) {
         if(connection != null) {
             try {
                 return connection.prepareStatement(statement);
@@ -63,7 +60,7 @@ public class DatabaseHandler {
         return null;
     }
 
-    private void createMigrationTable() {
+    private static void createMigrationTable() {
         String tableName = "migration";
         String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableName + " (id INTEGER PRIMARY KEY AUTOINCREMENT, migration TEXT)";
 
@@ -74,7 +71,7 @@ public class DatabaseHandler {
         }
     }
 
-    private void runMigrations() {
+    private static void runMigrations() {
         List<Class<?>> classMigrationList = STEMCraft.getClassList("com/stemcraft/database/migrations/", false);
         Collections.sort(classMigrationList, new Comparator<Class<?>>() {
             @Override
@@ -95,10 +92,10 @@ public class DatabaseHandler {
                     statement.close();
 
                     Constructor<?> constructor = classMigrationItem.getDeclaredConstructor();
-                    MigrationItem migrationInstance = (MigrationItem) constructor.newInstance();
+                    SMDatabaseMigration migrationInstance = (SMDatabaseMigration) constructor.newInstance();
 
                     System.out.println("Running migration " + migrationName);
-                    migrationInstance.up(this);
+                    migrationInstance.up();
                     
                     statement = connection.prepareStatement("INSERT INTO migration (migration) VALUES (?)");
                     statement.setString(1, migrationName);
@@ -113,7 +110,7 @@ public class DatabaseHandler {
         }
     }
 
-    private void rollbackMigration() {
+    private static void rollbackMigration() {
 
     }
 }

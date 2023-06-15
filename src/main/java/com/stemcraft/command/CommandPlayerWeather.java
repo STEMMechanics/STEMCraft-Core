@@ -5,13 +5,12 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import com.stemcraft.STEMCraft;
 import org.bukkit.WeatherType;
 
-public class PWeatherCommand extends CommandItem {
+public class CommandPlayerWeather extends SMCommand {
 
-    public PWeatherCommand(STEMCraft plugin) {
-        commandList.add("pweather");
+    public CommandPlayerWeather() {
+        addCommand("playerweather", "pweather");
 
         tabCompletion = new String[][]{
             {"pweather", "reset", "%player%"},

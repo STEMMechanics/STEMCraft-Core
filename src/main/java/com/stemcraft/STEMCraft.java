@@ -3,17 +3,24 @@ package com.stemcraft;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import com.stemcraft.command.CommandHandler;
-import com.stemcraft.database.DatabaseHandler;
+import com.stemcraft.api.SMApi;
+import com.stemcraft.command.SMCommand;
+import com.stemcraft.config.SMConfig;
+import com.stemcraft.database.SMDatabase;
 import com.stemcraft.listener.ListenerHandler;
 
-public class STEMCraft extends JavaPlugin {
+public class STEMCraft extends JavaPlugin implements Listener {
     private static STEMCraft instance;
-    private static DatabaseHandler databaseHandler = null;
 
     public static STEMCraft getInstance() {
         return instance;
@@ -29,11 +36,13 @@ public class STEMCraft extends JavaPlugin {
                 dataFolder.mkdirs();
             }
 
-            databaseHandler = new DatabaseHandler(this);
-            databaseHandler.connect();
+            SMConfig.loadValues();
+            SMDatabase.connect();
 
             new ListenerHandler(this);
-            new CommandHandler(this);
+            
+            SMCommand.loadCommands();
+            SMApi.loadServer();
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -42,11 +51,15 @@ public class STEMCraft extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        databaseHandler.disconnect();
+        SMDatabase.disconnect();
+        SMApi.stopServer();
     }
 
-    public static DatabaseHandler database() {
-        return databaseHandler;
+    @EventHandler
+    public void onPluginDisable(PluginDisableEvent event) {
+        if (event.getPlugin() == this) {
+            onDisable();
+        }
     }
 
     public static List<Class<?>> getClassList(String path, Boolean ignoreRoot) {
