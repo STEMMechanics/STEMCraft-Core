@@ -7,6 +7,7 @@ website: https://stemcraft.com.au
 description: Provides utilities for the STEMCraft server
 commands:
     teleportspawn:
+        aliases: [tpspawn]
         description: Teleport to world spawn
         permission: stemcraft.tp.spawn
         permission-message: You do not have permission to do that.
@@ -17,16 +18,25 @@ commands:
         permission-message: You do not have permission to do that.
         usage: /pweather <type> [player]
     teleportlocation:
+        aliases: [tploc]
         description: Teleports player to a location
         permission: stemcraft.tp.loc
         permission-message: You do not have permission to do that.
         usage: /tploc <name> [player]
+    listteleportlocation:
+        aliases: [listtploc]
+        description: List teleport locations
+        permission: stemcraft.tp.loc
+        permission-message: You do not have permission to do that.
+        usage: /listtploc (page)
     addteleportlocation:
+        aliases: [addtploc]
         description: Add a Teleport location
         permission: stemcraft.tp.loc.add
         permission-message: You do not have permission to do that.
         usage: /addtploc <name>
     delteleportlocation:
+        aliases: [deltploc]
         description: Delete a Teleport location
         permission: stemcraft.tp.loc.del
         permission-message: You do not have permission to do that.
@@ -56,8 +66,13 @@ commands:
         permission: minecraft.command.gamemode
         permission-message: You do not have permission to do that.
         usage: /gmsp (player)
-    nickname:
-        description: Set a players nick name
-        permission: stemcraft.nickname
+    maintenance:
+        description: Enables or disables maintenance
+        permission: stemcraft.maintenance
         permission-message: You do not have permission to do that.
-        usage: /nickname (player) <name|off>
+        usage: /maintenance (<on|off>)
+    lockdown:
+        description: Enables or disables a lockdown code
+        permission: stemcraft.lockdown
+        permission-message: You do not have permission to do that.
+        usage: /lockdown (<code|off>)

@@ -17,7 +17,7 @@ public class CommandTeleportSpawn extends SMCommand {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (command.getName().equalsIgnoreCase("tpspawn")) {
+        if (command.getName().equalsIgnoreCase("teleportspawn")) {
             Player targetPlayer = null;
 
             if (!sender.hasPermission("stemcraft.tp.spawn") && !sender.hasPermission("stemcraft.tp.spawn.other")) {

@@ -106,6 +106,7 @@ public class SMDatabase {
                 statement.close();
             } catch (Exception e) {
                 e.printStackTrace();
+                break;
             }
         }
     }

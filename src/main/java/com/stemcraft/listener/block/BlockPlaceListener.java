@@ -2,19 +2,26 @@ package com.stemcraft.listener.block;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import com.stemcraft.component.ComponentLockdown;
 import com.stemcraft.database.SMDatabase;
 
 public class BlockPlaceListener implements Listener {
     
     @EventHandler
     public void BlockPlace(BlockPlaceEvent event) {
-        
+        if (ComponentLockdown.blockedPlayers.contains(event.getPlayer().getUniqueId())) {
+            event.setCancelled(true);
+            event.getPlayer().sendMessage(ChatColor.YELLOW + "You are required to enter the login code before you can interact");
+            return;
+        }
+
         // Check if waystone
         Block block = event.getBlock();
         if (block.getType() == Material.LODESTONE) {

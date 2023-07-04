@@ -3,18 +3,17 @@ package com.stemcraft;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
-import org.bukkit.entity.Player;
+import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import com.stemcraft.api.SMApi;
 import com.stemcraft.command.SMCommand;
+import com.stemcraft.component.SMComponent;
 import com.stemcraft.config.SMConfig;
 import com.stemcraft.database.SMDatabase;
 import com.stemcraft.listener.ListenerHandler;
@@ -30,6 +29,12 @@ public class STEMCraft extends JavaPlugin implements Listener {
     public void onEnable() {
         instance = this;
 
+        if (!Bukkit.getPluginManager().isPluginEnabled("ProtocolLib")) {
+            getLogger().severe("ProtocolLib is not installed! This plugin requires ProtocolLib.");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+
         try {
             File dataFolder = this.getDataFolder();
             if (!dataFolder.exists()) {
@@ -41,6 +46,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
             new ListenerHandler(this);
             
+            SMComponent.loadComponents();
             SMCommand.loadCommands();
             SMApi.loadServer();
         }
