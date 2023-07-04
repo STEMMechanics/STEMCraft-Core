@@ -42,6 +42,7 @@ commands:
         permission-message: You do not have permission to do that.
         usage: /deltploc <name>
     clearinventory:
+        aliases: [clearinv, ci]
         description: Clear a players inventory
         permission: stemcraft.inventory.clear
         permission-message: You do not have permission to do that.

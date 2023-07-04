@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
@@ -53,6 +54,8 @@ public class BlockBreakListener implements Listener {
         statement.setInt(4, block.getZ());
         statement.executeUpdate();
         statement.close();
+
+        block.getWorld().playSound(block.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 0.5f, 2.0f);
     }
 
 }

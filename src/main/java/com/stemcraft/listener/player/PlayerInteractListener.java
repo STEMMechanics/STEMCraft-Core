@@ -3,23 +3,33 @@ package com.stemcraft.listener.player;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashSet;
+import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Effect;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.scheduler.BukkitRunnable;
+import com.stemcraft.STEMCraft;
 import com.stemcraft.component.ComponentLockdown;
 import com.stemcraft.database.SMDatabase;
+import com.stemcraft.utility.Timer;
 import com.stemcraft.utility.Util;
 
 public class PlayerInteractListener implements Listener {
-    
+    private static final Set<String> nonce = new HashSet<>();
+
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
@@ -36,20 +46,37 @@ public class PlayerInteractListener implements Listener {
         }
 
         // Check for waystone
-        if (clickedBlock.getType() == Material.LODESTONE) {
-            if(checkWaystoneExists(clickedBlock.getLocation())) {
-                teleportToNearestWaystone(clickedBlock.getLocation(), player);
+        if (!nonce.contains(player.getName())) {
+            nonce.add(player.getName());
+            // new BukkitRunnable() {
+            //     @Override
+            //     public void run() {
+            //         nonce.remove(player.getName());
+            //     }
+            // }.runTaskLater(STEMCraft.getInstance(), 5);
+
+            Timer.start(5L, (data) -> {
+                nonce.remove(player.getName());
+            }, null);
+
+            if(player.getGameMode() == GameMode.SURVIVAL && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                if (clickedBlock.getType() == Material.LODESTONE && (player.getInventory().getItemInMainHand() == null || player.getInventory().getItemInMainHand().getType().equals(Material.AIR))) {
+                    if(checkWaystoneExists(clickedBlock.getLocation())) {
+                        teleportToNearestWaystone(clickedBlock.getLocation(), player);
+                    }
+                }
             }
         }
     }
 
     public boolean checkWaystoneExists(Location location) {
         try {
-            String query = "SELECT COUNT(*) FROM your_table WHERE location_x = ? AND location_y = ? AND location_z = ?";
+            String query = "SELECT COUNT(*) FROM waystones WHERE x = ? AND y = ? AND z = ? AND world = ?";
             PreparedStatement statement = SMDatabase.prepareStatement(query);
             statement.setInt(1, location.getBlockX());
             statement.setInt(2, location.getBlockY());
             statement.setInt(3, location.getBlockZ());
+            statement.setString(4, location.getWorld().getName());
             
             // Execute the query and retrieve the result
             ResultSet resultSet = statement.executeQuery();
@@ -73,12 +100,13 @@ public class PlayerInteractListener implements Listener {
         int z = location.getBlockZ();
         
         // Adjust the coordinates by +/- 1000
-        int minX = x - 1000;
-        int minY = y - 1000;
-        int minZ = z - 1000;
-        int maxX = x + 1000;
-        int maxY = y + 1000;
-        int maxZ = z + 1000;
+        int search = 2000;
+        int minX = x - search;
+        int minY = y - search;
+        int minZ = z - search;
+        int maxX = x + search;
+        int maxY = y + search;
+        int maxZ = z + search;
         
         try {
             PreparedStatement statement = SMDatabase.prepareStatement(
@@ -104,19 +132,25 @@ public class PlayerInteractListener implements Listener {
                 int resultY = resultSet.getInt("y");
                 int resultZ = resultSet.getInt("z");
 
-                Location waystoneLocation = new Location(Bukkit.getWorld(resultWorldName), resultX, resultY, resultZ);
-                double distance = waystoneLocation.distance(location);
-                if (distance < closestDistance) {
-                    closestWaystoneLocation = waystoneLocation;
-                    closestDistance = distance;
+                if(!resultWorldName.equalsIgnoreCase(location.getWorld().getName()) || resultX != location.getBlockX() || resultY != location.getBlockY() || resultZ != location.getBlockZ()) {
+                    Location waystoneLocation = new Location(Bukkit.getWorld(resultWorldName), resultX, resultY, resultZ);
+                    double distance = waystoneLocation.distance(location);
+                    if (distance < closestDistance) {
+                        closestWaystoneLocation = waystoneLocation;
+                        closestDistance = distance;
+                    }
                 }
             }
 
             if (closestWaystoneLocation != null) {
                 // Teleport the player to a safe location near the closest waystone
-                Location safeLocation = Util.findSafeLocation(closestWaystoneLocation, 6);
+                Location safeLocation = Util.findSafeLocation(closestWaystoneLocation, 6, true);
                 if (safeLocation != null) {
+                    location.getWorld().playSound(location, Sound.BLOCK_METAL_PRESSURE_PLATE_CLICK_OFF, 1f, 0.5f);
+                    location.getWorld().playSound(location, Sound.BLOCK_BEACON_ACTIVATE, 0.5f, 3f);
                     player.teleport(safeLocation);
+                    location.getWorld().playSound(safeLocation, Sound.BLOCK_BEACON_ACTIVATE, 0.5f, 3f);
+                    location.getWorld().playSound(safeLocation, Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
                 } else {
                     player.sendMessage("Unable to find a safe location near the waystone");
                 }

@@ -10,7 +10,7 @@ import org.bukkit.inventory.PlayerInventory;
 public class CommandClearInventory extends SMCommand {
 
     public CommandClearInventory() {
-        addCommand("clearinventory", "clearinv", "ci");
+        addCommand("clearinventory");
 
         tabCompletion = new String[][]{
             {"clearinventory", "%player%"},

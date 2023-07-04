@@ -57,6 +57,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
+        SMComponent.unloadComponents();
         SMDatabase.disconnect();
         SMApi.stopServer();
     }
