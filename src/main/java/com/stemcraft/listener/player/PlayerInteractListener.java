@@ -100,7 +100,7 @@ public class PlayerInteractListener implements Listener {
         int z = location.getBlockZ();
         
         // Adjust the coordinates by +/- 1000
-        int search = 2000;
+        int search = 4000;
         int minX = x - search;
         int minY = y - search;
         int minZ = z - search;

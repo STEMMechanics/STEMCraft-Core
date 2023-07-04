@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import com.stemcraft.component.ComponentLockdown;
+import com.stemcraft.component.ComponentWaystone;
 import com.stemcraft.database.SMDatabase;
 
 public class BlockPlaceListener implements Listener {
@@ -48,7 +49,7 @@ public class BlockPlaceListener implements Listener {
         Block blockBelow = block.getRelative(BlockFace.DOWN);
 
         String blockBelowName = blockBelow.getType().name();
-        if (blockBelowName.equals("GOLD_BLOCK") || blockBelowName.equals("EMERALD_BLOCK")) {
+        if(ComponentWaystone.waystoneTypes.contains(blockBelowName)) {
             PreparedStatement statement = SMDatabase.prepareStatement(
                     "INSERT INTO waystones (world, x, y, z, under_block) VALUES (?, ?, ?, ?, ?)"
             );
