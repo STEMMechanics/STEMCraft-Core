@@ -3,6 +3,7 @@ package com.stemcraft;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
@@ -20,6 +21,7 @@ import com.stemcraft.listener.ListenerHandler;
 
 public class STEMCraft extends JavaPlugin implements Listener {
     private static STEMCraft instance;
+    private static HashMap<String, Boolean> dependReady = new HashMap<>();
 
     public static STEMCraft getInstance() {
         return instance;
@@ -95,5 +97,20 @@ public class STEMCraft extends JavaPlugin implements Listener {
         }
 
         return classes;
+    }
+
+    public static Boolean getDependencyReady(String name) {
+        String lowerName = name.toLowerCase();
+
+        if(dependReady.containsKey(name.toLowerCase())) {
+            return dependReady.get(lowerName);
+        }
+
+        return false;
+    }
+
+    public static void setDependencyReady(String name, Boolean ready) {
+        String lowerName = name.toLowerCase();
+        dependReady.put(lowerName, ready);
     }
 }

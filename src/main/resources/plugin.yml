@@ -5,6 +5,7 @@ api-version: 1.19
 author: nomadjimbob
 website: https://stemcraft.com.au
 description: Provides utilities for the STEMCraft server
+softdepend: [Citizens, ItemsAdder]
 commands:
     teleportspawn:
         aliases: [tpspawn]
