@@ -78,3 +78,8 @@ commands:
         permission: stemcraft.lockdown
         permission-message: You do not have permission to do that.
         usage: /lockdown (<code|off>)
+    back:
+        description: Teleport back to the previous location
+        permission: stemcraft.teleport.back
+        permission-message: You do not have permission to do that.
+        usage: /back
