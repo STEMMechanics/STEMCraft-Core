@@ -12,5 +12,6 @@
     "java.compile.nullAnalysis.mode": "automatic",
     "java.format.settings.profile": "CustomGoogleStyle",
     "java.format.settings.url": "formatter.xml",
-    "java.format.enabled": false
+    "java.format.enabled": false,
+    "editor.wordBasedSuggestions": true
 }

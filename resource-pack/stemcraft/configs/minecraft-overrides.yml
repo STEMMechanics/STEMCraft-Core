@@ -1,0 +1,69 @@
+info:
+    namespace: minecraft
+recipes:
+    crafting_table:
+        CRAFTING_TABLE:
+            enabled: true
+            ingredients:
+                A: STRIPPED_OAK_WOOD
+                B: STRIPPED_OAK_LOG
+                Z: IRON_INGOT
+            pattern:
+                - ABA
+                - AZA
+                - ABA
+            result:
+                item: CRAFTING_TABLE
+                amount: 1
+        CRAFTING_TABLE_2:
+            enabled: true
+            ingredients:
+                A: STRIPPED_SPRUCE_WOOD
+                B: STRIPPED_SPRUCE_LOG
+                Z: IRON_INGOT
+            pattern:
+                - ABA
+                - AZA
+                - ABA
+            result:
+                item: CRAFTING_TABLE
+                amount: 1
+        CRAFTING_TABLE_3:
+            enabled: true
+            ingredients:
+                A: STRIPPED_BIRCH_WOOD
+                B: STRIPPED_BIRCH_LOG
+                Z: IRON_INGOT
+            pattern:
+                - ABA
+                - AZA
+                - ABA
+            result:
+                item: CRAFTING_TABLE
+                amount: 1
+        CRAFTING_TABLE_4:
+            enabled: true
+            ingredients:
+                A: STRIPPED_JUNGLE_WOOD
+                B: STRIPPED_JUNGLE_LOG
+                Z: IRON_INGOT
+            pattern:
+                - ABA
+                - AZA
+                - ABA
+            result:
+                item: CRAFTING_TABLE
+                amount: 1
+        CRAFTING_TABLE_5:
+            enabled: true
+            ingredients:
+                A: STRIPPED_DARK_OAK_WOOD
+                B: STRIPPED_DARK_OAK_LOG
+                Z: IRON_INGOT
+            pattern:
+                - ABA
+                - AZA
+                - ABA
+            result:
+                item: CRAFTING_TABLE
+                amount: 1

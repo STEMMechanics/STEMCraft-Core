@@ -5,63 +5,131 @@ import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import com.stemcraft.api.SMApi;
-import com.stemcraft.command.SMCommand;
-import com.stemcraft.component.SMComponent;
-import com.stemcraft.config.SMConfig;
-import com.stemcraft.database.SMDatabase;
-import com.stemcraft.listener.ListenerHandler;
+import org.bukkit.scheduler.BukkitRunnable;
+import com.stemcraft.manager.SMCommandManager;
+import com.stemcraft.manager.SMConfigManager;
+import com.stemcraft.manager.SMDatabaseManager;
+import com.stemcraft.manager.SMDependManager;
+import com.stemcraft.manager.SMEventManager;
+import com.stemcraft.manager.SMFeatureManager;
+import com.stemcraft.manager.SMLanguageManager;
 
 public class STEMCraft extends JavaPlugin implements Listener {
     private static STEMCraft instance;
-    private static HashMap<String, Boolean> dependReady = new HashMap<>();
+    String[] requiredPlugins = {"NBTAPI", "PlaceholderAPI", "WorldEdit", "WorldGuard"};
+
+    private SMEventManager eventManager = new SMEventManager();
+    private SMCommandManager commandManager = new SMCommandManager();
+    private SMFeatureManager featureManager = new SMFeatureManager();
+    private SMLanguageManager languageManager = new SMLanguageManager();
+    private SMDatabaseManager databaseManager = new SMDatabaseManager();
+    private SMConfigManager configManager = new SMConfigManager();
+    private SMDependManager dependManager = new SMDependManager();
+
+    private Map<UUID, BukkitRunnable> delayedTasks = new HashMap<>();
+
+
+    public SMEventManager getEventManager() {
+        return this.eventManager;
+    }
+
+    public SMConfigManager getConfigManager() {
+        return this.configManager;
+    }
+
+    public SMDatabaseManager getDatabaseManager() {
+        return this.databaseManager;
+    }
+
+    public SMCommandManager getCommandManager() {
+        return this.commandManager;
+    }
+
+    public SMFeatureManager getFeatureManager() {
+        return this.featureManager;
+    }
+
+    public SMLanguageManager getLanguageManager() {
+        return this.languageManager;
+    }
+
+    public SMDependManager getDependManager() {
+        return this.dependManager;
+    }
 
     public static STEMCraft getInstance() {
         return instance;
     }
 
     @Override
-    public void onEnable() {
-        instance = this;
+    public void onLoad() {
+        STEMCraft.instance = this;
 
-        if (!Bukkit.getPluginManager().isPluginEnabled("ProtocolLib")) {
-            getLogger().severe("ProtocolLib is not installed! This plugin requires ProtocolLib.");
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
-
-        try {
-            File dataFolder = this.getDataFolder();
-            if (!dataFolder.exists()) {
-                dataFolder.mkdirs();
+        for (String pluginName : this.requiredPlugins) {
+            if (Bukkit.getPluginManager().getPlugin(pluginName) == null) {
+                getLogger().severe(pluginName + " is not installed! This plugin requires " + pluginName);
+                Bukkit.getPluginManager().disablePlugin(this);
+                return;
             }
-
-            SMConfig.loadValues();
-            SMDatabase.connect();
-
-            new ListenerHandler(this);
-            
-            SMComponent.loadComponents();
-            SMCommand.loadCommands();
-            SMApi.loadServer();
         }
-        catch(Exception e) {
-            e.printStackTrace();
-        }
+
+        this.getEventManager().onLoad(this);
+        this.getDependManager().onLoad(this);
+        this.getConfigManager().onLoad(this);
+        this.getLanguageManager().onLoad(this);
+        this.getDatabaseManager().onLoad(this);
+        this.getCommandManager().onLoad(this);
+        this.getFeatureManager().onLoad(this);
     }
 
     @Override
+    public void onEnable() {
+        for (String pluginName : this.requiredPlugins) {
+            if (!Bukkit.getPluginManager().isPluginEnabled(pluginName)) {
+                getLogger().severe(pluginName + " is not enabled! This plugin requires " + pluginName);
+                Bukkit.getPluginManager().disablePlugin(this);
+                return;
+            }
+        }
+
+        this.getEventManager().onEnable();
+        this.getDependManager().onEnable();
+        this.getConfigManager().onEnable();
+        this.getLanguageManager().onEnable();
+        this.getDatabaseManager().onEnable();
+        this.getCommandManager().onEnable();
+        this.getFeatureManager().onEnable();
+
+        String[][] tabCompletions = new String[][]{
+                {"stemcraft", "info"},
+            };
+            this.getCommandManager().registerStemCraftOption("version", (CommandSender sender, String[] args) -> {
+                sender.sendMessage("STEMCraft " + this.getVersion());
+                return true;
+            }, tabCompletions);
+    }
+
+
+    @Override
     public void onDisable() {
-        SMComponent.unloadComponents();
-        SMDatabase.disconnect();
-        SMApi.stopServer();
+        this.getEventManager().onDisable();
+        this.getDependManager().onDisable();
+        this.getConfigManager().onDisable();
+        this.getLanguageManager().onDisable();
+        this.getDatabaseManager().onDisable();
+        this.getCommandManager().onDisable();
+        this.getFeatureManager().onDisable();
     }
 
     @EventHandler
@@ -71,7 +139,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
         }
     }
 
-    public static List<Class<?>> getClassList(String path, Boolean ignoreRoot) {
+    public List<Class<?>> getClassList(String path, Boolean ignoreRoot) {
         List<Class<?>> classes = new ArrayList<>();
 
         try {
@@ -99,18 +167,64 @@ public class STEMCraft extends JavaPlugin implements Listener {
         return classes;
     }
 
-    public static Boolean getDependencyReady(String name) {
-        String lowerName = name.toLowerCase();
-
-        if(dependReady.containsKey(name.toLowerCase())) {
-            return dependReady.get(lowerName);
-        }
-
-        return false;
+    public <T> int delayedTask(long delay, Consumer<T> callback, T data) {
+        return delayedTask(delay, null, callback, data);
     }
 
-    public static void setDependencyReady(String name, Boolean ready) {
-        String lowerName = name.toLowerCase();
-        dependReady.put(lowerName, ready);
+    public <T> int delayedTask(long delay, UUID nonce, Consumer<T> callback, T data) {
+        if(nonce != null) {
+            if (delayedTasks.containsKey(nonce)) {
+                delayedTasks.get(nonce).cancel();
+                delayedTasks.remove(nonce);
+            }
+        }
+
+        BukkitRunnable task = new BukkitRunnable() {
+            @Override
+            public void run() {
+                callback.accept(data);
+
+                if(nonce != null) {
+                    delayedTasks.remove(nonce);
+                } else {
+                    cancelDelayedTask(this.getTaskId());
+                }
+            }
+        };
+
+        if(nonce != null) {
+            delayedTasks.put(nonce, task);
+        }
+
+        task.runTaskLater(this, delay);
+        return task.getTaskId();
+    }
+
+    public void cancelDelayedTask(UUID nonce) {
+        if(nonce != null) {
+            if (delayedTasks.containsKey(nonce)) {
+                delayedTasks.get(nonce).cancel();
+                delayedTasks.remove(nonce);
+            }
+        }
+    }
+
+    public void cancelDelayedTask(int taskId) {
+        List<UUID> keysToRemove = new ArrayList<>();
+        
+        for (Map.Entry<UUID, BukkitRunnable> entry : delayedTasks.entrySet()) {
+            if (entry.getValue().getTaskId() == taskId) {
+                keysToRemove.add(entry.getKey());
+                entry.getValue().cancel();
+            }
+        }
+    
+        for (UUID key : keysToRemove) {
+            delayedTasks.remove(key);
+        }
+    }
+
+    public String getVersion() {
+        return this.getDescription().getVersion();
     }
 }
