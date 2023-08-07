@@ -14,11 +14,12 @@ public class SMRemoveRecipes extends SMFeature {
 
             for (int i = 0; i < itemList.length; i++) {
                 String item = itemList[i].trim();
+                if(item.length() > 0) {
+                    NamespacedKey namespaceItem = NamespacedKey.fromString(item);
 
-                NamespacedKey namespaceItem = NamespacedKey.fromString(item);
-
-                Bukkit.removeRecipe(namespaceItem);
-                System.out.println("Removed recipe " + namespaceItem.getNamespace() + ":" + namespaceItem.getKey());
+                    Bukkit.removeRecipe(namespaceItem);
+                    this.plugin.getLogger().info("Removed recipe " + namespaceItem.getNamespace() + ":" + namespaceItem.getKey());
+                }
             }
         } else {
             System.out.println("Config option remove-recipes is invalid");
