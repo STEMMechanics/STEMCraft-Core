@@ -39,7 +39,6 @@ public class SMChunkPruning extends SMFeature {
         }
 
         this.plugin.getConfigManager().getConfig().registerValue("chunk-regenerate-delay", 56, "Number of days after which unvisited chunks are regenerated");
-        this.pruneChunks();
 
         this.plugin.getDatabaseManager().addMigration("230805165900_CreateChunkPruneTable", (databaseManager) -> {
             databaseManager.prepareStatement(
@@ -47,6 +46,8 @@ public class SMChunkPruning extends SMFeature {
                 "chunk TEXT PRIMARY KEY," +
                 "last_visited INTEGER NOT NULL)").executeUpdate();
         });
+
+        this.pruneChunks();
 
         this.plugin.getEventManager().registerEvent(BlockBreakEvent.class, (listener, rawEvent) -> {
             BlockBreakEvent event = (BlockBreakEvent) rawEvent;
