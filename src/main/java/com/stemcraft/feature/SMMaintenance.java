@@ -34,7 +34,7 @@ public class SMMaintenance extends SMFeature {
                 return true;
             }
 
-            if(args.length > 1) {
+            if(args.length >= 1) {
                 if(args[0].equalsIgnoreCase("enable")) {
                     this.plugin.getDatabaseManager().setMeta("maintenance", true);
 
