@@ -9,13 +9,15 @@ public class SMMOTD extends SMFeature {
         this.plugin.getEventManager().registerEvent(ServerListPingEvent.class, (listener, rawEvent) -> {
             ServerListPingEvent event = (ServerListPingEvent)rawEvent;
 
-            String motd = "&6Now on 1.20.1";
+            String motdTitle = this.plugin.getConfigManager().getConfig().registerValue("motd-title", "&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■ &e&lSTEMCRAFT &3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■", "Server MOTD");
+            String motdMessage = this.plugin.getConfigManager().getConfig().registerValue("motd-message", "", "");
 
             if(this.plugin.getDatabaseManager().getMeta("maintenance", false)) {
-                motd = "&6Server under maintenance";
+                motdTitle = "&6Server under maintenance";
+                motdMessage = "";
             }
     
-            event.setMotd(ChatColor.translateAlternateColorCodes('&', motd));
+            event.setMotd(ChatColor.translateAlternateColorCodes('&', motdTitle) + "\n" + ChatColor.translateAlternateColorCodes('&', "&8v" + this.plugin.getVersion() + " &f" + motdMessage));
         });
 
         return true;
