@@ -8,7 +8,7 @@ public class SMLobby extends SMFeature {
     protected Boolean onEnable() {
         this.plugin.getLanguageManager().registerPhrase("LOBBY_TELEPORTED", "&eTeleported back to lobby");
 
-        String[] aliases = new String[]{"hub, tplobby, tphub"};
+        String[] aliases = new String[]{"hub", "tplobby", "tphub"};
 
         this.plugin.getCommandManager().registerCommand("lobby", (sender, command, label, args) -> {
             if (!(sender instanceof Player)) {
