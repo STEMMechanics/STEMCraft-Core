@@ -11,15 +11,16 @@ public class SMTeleportSpawn extends SMFeature {
         this.plugin.getLanguageManager().registerPhrase("TPSPAWN_FOR", "Teleported %PLAYER_NAME% to the world spawn");
         this.plugin.getLanguageManager().registerPhrase("TPSPAWN_BY", "Teleported to the world spawn by %PLAYER_NAME%");
 
-        String[] aliases = new String[]{"tpspawn"};
+        String commandName = "tpspawn";
+        String[] aliases = new String[]{};
         String[][] tabCompletions = new String[][]{
             {"teleportspawn", "%player%"},
         };
 
-        this.plugin.getCommandManager().registerCommand("teleportspawn", (sender, command, label, args) -> {
+        this.plugin.getCommandManager().registerCommand(commandName, (sender, command, label, args) -> {
             Player targetPlayer = null;
 
-            if (!sender.hasPermission("stemcraft.tp.spawn") && !sender.hasPermission("stemcraft.tp.spawn.other")) {
+            if (!sender.hasPermission("stemcraft.teleport.spawn") && !sender.hasPermission("stemcraft.teleport.spawn.other")) {
                 this.plugin.getLanguageManager().sendPhrase(sender, "CMD_NO_PERMISSION");
                 return true;
             }
@@ -32,7 +33,7 @@ public class SMTeleportSpawn extends SMFeature {
                     return true;
                 }
             } else {
-                if (!sender.hasPermission("stemcraft.tp.spawn.other")) {
+                if (!sender.hasPermission("stemcraft.teleport.spawn.other")) {
                     this.plugin.getLanguageManager().sendPhrase(sender, "CMD_NO_PERMISSION");
                     return true;
                 }

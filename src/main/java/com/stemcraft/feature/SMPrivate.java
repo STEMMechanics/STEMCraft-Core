@@ -3,6 +3,7 @@ package com.stemcraft.feature;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
@@ -14,40 +15,44 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-public class SMPassword extends SMFeature {
+public class SMPrivate extends SMFeature {
     private Set<UUID> blockedPlayers = new HashSet<>();
     private Set<String> interactNonce = new HashSet<>();
 
     @Override
     protected Boolean onEnable() {
-        this.plugin.getLanguageManager().registerPhrase("PASSWORD_CORRECT", "&eLogin approved. Thanks!");
-        this.plugin.getLanguageManager().registerPhrase("PASSWORD_INCORRECT", "&cIncorrect login code. Please try again");
-        this.plugin.getLanguageManager().registerPhrase("PASSWORD_REQUIRED_CHAT", "\n&eEnter the login password in chat\n");
-        this.plugin.getLanguageManager().registerPhrase("PASSWORD_REQUIRED_KICK", "&cYou did not enter the login password");
-        this.plugin.getLanguageManager().registerPhrase("PASSWORD_REQUIRED", "&cEnter the login code before interacting");
+        this.plugin.getLanguageManager().registerPhrase("PRIVATE_CORRECT", ":info_blue: &bPrivate password correct!");
+        this.plugin.getLanguageManager().registerPhrase("PRIVATE_INCORRECT", ":warning_red: &cIncorrect password");
+        this.plugin.getLanguageManager().registerPhrase("PRIVATE_REQUIRED_CHAT", "&e:warning_yellow: &eThe server in private mode.\n \n    &fYou are required to enter the password in chat to\n    stay connected");
+        this.plugin.getLanguageManager().registerPhrase("PRIVATE_REQUIRED_KICK", "&cYou did not enter the login password");
+        this.plugin.getLanguageManager().registerPhrase("PRIVATE_REQUIRED", ":warning_red: &cEnter the password before interacting");
 
-        this.plugin.getConfigManager().getConfig().registerValue("password", "", "Password required to play on this server");
+        this.plugin.getConfigManager().getConfig().registerValue("private-password", "", "Password required to play on this server");
 
         // Player Join Event
         this.plugin.getEventManager().registerEvent(PlayerJoinEvent.class, (listener, rawEvent) -> {
             PlayerJoinEvent event = (PlayerJoinEvent)rawEvent;
             Player player = event.getPlayer();
 
-            if(!player.hasPermission("stemcraft.password")) {
-                String password = this.plugin.getConfigManager().getConfig().getValue("password");
+            if(!player.hasPermission("stemcraft.private")) {
+                String password = this.plugin.getConfigManager().getConfig().getValue("private-password");
                 if(password.length() > 0) {
                     this.blockedPlayers.add(player.getUniqueId());
 
                     this.plugin.delayedTask(20 * 20L, (data) -> {
                         if (blockedPlayers.contains(player.getUniqueId())) {
                             if(this.plugin.getServer().getOnlinePlayers().contains(player)) {
-                                player.kickPlayer(this.plugin.getLanguageManager().getPhrase("PASSWORD_REQUIRED_KICK"));
+                                player.kickPlayer(this.plugin.getLanguageManager().getPhrase("PRIVATE_REQUIRED_KICK"));
                             }
                         }
                     }, null);
 
                     this.plugin.delayedTask(20L, (data) -> {
-                        this.plugin.getLanguageManager().sendPhrase(player, "PASSWORD_REQUIRED_CHAT");
+                        this.plugin.getLanguageManager().sendBlank(player);
+                        this.plugin.getLanguageManager().sendSeperator(player, ChatColor.YELLOW);
+                        this.plugin.getLanguageManager().sendPhrase(player, "PRIVATE_REQUIRED_CHAT");
+                        this.plugin.getLanguageManager().sendSeperator(player, ChatColor.YELLOW);
+                        this.plugin.getLanguageManager().sendBlank(player);
                     }, null);
                 }
             }
@@ -60,17 +65,17 @@ public class SMPassword extends SMFeature {
             UUID playerId = player.getUniqueId();
 
             if(this.blockedPlayers.contains(playerId)) {
-                String password = this.plugin.getConfigManager().getConfig().getValue("password");
+                String password = this.plugin.getConfigManager().getConfig().getValue("private-password");
                 if(password.length() > 0) {
                     event.setCancelled(true);
 
                     String message = event.getMessage().toLowerCase();
                     if (!message.equalsIgnoreCase(password)) {
-                        this.plugin.getLanguageManager().sendPhrase(player, "PASSWORD_INCORRECT");
+                        this.plugin.getLanguageManager().sendPhrase(player, "PRIVATE_INCORRECT");
                         return;
                     }
 
-                    this.plugin.getLanguageManager().sendPhrase(player, "PASSWORD_CORRECT");
+                    this.plugin.getLanguageManager().sendPhrase(player, "PRIVATE_CORRECT");
                 }
 
                 this.blockedPlayers.remove(playerId);
@@ -144,7 +149,7 @@ public class SMPassword extends SMFeature {
             UUID playerId = player.getUniqueId();
 
             if(this.blockedPlayers.contains(playerId)) {
-                this.plugin.getLanguageManager().sendPhrase(player, "PASSWORD_REQUIRED");
+                this.plugin.getLanguageManager().sendPhrase(player, "PRIVATE_REQUIRED");
                 return true;
             }
         }

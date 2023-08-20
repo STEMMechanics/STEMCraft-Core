@@ -216,7 +216,7 @@ public class SMConfig {
                             updatedFile.add("# " + this.headers.get(addKey));
                         }
 
-                        updatedFile.add(addKey + ": " + this.values.get(addKey));
+                        updatedFile.add(addKey + ": " + this.formatValue(this.values.get(addKey)));
                         appendKeys.remove(prevKey);
                         prevKey = addKey;
                     }
@@ -226,7 +226,7 @@ public class SMConfig {
                         int colonIndex = line.indexOf(":");
                         String key = line.substring(0, colonIndex).trim();
                         if(this.values.containsKey(key)) {
-                            line = key + ": " + this.values.get(key);
+                            line = key + ": " + this.formatValue(this.values.get(key));
                             prevKey = key;
                         }
                     }
@@ -255,5 +255,45 @@ public class SMConfig {
         } catch(Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public String formatValue(String value) {
+        if (value == null) {
+            return null;
+        }
+        
+        // Check if the value starts with "&"
+        boolean startsWithAmpersand = value.startsWith("&");
+        
+        // Check if the value needs quotes
+        boolean needsQuotes = false;
+        
+        // Check for special characters
+        if (value.contains(":") || value.contains("-") || value.contains("[") || value.contains("]")) {
+            needsQuotes = true;
+        }
+        
+        // Check for whitespace
+        if (value.trim().length() != value.length()) {
+            needsQuotes = true;
+        }
+        
+        // Check for special formats
+        // Add more checks for other formats as needed
+        
+        if (startsWithAmpersand || needsQuotes) {
+            return "\"" + escapeString(value) + "\"";
+        } else {
+            return value;
+        }
+    }
+    
+    // Additional function to escape special characters in the string
+    private String escapeString(String value) {
+        return value
+            .replace("\\", "\\\\")   // Escape backslashes
+            .replace("\"", "\\\"")   // Escape double quotes
+            .replace("\n", "\\n")    // Escape newline
+            .replace("\t", "\\t");   // Escape tab
     }
 }

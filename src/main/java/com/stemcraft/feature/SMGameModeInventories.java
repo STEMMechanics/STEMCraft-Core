@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.PlayerInventory;
 import com.stemcraft.SMSerialize;
 import com.stemcraft.library.SMXPCalculator;
@@ -33,6 +34,15 @@ public class SMGameModeInventories extends SMFeature {
                 "ADD COLUMN reason TEXT DEFAULT ''").executeUpdate();
         });
 
+        this.plugin.getDatabaseManager().addMigration("230817181600_AddWorldToGameModeInventoriesTable", (databaseManager) -> {
+            databaseManager.prepareStatement(
+                "ALTER TABLE gamemode_inventories " +
+                "ADD COLUMN world TEXT DEFAULT 'world'").executeUpdate();
+            
+            databaseManager.prepareStatement(
+                    "UPDATE gamemode_inventories SET world = 'world' WHERE world = ''").executeUpdate();
+        });
+
         this.plugin.getLanguageManager().registerPhrase("GMI_FAILED", "&cThe server failed updating your inventory");
 
         this.plugin.getEventManager().registerEvent(PlayerGameModeChangeEvent.class, (listener, rawEvent) -> {
@@ -45,7 +55,7 @@ public class SMGameModeInventories extends SMFeature {
                 return;
             }
             
-            if(!this.LoadLastInventory(player, newGameMode)) {
+            if(!this.LoadLastInventory(player, newGameMode, player.getLocation().getWorld().getName())) {
                 this.plugin.getLanguageManager().sendPhrase(player, "GMI_FAILED");
                 return;
             }
@@ -59,14 +69,30 @@ public class SMGameModeInventories extends SMFeature {
             }
         });
 
+        this.plugin.getEventManager().registerEvent(PlayerTeleportEvent.class, (listener, rawEvent) -> {
+            PlayerTeleportEvent event = (PlayerTeleportEvent)rawEvent;
+            Player player = event.getPlayer();
+
+            this.SaveInventory(player, event.getFrom().getWorld().getName(), false, "Player Teleport");
+            this.LoadLastInventory(player, player.getGameMode().toString(), event.getTo().getWorld().getName());
+        });
+
+
         return true;
     }
 
-    public Boolean LoadLastInventory(Player player, String gameMode) {
-        return this.LoadLastInventory(player, gameMode, false);
+    public Boolean LoadLastInventory(Player player) {
+        String gameMode = player.getGameMode().toString();
+        String world = player.getLocation().getWorld().getName();
+
+        return this.LoadLastInventory(player, gameMode, world, false);
     }
 
-    public Boolean LoadLastInventory(Player player, String gameMode, Boolean death) {
+    public Boolean LoadLastInventory(Player player, String gameMode, String world) {
+        return this.LoadLastInventory(player, gameMode, world, false);
+    }
+
+    public Boolean LoadLastInventory(Player player, String gameMode, String world, Boolean death) {
         Boolean success = true;
         Boolean foundInventory = false;
         SMXPCalculator xpc = new SMXPCalculator(player);
@@ -79,11 +105,12 @@ public class SMGameModeInventories extends SMFeature {
         // Load player state
         try {
             PreparedStatement statement = this.plugin.getDatabaseManager().prepareStatement(
-                    "SELECT * FROM gamemode_inventories WHERE uuid = ? AND death = ? AND gamemode = ? ORDER BY created DESC"
+                    "SELECT * FROM gamemode_inventories WHERE uuid = ? AND death = ? AND gamemode = ? AND world = ? ORDER BY created DESC"
             );
             statement.setString(1, uuid);
             statement.setInt(2, 0);
             statement.setString(3, gameMode);
+            statement.setString(4, world);
             
             ResultSet resultSet = statement.executeQuery();
 
@@ -126,14 +153,18 @@ public class SMGameModeInventories extends SMFeature {
     }
 
     public Boolean SaveInventory(Player player) {
-        return SaveInventory(player, false, "");
+        return SaveInventory(player, player.getLocation().getWorld().getName(), false, "");
     }
 
     public Boolean SaveInventory(Player player, String reason) {
-        return SaveInventory(player, false, reason);
+        return SaveInventory(player, player.getLocation().getWorld().getName(), false, reason);
     }
 
-    private Boolean SaveInventory(Player player, Boolean death, String reason) {
+    public Boolean SaveInventory(Player player, Boolean death, String reason) {
+        return SaveInventory(player, player.getLocation().getWorld().getName(), death, reason);
+    }
+
+    private Boolean SaveInventory(Player player, String world, Boolean death, String reason) {
         Boolean success = true;
         SMXPCalculator xpc = new SMXPCalculator(player);
         String uuid = player.getUniqueId().toString();
@@ -147,7 +178,7 @@ public class SMGameModeInventories extends SMFeature {
         // Save player state
         try {
             PreparedStatement statement = this.plugin.getDatabaseManager().prepareStatement(
-                    "INSERT INTO gamemode_inventories (uuid, death, location, gamemode, xp, inventory, armour, enderchest, reason) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                    "INSERT INTO gamemode_inventories (uuid, death, location, gamemode, xp, inventory, armour, enderchest, reason, world) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             );
             statement.setString(1, uuid);
             statement.setInt(2, death == true ? 1 : 0);
@@ -158,6 +189,7 @@ public class SMGameModeInventories extends SMFeature {
             statement.setString(7, armourContents);
             statement.setString(8, enderChestContents);
             statement.setString(9, reason);
+            statement.setString(10, world);
             statement.executeUpdate();
             statement.close();
         } catch(Exception e) {

@@ -27,7 +27,7 @@ import com.stemcraft.manager.SMLanguageManager;
 
 public class STEMCraft extends JavaPlugin implements Listener {
     private static STEMCraft instance;
-    String[] requiredPlugins = {"NBTAPI", "PlaceholderAPI", "WorldEdit", "WorldGuard"};
+    String[] requiredPlugins = {"NBTAPI", "PlaceholderAPI", "WorldEdit", "WorldGuard", "Vault"};
 
     private SMEventManager eventManager = new SMEventManager();
     private SMCommandManager commandManager = new SMCommandManager();

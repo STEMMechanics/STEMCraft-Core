@@ -18,6 +18,7 @@ public class SMDependManager extends SMManager {
 
         dependencies.put("Citizens", "net.citizensnpcs.api.event.CitizensEnableEvent");
         dependencies.put("ItemsAdder", "dev.lone.itemsadder.api.Events.ItemsAdderLoadDataEvent");
+        dependencies.put("LuckPerms", null);
 
         dependencies.forEach((name, clazz) -> {
             if(Bukkit.getPluginManager().getPlugin(name) != null) {
@@ -34,14 +35,17 @@ public class SMDependManager extends SMManager {
     public void onEnable() {
         dependencies.forEach((name, clazz) -> {
             if(this.dependLoaded.get(name)) {
-                System.out.println(name + " --- " + clazz);
-                try {
-                    Class<? extends Event> eventClass = (Class<? extends Event>)Class.forName(clazz);
-                    this.plugin.getEventManager().registerEvent(eventClass, (listener, rawEvent) -> {
-                        this.setDependencyReady(name);
-                    });
-                } catch(Exception e) {
-                    e.printStackTrace();
+                if(clazz != null) {
+                    try {
+                        Class<? extends Event> eventClass = (Class<? extends Event>)Class.forName(clazz);
+                        this.plugin.getEventManager().registerEvent(eventClass, (listener, rawEvent) -> {
+                            this.setDependencyReady(name);
+                        });
+                    } catch(Exception e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    this.setDependencyReady(name);
                 }
             }
         });

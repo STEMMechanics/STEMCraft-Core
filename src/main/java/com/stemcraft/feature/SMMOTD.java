@@ -16,8 +16,13 @@ public class SMMOTD extends SMFeature {
                 motdTitle = "&6Server under maintenance";
                 motdMessage = "";
             }
-    
-            event.setMotd(ChatColor.translateAlternateColorCodes('&', motdTitle) + "\n" + ChatColor.translateAlternateColorCodes('&', "&8v" + this.plugin.getVersion() + " &f" + motdMessage));
+
+            String password = this.plugin.getConfigManager().getConfig().getValue("private-password");
+            if(password.length() > 0) {
+                event.setMotd(ChatColor.translateAlternateColorCodes('&', motdTitle) + "\n" + ChatColor.translateAlternateColorCodes('&', "&8v" + this.plugin.getVersion() + " &6〰〰 Private Workshop in Progress 〰〰"));
+            } else {
+                event.setMotd(ChatColor.translateAlternateColorCodes('&', motdTitle) + "\n" + ChatColor.translateAlternateColorCodes('&', "&8v" + this.plugin.getVersion() + " &f" + motdMessage));
+            }
         });
 
         return true;

@@ -1,9 +1,11 @@
 package com.stemcraft.feature;
 
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import com.stemcraft.STEMCraft;
 import dev.lone.itemsadder.api.CustomStack;
+import dev.lone.itemsadder.api.FontImages.FontImageWrapper;
 
 public class SMItemsAdder extends SMFeature {
     private Boolean itemsAdderReady = false;
@@ -28,6 +30,10 @@ public class SMItemsAdder extends SMFeature {
         });
 
         return true;
+    }
+
+    public Boolean isItemsAdderReady() {
+        return this.itemsAdderReady;
     }
 
     public ItemStack createItemStack(String name) {
@@ -74,5 +80,17 @@ public class SMItemsAdder extends SMFeature {
 
     public ItemStack createItemStack(Material material, int quantity) {
         return new ItemStack(material, quantity);
+    }
+
+    public String formatString(Player player, String string) {
+        if(this.itemsAdderReady) {
+            if(player != null) {
+                return FontImageWrapper.replaceFontImages(string);
+            } else {
+                return FontImageWrapper.replaceFontImages(player, string);
+            }
+        }
+
+        return string;
     }
 }

@@ -21,7 +21,12 @@ public class SMTeleportBack extends SMFeature {
             if (sender instanceof Player) {
                 Player player = (Player) sender;
                 UUID playerId = player.getUniqueId();
-                
+
+                if (!sender.hasPermission("stemcraft.teleport.back")) {
+                    this.plugin.getLanguageManager().sendPhrase(sender, "CMD_NO_PERMISSION");
+                    return true;
+                }    
+
                 if (!this.playerPreviousLocations.containsKey(playerId)) {
                     HashMap<String, String> replacements = new HashMap<>();
                     
