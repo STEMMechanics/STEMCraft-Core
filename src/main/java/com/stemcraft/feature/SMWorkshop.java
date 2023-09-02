@@ -9,47 +9,13 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
-import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
+import com.stemcraft.library.SMWorldRegion;
 
 public class SMWorkshop extends SMFeature {
-    class RegionAndWorld {
-        private final ProtectedRegion region;
-        private final World world;
-    
-        public RegionAndWorld() {
-            this.region = null;
-            this.world = null;
-        }
-
-        public RegionAndWorld(ProtectedRegion region, World world) {
-            this.region = region;
-            this.world = world;
-        }
-    
-        public ProtectedRegion getRegion() {
-            return region;
-        }
-    
-        public World getWorld() {
-            return world;
-        }
-
-        public Location center() {
-            BlockVector3 min = region.getMinimumPoint();
-            BlockVector3 max = region.getMaximumPoint();
-            
-            double centerX = (min.getX() + max.getX()) / 2;
-            double centerY = (min.getY() + max.getY()) / 2;
-            double centerZ = (min.getZ() + max.getZ()) / 2;
-            
-            return new Location(world, centerX, centerY, centerZ);
-        }
-    }
-
     @Override
     protected Boolean onEnable() {
         this.plugin.getLanguageManager().registerPhrase("WORKSHOP_ENTER", ":info_blue: &bYou have been teleported to the workshop");
@@ -87,8 +53,8 @@ public class SMWorkshop extends SMFeature {
         this.plugin.getCommandManager().registerCommand("workshop", (sender, command, label, args) -> {
             Player player = (Player)sender;
 
-            RegionAndWorld regionAndWorld = this.findWorkshopRegion(args[0]);
-            if(regionAndWorld == null) {
+            SMWorldRegion worldRegion = this.findWorkshopRegion(args[0]);
+            if(worldRegion == null) {
                 World world = Bukkit.getWorld("workshop_" + args[0]);
                 if(world == null) {
                     this.plugin.getLanguageManager().sendPhrase(sender, "WORKSHOP_NOT_FOUND");
@@ -97,7 +63,7 @@ public class SMWorkshop extends SMFeature {
                     player.teleport(world.getSpawnLocation(), TeleportCause.PLUGIN);
                 }
             } else {
-                Location center = regionAndWorld.center();
+                Location center = worldRegion.center();
                 player.teleport(center, TeleportCause.PLUGIN);
             }
 
@@ -108,7 +74,7 @@ public class SMWorkshop extends SMFeature {
         return true;
     }
 
-    public RegionAndWorld findWorkshopRegion(String searchString) {
+    public SMWorldRegion findWorkshopRegion(String searchString) {
         RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
 
         for (World world : Bukkit.getWorlds()) {
@@ -117,7 +83,7 @@ public class SMWorkshop extends SMFeature {
             if (regionManager != null) {
                 for (ProtectedRegion region : regionManager.getRegions().values()) {
                     if (region.getId().matches("workshop_" + searchString)) {
-                        return new RegionAndWorld(region, world);
+                        return new SMWorldRegion(region, world);
                     }
                 }
             }
