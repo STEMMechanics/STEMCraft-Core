@@ -60,7 +60,7 @@ public class SMVanillaSpawnChanges extends SMFeature {
                     }
                     
                     if (!shulkerNearby) {
-                        if (Math.random() < 0.5) {
+                        if (Math.random() < 0.25) {
                             spawnLocation.getWorld().spawn(spawnLocation, Shulker.class);
                             return true;
                         }
@@ -68,7 +68,7 @@ public class SMVanillaSpawnChanges extends SMFeature {
                 }
 
                 // 50% chance of cancelling the Enderman spawn and spawning a Phantom
-                if (Math.random() < 0.5) {
+                if (Math.random() < 0.25) {
                     spawnLocation.getWorld().spawn(spawnLocation, Phantom.class);
                     return true;
                 }
