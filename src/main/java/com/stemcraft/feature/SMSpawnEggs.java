@@ -14,9 +14,11 @@ public class SMSpawnEggs extends SMFeature {
             PlayerInteractEvent event = (PlayerInteractEvent)rawEvent;
             Player player = event.getPlayer();
             
-            if(player.hasPermission(this.permission) == false) {
-                this.plugin.getLanguageManager().sendPhrase(player, "SPAWNEGGS_DENIED");
-                event.setCancelled(true);
+            if(player.getInventory().getItemInMainHand().getType().toString().endsWith("SPAWN_EGG")) {
+                if(player.hasPermission(this.permission) == false) {
+                    this.plugin.getLanguageManager().sendPhrase(player, "SPAWNEGGS_DENIED");
+                    event.setCancelled(true);
+                }
             }
         });
 
