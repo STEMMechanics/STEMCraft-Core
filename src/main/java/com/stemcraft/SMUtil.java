@@ -149,7 +149,7 @@ public class SMUtil {
                         if(success) {
                             success = false;
                         }
-                        STEMCraft.getInstance().getLogger().warning("Failed to load and activate Chunk at X: " + (chunkX * 16) + " Z: " + (chunkZ * 16) + " in " + world.getName());
+                        STEMCraft.getInstance().getLogger().severe("Failed to load and activate Chunk at X: " + (chunkX * 16) + " Z: " + (chunkZ * 16) + " in " + world.getName());
                     }
                 }
             }
