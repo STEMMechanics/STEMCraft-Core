@@ -52,7 +52,7 @@ public class SMItemsAdder extends SMFeature {
         if(!name.contains(":")) {
             Material material = Material.getMaterial(name.toUpperCase());
             if(material != null) {
-                System.out.println(name + " is returned");
+                this.plugin.getLogger().finest(name + " is returned");
                 return new ItemStack(material, quantity);
             }
         } else if(this.itemsAdderReady) {
@@ -61,12 +61,12 @@ public class SMItemsAdder extends SMFeature {
                 ItemStack itemStack = customStack.getItemStack();
                 itemStack.setAmount(quantity);
 
-                System.out.println(name + " is returned");
+                this.plugin.getLogger().finest(name + " is returned");
                 return itemStack;
             }
         }
 
-        System.out.println(name + " is null");
+        this.plugin.getLogger().finer(name + " is null");
         if(returnEmpty) {
             return new ItemStack(Material.AIR);
         }

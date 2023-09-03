@@ -65,7 +65,7 @@ public class SMChatFormat extends SMFeature {
                 format = replaceAll(PREFIX_PLACEHOLDER_PATTERN, format, () -> colorize(this.vaultChat.getPlayerPrefix(event.getPlayer())));
                 format = replaceAll(SUFFIX_PLACEHOLDER_PATTERN, format, () -> colorize(this.vaultChat.getPlayerSuffix(event.getPlayer())));
             } else {
-                System.out.println("vault null");
+                this.plugin.getLogger().warning("vault null");
             }
             format = replaceAll(NAME_PLACEHOLDER_PATTERN, format, () -> event.getPlayer().getName());
 
