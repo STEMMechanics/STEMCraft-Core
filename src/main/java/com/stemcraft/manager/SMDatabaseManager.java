@@ -97,7 +97,7 @@ public class SMDatabaseManager extends SMManager {
                 resultSet.close();
                 statement.close();
 
-                System.out.println("Running migration " + name);
+                this.plugin.getLogger().fine("Running migration " + name);
                 try {
                     callback.accept(this);
                 } catch(SQLException e) {

@@ -22,7 +22,7 @@ public class SMRemoveRecipes extends SMFeature {
                 }
             }
         } else {
-            System.out.println("Config option remove-recipes is invalid");
+            this.plugin.getLogger().config("Config option remove-recipes is invalid");
         }
 
         return true;
