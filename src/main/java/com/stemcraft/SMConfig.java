@@ -78,6 +78,18 @@ public class SMConfig {
         return defaultValue;
     }
 
+    public Boolean registerValue(String name, Boolean defaultValue) {
+        return Boolean.parseBoolean(this.registerValue(name, defaultValue.toString(), ""));
+    }
+
+    public Integer registerValue(String name, Integer defaultValue) {
+        return Integer.parseInt(this.registerValue(name, defaultValue.toString(), ""));
+    }
+
+    public String registerValue(String name, String defaultValue) {
+        return registerValue(name, defaultValue, "");
+    }
+
     public Boolean registerValue(String name, Boolean defaultValue, String header) {
         return Boolean.parseBoolean(this.registerValue(name, defaultValue.toString(), header));
     }
