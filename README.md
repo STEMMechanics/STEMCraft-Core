@@ -12,6 +12,7 @@ STEMMechanics brings creativity to life by developing engaging resources and pro
 
 -   Added Restrictive Creative which disables players interacting, dropping and picking items unless they have the `stemcraft.creative.override` permission.
 -   Added `/seen <player>` command requiring the `stemcraft.seen` permission.
+-   Moved from custom YAML framework to [BoostedYAML](https://github.com/dejvokep/boosted-yaml)
 
 ### 0.3.2
 

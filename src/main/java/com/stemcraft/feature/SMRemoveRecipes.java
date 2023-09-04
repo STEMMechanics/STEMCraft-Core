@@ -1,28 +1,21 @@
 package com.stemcraft.feature;
 
+import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 
 public class SMRemoveRecipes extends SMFeature {
     @Override
     protected Boolean onEnable() {
-        String value = this.plugin.getConfigManager().getConfig().registerValue("remove-recipes", "[]", "Remove the following receipes from the game");
+        List<String> itemList = this.plugin.getConfigManager().getConfig().registerStringList("remove-recipes", null, "Remove the following receipes from the game");
 
-        if(value.startsWith("[") && value.endsWith("]")) {
-            String cleanedInput = value.replaceAll("\\[|\\]", "");
-            String[] itemList = cleanedInput.split(",");
+        for (String item : itemList) {
+            if(item.length() > 0) {
+                NamespacedKey namespaceItem = NamespacedKey.fromString(item);
 
-            for (int i = 0; i < itemList.length; i++) {
-                String item = itemList[i].trim();
-                if(item.length() > 0) {
-                    NamespacedKey namespaceItem = NamespacedKey.fromString(item);
-
-                    Bukkit.removeRecipe(namespaceItem);
-                    this.plugin.getLogger().info("Removed recipe " + namespaceItem.getNamespace() + ":" + namespaceItem.getKey());
-                }
+                Bukkit.removeRecipe(namespaceItem);
+                this.plugin.getLogger().info("Removed recipe " + namespaceItem.getNamespace() + ":" + namespaceItem.getKey());
             }
-        } else {
-            this.plugin.getLogger().config("Config option remove-recipes is invalid");
         }
 
         return true;

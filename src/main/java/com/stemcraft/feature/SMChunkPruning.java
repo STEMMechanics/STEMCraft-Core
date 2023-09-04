@@ -38,7 +38,7 @@ public class SMChunkPruning extends SMFeature {
             this.plugin.cancelDelayedTask(this.timerTaskId);
         }
 
-        this.plugin.getConfigManager().getConfig().registerValue("chunk-regenerate-delay", 56, "Number of days after which unvisited chunks are regenerated");
+        this.plugin.getConfigManager().getConfig().registerInt("chunk-regenerate-delay", 56, "Number of days after which unvisited chunks are regenerated");
 
         this.plugin.getDatabaseManager().addMigration("230805165900_CreateChunkPruneTable", (databaseManager) -> {
             databaseManager.prepareStatement(
@@ -140,7 +140,7 @@ public class SMChunkPruning extends SMFeature {
         // Destroy chunks if no players online
         if(this.plugin.getServer().getOnlinePlayers().size() == 0) {
             List<String> chunksToPrune = new ArrayList<>();
-            long aged = System.currentTimeMillis() - (86400000 * this.plugin.getConfigManager().getConfig().getIntValue("regenerate-chunk-delay"));
+            long aged = System.currentTimeMillis() - (86400000 * this.plugin.getConfigManager().getConfig().getInt("regenerate-chunk-delay"));
 
             try {
                 PreparedStatement statement = this.plugin.getDatabaseManager().prepareStatement(

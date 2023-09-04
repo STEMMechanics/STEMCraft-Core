@@ -42,4 +42,10 @@ public class SMConfigManager extends SMManager {
 
         return config;
     }
+
+    public void saveAllConfigs() {
+        for (SMConfig smConfig : configMap.values()) {
+            smConfig.saveConfig();
+        }        
+    }
 }
