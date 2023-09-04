@@ -6,6 +6,21 @@ STEMMechanics brings creativity to life by developing engaging resources and pro
 
 🫂 We aim to create a welcoming and inclusive community. Please note that STEMMechanics open source projects are governed by our [code of conduct](code-of-conduct.md).
 
+## Changes
+
+### 0.4.2
+
+-   Added Restrictive Creative which disables players interacting, dropping and picking items unless they have the `stemcraft.creative.override` permission.
+-   Added `/seen <player>` command requiring the `stemcraft.seen` permission.
+
+### 0.3.2
+
+-   Remove the usage of the System.Out method and instead use the Bukkit Logger methods
+
+### 0.3.1
+
+-   Fix players not being able to interact due to bug in the disable spawn eggs code
+
 ## Get in touch!
 
 Learn more about what we're doing at [stemmechanics.com.au](https://stemmechanics.com.au).
