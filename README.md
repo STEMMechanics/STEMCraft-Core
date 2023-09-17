@@ -14,6 +14,7 @@ STEMMechanics brings creativity to life by developing engaging resources and pro
 -   Added `/seen <player>` command requiring the `stemcraft.seen` permission.
 -   Moved from custom YAML framework to [BoostedYAML](https://github.com/dejvokep/boosted-yaml)
 -   Added /repair command
+-   `/back` will now teleport a player to their last death location
 
 ### 0.3.2
 
