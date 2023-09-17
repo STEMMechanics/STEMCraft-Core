@@ -15,6 +15,7 @@ STEMMechanics brings creativity to life by developing engaging resources and pro
 -   Moved from custom YAML framework to [BoostedYAML](https://github.com/dejvokep/boosted-yaml)
 -   Added /repair command
 -   `/back` will now teleport a player to their last death location
+-   Added this.plugin.DebugLog(String s) to output debug strings (if enabled in config)
 
 ### 0.3.2
 

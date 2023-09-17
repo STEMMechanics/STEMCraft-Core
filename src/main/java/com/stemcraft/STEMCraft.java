@@ -28,6 +28,7 @@ import com.stemcraft.manager.SMLanguageManager;
 public class STEMCraft extends JavaPlugin implements Listener {
     private static STEMCraft instance;
     private Boolean allowEnable = true;
+    private Boolean debugEnabled = false;
     String[] requiredPlugins = {"NBTAPI", "PlaceholderAPI", "WorldEdit", "WorldGuard", "Vault"};
 
     private SMEventManager eventManager = new SMEventManager();
@@ -118,6 +119,8 @@ public class STEMCraft extends JavaPlugin implements Listener {
         this.getDatabaseManager().onEnable();
         this.getCommandManager().onEnable();
         this.getFeatureManager().onEnable();
+
+        this.debugEnabled = this.getConfigManager().getConfig().registerBoolean("debug", false, "Enable debug output");
 
         String[][] tabCompletions = new String[][]{
                 {"stemcraft", "info"},
@@ -236,5 +239,11 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     public String getVersion() {
         return this.getDescription().getVersion();
+    }
+
+    public void DebugLog(String s) {
+        if(this.debugEnabled == true) {
+            this.getLogger().info("DEBUG: " + s);
+        }
     }
 }
