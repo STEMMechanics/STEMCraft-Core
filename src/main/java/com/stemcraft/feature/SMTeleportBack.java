@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 public class SMTeleportBack extends SMFeature {
@@ -15,6 +16,14 @@ public class SMTeleportBack extends SMFeature {
 
         this.plugin.getEventManager().registerEvent(PlayerTeleportEvent.class, (listener, event) -> {
             this.onPlayerTeleport((PlayerTeleportEvent)event);
+        });
+
+        this.plugin.getEventManager().registerEvent(PlayerDeathEvent.class, (listener, rawEvent) -> {
+            if(rawEvent.getEventName().equalsIgnoreCase("playerdeathevent")) {
+                PlayerDeathEvent event = (PlayerDeathEvent)rawEvent;
+                Player player = event.getEntity();
+                this.playerPreviousLocations.put(player.getUniqueId(), player.getLocation());
+            }
         });
 
         this.plugin.getCommandManager().registerCommand("back", (sender, command, label, args) -> {
