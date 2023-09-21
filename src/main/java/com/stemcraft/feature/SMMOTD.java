@@ -9,15 +9,15 @@ public class SMMOTD extends SMFeature {
         this.plugin.getEventManager().registerEvent(ServerListPingEvent.class, (listener, rawEvent) -> {
             ServerListPingEvent event = (ServerListPingEvent)rawEvent;
 
-            String motdTitle = this.plugin.getConfigManager().getConfig().registerValue("motd-title", "&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■ &e&lSTEMCRAFT &3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■", "Server MOTD");
-            String motdMessage = this.plugin.getConfigManager().getConfig().registerValue("motd-message", "", "");
+            String motdTitle = this.plugin.getConfigManager().getConfig().registerString("motd-title", "&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■ &e&lSTEMCRAFT &3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■", "Server MOTD");
+            String motdMessage = this.plugin.getConfigManager().getConfig().registerString("motd-message", "", "");
 
             if(this.plugin.getDatabaseManager().getMeta("maintenance", false)) {
                 motdTitle = "&6Server under maintenance";
                 motdMessage = "";
             }
 
-            String password = this.plugin.getConfigManager().getConfig().getValue("private-password");
+            String password = this.plugin.getConfigManager().getConfig().getString("private-password");
             if(password.length() > 0) {
                 event.setMotd(ChatColor.translateAlternateColorCodes('&', motdTitle) + "\n" + ChatColor.translateAlternateColorCodes('&', "&8v" + this.plugin.getVersion() + " &6〰〰 Private Workshop in Progress 〰〰"));
             } else {

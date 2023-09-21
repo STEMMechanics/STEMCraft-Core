@@ -27,6 +27,7 @@ import com.stemcraft.manager.SMLanguageManager;
 
 public class STEMCraft extends JavaPlugin implements Listener {
     private static STEMCraft instance;
+    private Boolean allowEnable = true;
     String[] requiredPlugins = {"NBTAPI", "PlaceholderAPI", "WorldEdit", "WorldGuard", "Vault"};
 
     private SMEventManager eventManager = new SMEventManager();
@@ -79,6 +80,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
         for (String pluginName : this.requiredPlugins) {
             if (Bukkit.getPluginManager().getPlugin(pluginName) == null) {
                 getLogger().severe(pluginName + " is not installed! This plugin requires " + pluginName);
+                this.allowEnable = false;
                 Bukkit.getPluginManager().disablePlugin(this);
                 return;
             }
@@ -95,6 +97,12 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
+        if(this.allowEnable == false) {
+            getLogger().severe("STEMCraft was not enabled because a dependency was missing");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+
         for (String pluginName : this.requiredPlugins) {
             if (!Bukkit.getPluginManager().isPluginEnabled(pluginName)) {
                 getLogger().severe(pluginName + " is not enabled! This plugin requires " + pluginName);
@@ -118,6 +126,8 @@ public class STEMCraft extends JavaPlugin implements Listener {
                 sender.sendMessage("STEMCraft " + this.getVersion());
                 return true;
             }, tabCompletions);
+        
+        this.getConfigManager().saveAllConfigs();
     }
 
 

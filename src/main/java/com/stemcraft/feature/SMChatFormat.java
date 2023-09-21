@@ -44,7 +44,7 @@ public class SMChatFormat extends SMFeature {
             return false;
         }
 
-        String configFormat = this.plugin.getConfigManager().getConfig().registerValue("chat-format", DEFAULT_FORMAT, "Chat format on the server");
+        String configFormat = this.plugin.getConfigManager().getConfig().registerString("chat-format", DEFAULT_FORMAT, "Chat format on the server");
 
         this.format = colorize(configFormat
             .replace(DISPLAYNAME_PLACEHOLDER, "%1$s")

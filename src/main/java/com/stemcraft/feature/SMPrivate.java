@@ -27,7 +27,7 @@ public class SMPrivate extends SMFeature {
         this.plugin.getLanguageManager().registerPhrase("PRIVATE_REQUIRED_KICK", "&cYou did not enter the login password");
         this.plugin.getLanguageManager().registerPhrase("PRIVATE_REQUIRED", ":warning_red: &cEnter the password before interacting");
 
-        this.plugin.getConfigManager().getConfig().registerValue("private-password", "", "Password required to play on this server");
+        this.plugin.getConfigManager().getConfig().registerString("private-password", "", "Password required to play on this server");
 
         // Player Join Event
         this.plugin.getEventManager().registerEvent(PlayerJoinEvent.class, (listener, rawEvent) -> {
@@ -35,7 +35,7 @@ public class SMPrivate extends SMFeature {
             Player player = event.getPlayer();
 
             if(!player.hasPermission("stemcraft.private")) {
-                String password = this.plugin.getConfigManager().getConfig().getValue("private-password");
+                String password = this.plugin.getConfigManager().getConfig().getString("private-password");
                 if(password.length() > 0) {
                     this.blockedPlayers.add(player.getUniqueId());
 
@@ -65,7 +65,7 @@ public class SMPrivate extends SMFeature {
             UUID playerId = player.getUniqueId();
 
             if(this.blockedPlayers.contains(playerId)) {
-                String password = this.plugin.getConfigManager().getConfig().getValue("private-password");
+                String password = this.plugin.getConfigManager().getConfig().getString("private-password");
                 if(password.length() > 0) {
                     event.setCancelled(true);
 
