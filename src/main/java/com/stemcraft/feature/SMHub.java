@@ -16,6 +16,9 @@ public class SMHub extends SMFeature {
     protected Boolean onEnable() {
         this.plugin.getLanguageManager().registerPhrase("HUB_TELEPORTED", "&eTeleported back to the hub");
 
+        additionalCommandsForDimensionPrefixes.put("tnt_", new String[] { "tr leave" });
+        additionalCommandsForDimensionPrefixes.put("bw_", new String[] { "bw leave" });
+
         String[] aliases = new String[]{};
 
         // Hub Command
