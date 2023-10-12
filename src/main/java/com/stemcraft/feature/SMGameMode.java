@@ -1,86 +1,67 @@
 package com.stemcraft.feature;
 
-import java.util.HashMap;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import com.stemcraft.STEMCraft;
+import com.stemcraft.core.SMCommon;
+import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.SMMessenger;
+import com.stemcraft.core.command.SMCommand;
 
 public class SMGameMode extends SMFeature {
     @Override
     protected Boolean onEnable() {
-        this.plugin.getLanguageManager().registerPhrase("GAMEMODE_UNKNOWN", "Gamemode unknown");
-        this.plugin.getLanguageManager().registerPhrase("GAMEMODE_CHANGED", "Gamemode set to %GAMEMODE%");
-        this.plugin.getLanguageManager().registerPhrase("GAMEMODE_CHANGED_FOR", "Gamemode for %PLAYER_NAME% set to %GAMEMODE%");
-        this.plugin.getLanguageManager().registerPhrase("GAMEMODE_CHANGED_BY", "Gamemode set to %GAMEMODE% by %PLAYER_NAME%");
+        new SMCommand("gm")
+            .alias("gma", "gmc", "gms", "gmsp")
+            .permission("minecraft.command.gamemode")
+            .action(ctx -> {
+                ctx.checkNotConsole();
 
-        String[] aliases = new String[]{"gmc", "gms", "gmsp"};
-        String[][] tabCompletions = new String[][]{
-            {"gma", "%player%"},
-            {"gmc", "%player%"},
-            {"gms", "%player%"},
-            {"gmsp", "%player%"},
-        };
+                Player targetPlayer = ctx.player;
+                String gamemodeStr = "Unknown";
 
-        this.plugin.getCommandManager().registerCommand("gma", (sender, command, label, args) -> {
-            updateGameMode(sender, command, label, args);
-            return true;
-        }, aliases, tabCompletions);
+                if(ctx.args.length >= 1) {
+                    targetPlayer = SMCommon.findPlayer(ctx.args[1]);
+                    if (targetPlayer == null) {
+                        ctx.returnErrorLocale("CMD_PLAYER_NOT_FOUND");
+                        return;
+                    }
+                }
+                
+                if ("gma".equals(ctx.alias)) {
+                    targetPlayer.setGameMode(GameMode.ADVENTURE);
+                    gamemodeStr = "Adventure";
+                } else if ("gmc".equals(ctx.alias)) {
+                    targetPlayer.setGameMode(GameMode.CREATIVE);
+                    gamemodeStr = "Creative";
+                } else if ("gms".equals(ctx.alias)) {
+                    targetPlayer.setGameMode(GameMode.SURVIVAL);
+                    gamemodeStr = "Survival";
+                } else if ("gmsp".equals(ctx.alias)) {
+                    targetPlayer.setGameMode(GameMode.SPECTATOR);
+                    gamemodeStr = "Spectator";
+                } else {
+                    ctx.returnErrorLocale("GAMEMODE_UNKNOWN");
+                }
+
+                if(targetPlayer == ctx.sender) {
+                    SMMessenger.infoLocale(targetPlayer, "GAMEMODE_CHANGED", "gamemode", gamemodeStr);
+                } else {
+                    SMMessenger.infoLocale(ctx.sender, "GAMEMODE_CHANGED_FOR", "player", targetPlayer.getName(), "gamemode", gamemodeStr);
+                    SMMessenger.infoLocale(targetPlayer, "GAMEMODE_CHANGED_BY", "player", ctx.senderName(), "gamemode", gamemodeStr);
+                }
+
+            })
+            .register();
+
+
+        // String[][] tabCompletions = new String[][]{
+        //     {"gma", "%player%"},
+        //     {"gmc", "%player%"},
+        //     {"gms", "%player%"},
+        //     {"gmsp", "%player%"},
+        // };
 
         return true;
-    }
-
-    public void updateGameMode(CommandSender sender, Command command, String label, String[] args) {
-        Player targetPlayer = null;
-        String gamemodeStr = "Unknown";
-
-        if(args.length < 1) {
-            if (sender instanceof Player) {
-                targetPlayer = (Player) sender;
-            } else {
-                this.plugin.getLanguageManager().sendPhrase(sender, "CMD_PLAYER_REQ_FROM_CONSOLE");
-                return;
-            }
-        } else {
-            targetPlayer = Bukkit.getPlayer(args[0]);
-            if (targetPlayer == null) {
-                this.plugin.getLanguageManager().sendPhrase(sender, "CMD_PLAYER_NOT_FOUND");
-                return;
-            }
-        }
-    
-        if (label.equalsIgnoreCase("gma")) {
-            targetPlayer.setGameMode(GameMode.ADVENTURE);
-            gamemodeStr = "Adventure";
-        } else if (label.equalsIgnoreCase("gmc")) {
-            targetPlayer.setGameMode(GameMode.CREATIVE);
-            gamemodeStr = "Creative";
-        } else if (label.equalsIgnoreCase("gms")) {
-            targetPlayer.setGameMode(GameMode.SURVIVAL);
-            gamemodeStr = "Survival";
-        } else if (label.equalsIgnoreCase("gmsp")) {
-            targetPlayer.setGameMode(GameMode.SPECTATOR);
-            gamemodeStr = "Spectator";
-        } else {
-            this.plugin.getLanguageManager().sendPhrase(sender, "GAMEMODE_UNKNOWN");
-            return;
-        }
-
-        if(targetPlayer == sender) {
-            HashMap<String, String> replacements = new HashMap<>();
-                    
-            replacements.put("GAMEMODE", gamemodeStr);
-            this.plugin.getLanguageManager().sendPhrase(sender, "GAMEMODE_CHANGED", replacements);
-        } else {
-            HashMap<String, String> replacements = new HashMap<>();
-                    
-            replacements.put("PLAYER_NAME", targetPlayer.getName());
-            replacements.put("GAMEMODE", gamemodeStr);
-            this.plugin.getLanguageManager().sendPhrase(sender, "GAMEMODE_CHANGED_FOR", replacements);
-
-            replacements.put("PLAYER_NAME", sender.getName());
-            this.plugin.getLanguageManager().sendPhrase(sender, "GAMEMODE_CHANGED_BY", replacements);
-        }
     }
 }

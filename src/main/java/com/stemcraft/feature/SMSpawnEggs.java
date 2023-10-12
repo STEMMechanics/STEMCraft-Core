@@ -2,21 +2,29 @@ package com.stemcraft.feature;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
+import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.SMLocale;
+import com.stemcraft.core.SMMessenger;
+import com.stemcraft.core.event.SMEvent;
 
+/**
+ * Deny a player interacting with spawn eggs unless having the correct permission
+ */
 public class SMSpawnEggs extends SMFeature {
-    private String permission = "stemcraft.spawneggs";
+    private final static String PERMISSION = "stemcraft.spawneggs";
 
+    /**
+     * When the feature is enabled
+     */
     @Override
     protected Boolean onEnable() {
-        this.plugin.getLanguageManager().registerPhrase("SPAWNEGGS_DENIED", ":warning_red: &cYou do not have permission to use spawn eggs");
-
-        this.plugin.getEventManager().registerEvent(PlayerInteractEvent.class, (listener, rawEvent) -> {
-            PlayerInteractEvent event = (PlayerInteractEvent)rawEvent;
+        SMEvent.register(PlayerInteractEvent.class, ctx -> {
+            PlayerInteractEvent event = (PlayerInteractEvent)ctx.event;
             Player player = event.getPlayer();
             
             if(player.getInventory().getItemInMainHand().getType().toString().endsWith("SPAWN_EGG")) {
-                if(player.hasPermission(this.permission) == false) {
-                    this.plugin.getLanguageManager().sendPhrase(player, "SPAWNEGGS_DENIED");
+                if(player.hasPermission(SMSpawnEggs.PERMISSION) == false) {
+                    SMMessenger.error(player, SMLocale.get(player, "SPAWNEGGS_DENIED"));
                     event.setCancelled(true);
                 }
             }

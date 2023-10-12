@@ -18,6 +18,12 @@ import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
+import com.stemcraft.STEMCraft;
+import com.stemcraft.core.SMDatabase;
+import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.SMTask;
+import com.stemcraft.core.config.SMConfig;
+import com.stemcraft.core.event.SMEvent;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -27,21 +33,20 @@ import java.util.List;
 import java.util.Map;
 
 public class SMChunkPruning extends SMFeature {
-    private int timerTaskId = -1;
+    private SMTask pruneTask = null;
     private Map<Chunk, Long> chunkCache = new HashMap<>();
 
     private static final int CHECK_INTERVAL_MINS = 5;
 
     @Override
     protected Boolean onEnable() {
-        if(this.timerTaskId != -1) {
-            this.plugin.cancelDelayedTask(this.timerTaskId);
+        if(pruneTask != null) {
+            pruneTask.cancel();
+            pruneTask = null;
         }
 
-        this.plugin.getConfigManager().getConfig().registerInt("chunk-regenerate-delay", 56, "Number of days after which unvisited chunks are regenerated");
-
-        this.plugin.getDatabaseManager().addMigration("230805165900_CreateChunkPruneTable", (databaseManager) -> {
-            databaseManager.prepareStatement(
+        SMDatabase.runMigration("230805165900_CreateChunkPruneTable", () -> {
+            SMDatabase.prepareStatement(
             "CREATE TABLE IF NOT EXISTS chunk_prune (" +
                 "chunk TEXT PRIMARY KEY," +
                 "last_visited INTEGER NOT NULL)").executeUpdate();
@@ -49,21 +54,18 @@ public class SMChunkPruning extends SMFeature {
 
         this.pruneChunks();
 
-        this.plugin.getEventManager().registerEvent(BlockBreakEvent.class, (listener, rawEvent) -> {
-            BlockBreakEvent event = (BlockBreakEvent) rawEvent;
-            Player player = event.getPlayer();
-            this.queueChunk(player.getLocation().getChunk());
+        SMEvent.register(BlockBreakEvent.class, ctx -> {
+            Player player = ctx.event.getPlayer();
+            queueChunk(player.getLocation().getChunk());
         });
 
-        this.plugin.getEventManager().registerEvent(BlockPlaceEvent.class, (listener, rawEvent) -> {
-            BlockPlaceEvent event = (BlockPlaceEvent) rawEvent;
-            Player player = event.getPlayer();
-            this.queueChunk(player.getLocation().getChunk());
+        SMEvent.register(BlockPlaceEvent.class, ctx -> {
+            Player player = ctx.event.getPlayer();
+            queueChunk(player.getLocation().getChunk());
         });
 
-        this.plugin.getEventManager().registerEvent(PlayerInteractEvent.class, (listener, rawEvent) -> {
-            PlayerInteractEvent event = (PlayerInteractEvent) rawEvent;
-            Block clickedBlock = event.getClickedBlock();
+        SMEvent.register(PlayerInteractEvent.class, ctx -> {
+            Block clickedBlock = ctx.event.getClickedBlock();
 
             if (clickedBlock == null) {
                 return;
@@ -78,9 +80,9 @@ public class SMChunkPruning extends SMFeature {
 
     @Override
     public void onDisable() {
-        if(this.timerTaskId != -1) {
-            this.plugin.cancelDelayedTask(this.timerTaskId);
-            this.timerTaskId = -1;
+        if(pruneTask != null) {
+            pruneTask.cancel();
+            pruneTask = null;
         }
     }
 
@@ -123,7 +125,7 @@ public class SMChunkPruning extends SMFeature {
             try {
                 String id = chunk.getX() + ";" + chunk.getZ() + ";" + chunk.getWorld().getName();
 
-                PreparedStatement statement = this.plugin.getDatabaseManager().prepareStatement(
+                PreparedStatement statement = SMDatabase.prepareStatement(
                         "INSERT OR REPLACE INTO chunk_prune (chunk, last_visited) VALUES (?, ?)"
                 );
                 statement.setString(1, id);
@@ -138,12 +140,12 @@ public class SMChunkPruning extends SMFeature {
         Boolean regeneratedChunk = false;
 
         // Destroy chunks if no players online
-        if(this.plugin.getServer().getOnlinePlayers().size() == 0) {
+        if(STEMCraft.getPlugin().getServer().getOnlinePlayers().size() == 0) {
             List<String> chunksToPrune = new ArrayList<>();
-            long aged = System.currentTimeMillis() - (86400000 * this.plugin.getConfigManager().getConfig().getInt("regenerate-chunk-delay"));
+            long aged = System.currentTimeMillis() - (86400000 * SMConfig.main().getInt("regenerate-chunk-delay"));
 
             try {
-                PreparedStatement statement = this.plugin.getDatabaseManager().prepareStatement(
+                PreparedStatement statement = SMDatabase.prepareStatement(
                     "SELECT chunk FROM chunk_prune WHERE last_visited < ?;"
                 );
                 statement.setLong(1, aged);
@@ -159,13 +161,13 @@ public class SMChunkPruning extends SMFeature {
                 e.printStackTrace();
             }
 
-            while(this.plugin.getServer().getOnlinePlayers().size() == 0 && !chunksToPrune.isEmpty()) {
+            while(STEMCraft.getPlugin().getServer().getOnlinePlayers().size() == 0 && !chunksToPrune.isEmpty()) {
                 String chunkStr = chunksToPrune.get(0);
                 chunksToPrune.remove(0);
 
                 String[] chunkData = chunkStr.split(";", 3);
                 if(chunkData.length == 3) {
-                    World world = this.plugin.getServer().getWorld(chunkData[2]);
+                    World world = STEMCraft.getPlugin().getServer().getWorld(chunkData[2]);
                     if(world != null) {
                         int chunkX = Integer.parseInt(chunkData[0]);
                         int chunkZ = Integer.parseInt(chunkData[1]);
@@ -174,7 +176,7 @@ public class SMChunkPruning extends SMFeature {
                         }
 
                         try {
-                            PreparedStatement statement = this.plugin.getDatabaseManager().prepareStatement(
+                            PreparedStatement statement = SMDatabase.prepareStatement(
                                 "DELETE FROM chunk_prune WHERE chunk = ?");
                             statement.setString(1, chunkStr);
                             statement.executeUpdate();
@@ -200,9 +202,9 @@ public class SMChunkPruning extends SMFeature {
         
         int reschedule = (regeneratedChunk ? 5 : 60 * CHECK_INTERVAL_MINS);
 
-        this.plugin.delayedTask(20L * reschedule, (data) -> {
-            this.pruneChunks();
-        }, null);
+        pruneTask = STEMCraft.runLater(reschedule, () -> {
+            pruneChunks();
+        });
     }
 
     private void regenerateChunk(Chunk chunk) {
@@ -227,6 +229,6 @@ public class SMChunkPruning extends SMFeature {
             weWorld.regenerate(region, editSession, options);
         }
 
-        this.plugin.getLogger().info("Chunk at X:" + chunkX + ", Z:" + chunkZ + " in world " + world.getName() + " has been regenerated.");
+        STEMCraft.info("Chunk at X:" + chunkX + ", Z:" + chunkZ + " in world " + world.getName() + " has been regenerated.");
     }
 }

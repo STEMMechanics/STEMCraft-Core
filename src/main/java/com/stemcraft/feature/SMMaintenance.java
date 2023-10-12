@@ -1,68 +1,57 @@
 package com.stemcraft.feature;
 
-import java.util.HashMap;
+import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
+import com.stemcraft.STEMCraft;
+import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.SMLocale;
+import com.stemcraft.core.SMMeta;
+import com.stemcraft.core.command.SMCommand;
+import com.stemcraft.core.event.SMEvent;
 
 public class SMMaintenance extends SMFeature {
     private String permission = "stemcraft.maintenance";
 
     @Override
     protected Boolean onEnable() {
-        this.plugin.getLanguageManager().registerPhrase("MAINTENANCE_SET_TO", "Server maintenance set to %MODE%");
-        this.plugin.getLanguageManager().registerPhrase("MAINTENANCE_KICK", "The server is currently undergoing maintenance");
+        SMEvent.register(PlayerLoginEvent.class, ctx -> {
+            Player player = ctx.event.getPlayer();
 
-        String[] aliases = new String[]{};
-        String[][] tabCompletions = new String[][]{
-            {"maintenance", "enable"},
-            {"maintenance", "disable"},
-        };
-
-        this.plugin.getEventManager().registerEvent(PlayerLoginEvent.class, (listener, event) -> {
-            PlayerLoginEvent e = (PlayerLoginEvent)event;
-
-            if (this.plugin.getDatabaseManager().getMeta("maintenance", false) && !e.getPlayer().hasPermission(this.permission)) {
+            if (SMMeta.getBool("maintenance", false) && !player.hasPermission(permission)) {
                 // Maintenance mode is enabled and player does not have the permission
-                e.setKickMessage(this.plugin.getLanguageManager().getPhrase("MAINTENANCE_KICK"));
-                e.setResult(Result.KICK_OTHER);
+                ctx.event.setKickMessage(SMLocale.get(player, "MAINTENANCE_KICK"));
+                ctx.event.setResult(Result.KICK_OTHER);
             }
         });
 
-        this.plugin.getCommandManager().registerCommand("maintenance", (sender, command, label, args) -> {
-            if(!sender.hasPermission(this.permission)) {
-                this.plugin.getLanguageManager().sendPhrase(sender, "CMD_NO_PERMISSION");
-                return true;
-            }
-
-            if(args.length >= 1) {
-                if(args[0].equalsIgnoreCase("enable")) {
-                    this.plugin.getDatabaseManager().setMeta("maintenance", true);
-
-                    this.plugin.getServer().getOnlinePlayers().forEach(player -> {
-                        if (!player.hasPermission(this.permission)) {
-                            player.kickPlayer(this.plugin.getLanguageManager().getPhrase("MAINTENANCE_KICK"));
-                        }
-                    });
-                } else if(args[0].equalsIgnoreCase("disable")) {
-                    this.plugin.getDatabaseManager().setMeta("maintenance", false);
-                } else {
-                    this.plugin.getLanguageManager().sendPhrase(sender, "CMD_INVALID_OPTION");
-                    return true;
-                }
-            }
+        String[] modes = {"enable", "disable"};
         
-            HashMap<String, String> replacements = new HashMap<>();
-            String modeString = "disabled";
+        new SMCommand("maintenance")
+            .permission(permission)
+            .tabComplete(modes)
+            .action(ctx -> {
+                if(ctx.args.length > 0) {
+                    String mode = ctx.args[0].toLowerCase();
+                    ctx.checkInArrayLocale(modes, mode, "MAINTENANCE_USAGE");
 
-            if(this.plugin.getDatabaseManager().getMeta("maintenance", false)) {
-                modeString = "enabled";
-            }
+                    if("enable".equals(mode)) {
+                        SMMeta.set("maintenance", true);
 
-            replacements.put("MODE", modeString);
-            this.plugin.getLanguageManager().sendPhrase(sender, "MAINTENANCE_SET_TO", replacements);
-
-            return true;
-        }, aliases, tabCompletions);
+                        STEMCraft.getPlugin().getServer().getOnlinePlayers().forEach(player -> {
+                            if (!player.hasPermission(this.permission)) {
+                                player.kickPlayer(SMLocale.get(player, "MAINTENANCE_KICK"));
+                            }
+                        });
+                    } else {
+                        SMMeta.set("maintenance", false);
+                    }
+                } else {
+                    String modeString = SMMeta.getBool("maintenance", false) ? "enabled" : "disabled";
+                    ctx.returnInfoLocale("MAINTENANCE_SET_TO", "mode", modeString);
+                }
+            })
+            .register();
 
         return true;
     }

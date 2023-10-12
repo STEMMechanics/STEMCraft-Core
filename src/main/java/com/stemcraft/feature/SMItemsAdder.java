@@ -3,7 +3,8 @@ package com.stemcraft.feature;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import com.stemcraft.STEMCraft;
+import com.stemcraft.core.SMDependency;
+import com.stemcraft.core.SMFeature;
 import dev.lone.itemsadder.api.CustomStack;
 import dev.lone.itemsadder.api.FontImages.FontImageWrapper;
 
@@ -11,12 +12,12 @@ public class SMItemsAdder extends SMFeature {
     private Boolean itemsAdderReady = false;
 
     @Override
-    public Boolean onLoad(STEMCraft plugin) {
-        if(!super.onLoad(plugin)) {
+    public Boolean onLoad() {
+        if(!super.onLoad()) {
             return false;
         }
 
-        if(!this.plugin.getDependManager().getDependencyLoaded("ItemsAdder")) {
+        if(!SMDependency.dependencyLoaded("ItemsAdder")) {
             return false;
         }
 
@@ -25,7 +26,7 @@ public class SMItemsAdder extends SMFeature {
 
     @Override
     protected Boolean onEnable() {
-        this.plugin.getDependManager().onDependencyReady("ItemsAdder", () -> {
+        SMDependency.onDependencyReady("ItemsAdder", () -> {
             this.itemsAdderReady = true;
         });
 
@@ -52,7 +53,6 @@ public class SMItemsAdder extends SMFeature {
         if(!name.contains(":")) {
             Material material = Material.getMaterial(name.toUpperCase());
             if(material != null) {
-                this.plugin.getLogger().finest(name + " is returned");
                 return new ItemStack(material, quantity);
             }
         } else if(this.itemsAdderReady) {
@@ -61,12 +61,10 @@ public class SMItemsAdder extends SMFeature {
                 ItemStack itemStack = customStack.getItemStack();
                 itemStack.setAmount(quantity);
 
-                this.plugin.getLogger().finest(name + " is returned");
                 return itemStack;
             }
         }
 
-        this.plugin.getLogger().finer(name + " is null");
         if(returnEmpty) {
             return new ItemStack(Material.AIR);
         }

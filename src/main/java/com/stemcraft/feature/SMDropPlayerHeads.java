@@ -6,18 +6,25 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+import com.stemcraft.core.SMDebugger;
+import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.event.SMEvent;
 
 public class SMDropPlayerHeads extends SMFeature {
+
+    /**
+     * When the feature is enabled
+     */
     @Override
     protected Boolean onEnable() {
-        this.plugin.getEventManager().registerEvent(PlayerDeathEvent.class, (listener, rawEvent) -> {
-            if(rawEvent.getEventName().equalsIgnoreCase("playerdeathevent")) {
-                PlayerDeathEvent event = (PlayerDeathEvent)rawEvent;
-                Player player = event.getEntity();
+        SMEvent.register(PlayerDeathEvent.class, ctx -> {
+            if(ctx.event.getEventName().equalsIgnoreCase("playerdeathevent")) {
+                Player player = ctx.event.getEntity();
                 Player killer = player.getKiller();
 
                 // Check if the killer is a player and not in survival gamemode
-                if (killer instanceof Player && killer.getGameMode() != GameMode.SURVIVAL) {
+                if (killer instanceof Player && (killer.getUniqueId() == player.getUniqueId() || killer.getGameMode() != GameMode.SURVIVAL)) {
+                    SMDebugger.debug(this, "Player not killed by another player that was in survival");
                     return;
                 }
 
@@ -27,8 +34,10 @@ public class SMDropPlayerHeads extends SMFeature {
                     skullMeta.setOwningPlayer(player);
                     playerHead.setItemMeta(skullMeta);
 
-                    event.getDrops().add(playerHead);
-                    event.getDrops().add(new ItemStack(Material.IRON_AXE));
+                    ctx.event.getDrops().add(playerHead);
+                    SMDebugger.debug(this, "Player killed by another player. Added head to drop list");
+                } else {
+                    SMDebugger.debug(this, "Player killed by another player but not in survival game mode");
                 }
             }
         });

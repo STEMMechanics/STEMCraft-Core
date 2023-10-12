@@ -1,0 +1,106 @@
+CONSOLE_NAME: "console"
+
+CMD_NO_PERMISSION: ":warning_red: &cYou don't have permission to use this command"
+CMD_ONLY_PLAYERS: "This command can only be run by a player"
+CMD_PLAYER_REQ_FROM_CONSOLE: "A player name is required when run from console"
+CMD_PLAYER_NOT_FOUND: ":warning_red: &cPlayer not found"
+CMD_INVALID_OPTION: ":warning_red: &cUnknown option"
+CMD_OPTION_REQUIRED: ":warning_red: &cAn option is required"
+
+HUB_TELEPORTED: "&eTeleported back to the hub"
+HUB_NOT_DEFINED: "Hub world not defined in config"
+
+GAMEMODE_UNKNOWN: "Gamemode unknown"
+GAMEMODE_CHANGED: "Gamemode set to {gamemode}"
+GAMEMODE_CHANGED_FOR: "Gamemode for {player} set to {gamemode}"
+GAMEMODE_CHANGED_BY: "Gamemode set to {gamemode} by {player}"
+
+
+SPAWNEGGS_DENIED: "You do not have permission to use spawn eggs"
+
+INV_CLEARED: "Inventory cleared"
+INV_CLEARED_FOR: "Inventory cleared for {player}"
+INV_CLEARED_BY: "Inventory cleared by {player}"
+
+TPSPAWN: "Teleported to the world spawn"
+TPSPAWN_FOR: "Teleported {player} to the world spawn"
+TPSPAWN_BY: "Teleported to the world spawn by {player}"
+
+BOOK_USAGE: "Usage: /book <option>"
+BOOK_USAGE_SAVE: "Usage: /book save <author> <title>"
+BOOK_USAGE_GET: "Usage: /book get <name>"
+BOOK_USAGE_SHOW: "Usage: /book show <name> (player)"
+BOOK_USAGE_DEL: "Usage: /book del <name>"
+BOOK_USAGE_UNLOCK: "Usage: /book unlock <name>"
+BOOK_UNKNOWN_OPTION: ":warning_red: Unknown book option"
+BOOK_INVENTORY_FULL: ":warning_red: &cYour inventory is full"
+BOOK_GIVEN_NEW: ":info_blue: You have been given a new book. Use /book save <name> to save it"
+BOOK_GIVEN: ":info_blue: You have received the book"
+BOOK_SAVE_NOT_WRITABLE: ":warning_red: &cYou are not holding a writable book"
+BOOK_SAVE_FAILED: ":warning_red: &cCould not save the book to the server"
+BOOK_SAVE_NEW: ":info_blue: &bBook saved as {name}"
+BOOK_SAVE_UPDATED: ":info_blue: &bBook updated"
+BOOK_NOT_FOUND: ":warning_red: &cBook not found"
+BOOK_UNLOCK_NOT_BOOK: ":warning_red: &cThe book you are holding is not unlockable"
+BOOK_UNLOCK_SUCCESSFUL: ":info_blue: &bBook unlocked"
+BOOK_DELETE_SUCCESSFUL: ":info_blue: &bBook deleted"
+
+WAYSTONE_NONE_FOUND: "No waystones found nearby"
+
+NIGHTVISION_ENABLED: "Night vision enabled"
+NIGHTVISION_DISABLED: "Night vision disabled"
+
+REPAIR_USAGE: "Usage: /repair (hand|all) (player)"
+REPAIR_NOT_REPAIRABLE: "Player is not holding anything repairable"
+REPAIR_HAND_REPAIRED: "Item in hand repaired"
+REPAIR_ALL_REPAIRED: "All inventory items repaired"
+
+TPALL_USAGE: "Usage: /tpall <player>|<group>"
+TPALL_PLAYER_OR_GROUP_NOT_FOUND: "That player or group was not found"
+TPALL_PLAYER_NOT_ONLINE: "That player is not online"
+
+TPALL_TO: "Teleported players to {player}"
+TPALL_BY: "Teleported to {to_player} by {by_player}"
+
+SEEN_USAGE: "Usage: /seen <player>"
+SEEN_RESULT: "{player} last loggin in on {last-login}"
+
+GMI_FAILED: "The server failed updating your inventory"
+
+TPLOC_USAGE:"Usage: /tploc <name>"
+TPLOC_NOT_EXIST: "Teleport location '{name}' does not exist"
+
+TPLOC_SAVE_SUCCESSFUL: "Location saved successfully"
+TPLOC_SAVE_FAILED: "Failed to save location"
+TPLOC_DELETE_SUCCESSFUL: "Location deleted successfully"
+TPLOC_DELETE_FAILED: "Failed to delete location"
+
+RESTRICT_CREATIVE_NO_DROPS: "You cannot drop items in creative mode"
+RESTRICT_CREATIVE_NO_PICKUPS: "You cannot pick up items in creative mode"
+RESTRICT_CREATIVE_NO_INTERACT: "You cannot interact with that item in creative mode"
+
+NO_BACK_LOCATION: "There is no location to teleport back to {player}"
+
+MAINTENANCE_SET_TO: "Server maintenance set to {mode}"
+MAINTENANCE_KICK: "The server is currently undergoing maintenance"
+
+PRIVATE_CORRECT: "Private password correct!"
+PRIVATE_INCORRECT: "Incorrect password"
+PRIVATE_REQUIRED_CHAT: "&eThe server in private mode.\n \n    &fYou are required to enter the password in chat to\n    stay connected"
+PRIVATE_REQUIRED_KICK: "You did not enter the login password"
+PRIVATE_REQUIRED: "Enter the password before interacting"
+
+PWEATHER_USAGE: "Usage: /pweather <type> (player)"
+PWEATHER_LOOKUP_SERVER: "Weather reset to server conditions"
+PWEATHER_LOOKUP_FOR: "Weather for {player} reset to server conditions"
+PWEATHER_RESET: "Weather reset to server conditions"
+PWEATHER_RESET_FOR: "Weather for {player} reset to server conditions"
+PWEATHER_RESET_BY: "Weather reset to server conditions by {player}"
+PWEATHER_GET: "Weather is set to {type}"
+PWEATHER_GET_FOR: "Weather for {player} is set to {type}"
+PWEATHER_SET: "Weather set to {type}"
+PWEATHER_SET_FOR: "Weather for {player} set to {type}"
+PWEATHER_SET_BY: "Weather set to {type} by {player}"
+
+WORKSHOP_ENTER: "You have been teleported to the workshop"
+WORKSHOP_NOT_FOUND: "Workshop not found"

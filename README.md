@@ -8,6 +8,11 @@ STEMMechanics brings creativity to life by developing engaging resources and pro
 
 ## Changes
 
+### 1.0.0
+
+-   Rewrite of the framework to make adding features easier
+-   When clicking a waystone, if the nearest does not have a safe location, instead of giving up, it will try other waystones
+
 ### 0.4.2
 
 -   Added Restrictive Creative which disables players interacting, dropping and picking items unless they have the `stemcraft.creative.override` permission.

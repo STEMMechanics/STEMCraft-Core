@@ -1,0 +1,29 @@
+message:
+    prefix:
+        info: "&b&l[ i ]&b "
+        success: "&2&l[ \u2714 ]&2 "
+        warn: "&6&l[ ! ]&6 "
+        error: "&4&l[ \u2715 ]&4 "
+        announce: "&5&l[ ! ]&5 "
+
+motd:
+    title: "&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■ &e&lSTEMCRAFT &3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■&3■&b■"
+    text: "Welcome to Minecraft"
+    show-version: true
+
+hub:
+    world: "world"
+    tp-commands:
+        bw_amazon:
+        - "bw leave"
+        - "teleport {hub-world} {player}"
+
+chat-format: "<{prefix}{name}{suffix}> {message}"
+remove-recipes: []
+
+# Number of days after which unvisited chunks are regenerated
+chunk-regenerate-delay: 56
+
+private-server:
+    enabled: false
+    password: "cats"

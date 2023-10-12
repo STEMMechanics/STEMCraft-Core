@@ -8,6 +8,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Merchant;
 import org.bukkit.inventory.MerchantRecipe;
 import com.stemcraft.STEMCraft;
+import com.stemcraft.core.SMDependency;
+import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.event.SMEvent;
 import com.stemcraft.trait.SMTraitShopkeeper;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.event.NPCRightClickEvent;
@@ -18,12 +21,12 @@ public class SMShopkeeper extends SMFeature {
     SMItemsAdder iaFeature = null;
 
     @Override
-    public Boolean onLoad(STEMCraft plugin) {
-        if(!super.onLoad(plugin)) {
+    public Boolean onLoad() {
+        if(!super.onLoad()) {
             return false;
         }
 
-        if(!this.plugin.getDependManager().getDependencyLoaded("Citizens")) {
+        if(!SMDependency.dependencyLoaded("Citizens")) {
             return false;
         }
 
@@ -32,18 +35,17 @@ public class SMShopkeeper extends SMFeature {
 
     @Override
     protected Boolean onEnable() {
-        this.iaFeature = (SMItemsAdder)this.plugin.getFeatureManager().getFeature("SMItemsAdder");
+        this.iaFeature = STEMCraft.getFeature("SMItemsAdder", SMItemsAdder.class);
 
         CitizensAPI.getTraitFactory().registerTrait(
             TraitInfo.create(SMTraitShopkeeper.class).withName("shopkeeper")
         );
 
-        this.plugin.getEventManager().registerEvent(NPCRightClickEvent.class, (listener, rawEvent) -> {
-            NPCRightClickEvent event = (NPCRightClickEvent)rawEvent;
-            NPC npc = event.getNPC();
+        SMEvent.register(NPCRightClickEvent.class, ctx -> {
+            NPC npc = ctx.event.getNPC();
 
-            if(npc.hasTrait(SMTraitShopkeeper.class) && event.getClicker() instanceof Player) {
-                Player player = event.getClicker();
+            if(npc.hasTrait(SMTraitShopkeeper.class) && ctx.event.getClicker() instanceof Player) {
+                Player player = ctx.event.getClicker();
 
                 Merchant merchant = player.getServer().createMerchant("Shopkeeper");
                 List<MerchantRecipe> trades = new ArrayList<>();

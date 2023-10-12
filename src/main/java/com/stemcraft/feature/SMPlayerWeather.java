@@ -1,151 +1,93 @@
 package com.stemcraft.feature;
 
 import java.util.HashMap;
-import org.bukkit.Bukkit;
 import org.bukkit.WeatherType;
 import org.bukkit.entity.Player;
+import com.stemcraft.STEMCraft;
+import com.stemcraft.core.SMCommon;
+import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.SMMessenger;
+import com.stemcraft.core.command.SMCommand;
 
 public class SMPlayerWeather extends SMFeature {
     @Override
     protected Boolean onEnable() {
-        this.plugin.getLanguageManager().registerPhrase("PWEATHER_USAGE", "Usage: /pweather <type> (player)");
-        this.plugin.getLanguageManager().registerPhrase("PWEATHER_LOOKUP_SERVER", "Weather reset to server conditions");
-        this.plugin.getLanguageManager().registerPhrase("PWEATHER_LOOKUP_FOR", "Weather for %PLAYER_NAME% reset to server conditions");
-        this.plugin.getLanguageManager().registerPhrase("PWEATHER_RESET", "Weather reset to server conditions");
-        this.plugin.getLanguageManager().registerPhrase("PWEATHER_RESET_FOR", "Weather for %PLAYER_NAME% reset to server conditions");
-        this.plugin.getLanguageManager().registerPhrase("PWEATHER_RESET_BY", "Weather reset to server conditions by %PLAYER_NAME%");
-        this.plugin.getLanguageManager().registerPhrase("PWEATHER_GET", "Weather is set to %TYPE%");
-        this.plugin.getLanguageManager().registerPhrase("PWEATHER_GET_FOR", "Weather for %PLAYER_NAME% is set to %TYPE%");
-        this.plugin.getLanguageManager().registerPhrase("PWEATHER_SET", "Weather set to %TYPE%");
-        this.plugin.getLanguageManager().registerPhrase("PWEATHER_SET_FOR", "Weather for %PLAYER_NAME% set to %TYPE%");
-        this.plugin.getLanguageManager().registerPhrase("PWEATHER_SET_BY", "Weather set to %TYPE% by %PLAYER_NAME%");
+        String[] options = {"reset", "clear", "rain", "lookup"};
 
-        String[] aliases = new String[]{"pweather"};
-        String[][] tabCompletions = new String[][]{
-            {"playerweather", "reset", "%player%"},
-            {"playerweather", "clear", "%player%"},
-            {"playerweather", "rain", "%player%"},
-            {"playerweather", "lookup", "%player%"},
-        };
-
-        this.plugin.getCommandManager().registerCommand("playerweather", (sender, command, label, args) -> {
-            Player targetPlayer = null;
-            String weatherOption = "lookup";
-
-            if(args.length < 1) {
-                if (sender instanceof Player) {
-                    targetPlayer = (Player) sender;
-                } else {
-                    this.plugin.getLanguageManager().sendPhrase(sender, "PWEATHER_USAGE");
-                    return true;
-                }
-            } else {
-                weatherOption = args[0];
-
-                if(args.length < 2) {
-                    if (sender instanceof Player) {
-                        targetPlayer = (Player) sender;
-                    } else {
-                        this.plugin.getLanguageManager().sendPhrase(sender, "CMD_PLAYER_REQ_FROM_CONSOLE");
-                        return true;
-                    }
-                } else {
-                    targetPlayer = Bukkit.getPlayer(args[1]);
-                    if (targetPlayer == null) {
-                        this.plugin.getLanguageManager().sendPhrase(sender, "CMD_PLAYER_NOT_FOUND");
-                        return true;
-                    }
-                }
-            }
-
-            if(sender instanceof Player) {
-                if(!sender.hasPermission("stemcraft.pweather")) {
-                    this.plugin.getLanguageManager().sendPhrase(sender, "CMD_NO_PERMISSION");
-                    return true;
-                }
-
-                if(!sender.hasPermission("stemcraft.pweather.other") && targetPlayer != sender) {
-                    this.plugin.getLanguageManager().sendPhrase(sender, "CMD_NO_PERMISSION");
-                    return true;
-                }
-            }
-
-            HashMap<String, String> weatherTypes = new HashMap<>();
-            weatherTypes.put("lookup", "");
-            weatherTypes.put("reset", "");
-            weatherTypes.put("clear", "CLEAR");
-            weatherTypes.put("rain", "DOWNFALL");
-
-            if(!weatherTypes.containsKey(weatherOption)) {
-                this.plugin.getLanguageManager().sendPhrase(sender, "CMD_INVALID_OPTION");
-                return true;
-            }
-
-            if(weatherOption.equalsIgnoreCase("lookup")) {
-                String weatherValue = "server";
-
-                WeatherType playerWeather = targetPlayer.getPlayerWeather();
-                if(playerWeather != null) {
-                    if(playerWeather == WeatherType.CLEAR) {
-                        weatherValue = "clear";
-                    } else if(playerWeather == WeatherType.DOWNFALL) {
-                        weatherValue = "rain";
-                    } else {
-                        weatherValue = "unknown";
-                    }
-                }
-
-                HashMap<String, String> replacements = new HashMap<>();
-                replacements.put("TYPE", weatherValue);
+        new SMCommand("playerweather")
+            .alias("pweather")
+            .permission("stemcraft.pweather")
+            .tabComplete(options, "{player}")
+            .action(ctx -> {
+                Player targetPlayer = ctx.player;
+                String option = "lookup";
                 
-                if(targetPlayer == sender) {
-                    this.plugin.getLanguageManager().sendPhrase(sender, "PWEATHER_GET", replacements);
-                } else {
-                    replacements.put("PLAYER_NAME", targetPlayer.getName());
-                    this.plugin.getLanguageManager().sendPhrase(sender, "PWEATHER_GET_FOR", replacements);
-                }
-            } else if(weatherOption.equalsIgnoreCase("reset")) {
-                targetPlayer.resetPlayerWeather();
+                HashMap<String, String> weatherTypes = new HashMap<>();
+                weatherTypes.put("clear", "CLEAR");
+                weatherTypes.put("rain", "DOWNFALL");
 
-                if(targetPlayer == sender) {
-                    this.plugin.getLanguageManager().sendPhrase(sender, "PWEATHER_RESET");
-                } else {
-                    HashMap<String, String> replacements = new HashMap<>();
-                            
-                    replacements.put("PLAYER_NAME", targetPlayer.getName());
-                    this.plugin.getLanguageManager().sendPhrase(sender, "PWEATHER_RESET_FOR", replacements);
-
-                    replacements.put("PLAYER_NAME", sender.getName());
-                    this.plugin.getLanguageManager().sendPhrase(sender, "PWEATHER_RESET_BY", replacements);
+                if(ctx.fromConsole() && ctx.args.length == 0) {
+                    ctx.returnErrorLocale("PWEATHER_USAGE");
                 }
-            } else {
-                String weatherValue = weatherTypes.getOrDefault(weatherOption, "");
-                if(weatherValue.length() > 0) {
+
+                if(ctx.args.length > 0) {
+                    ctx.checkInArrayLocale(options, ctx.args[0], "PWEATHER_USAGE");
+                    option = ctx.args[0].toLowerCase();
+
+                    targetPlayer = ctx.getArgAsPlayer(2, ctx.player);
+                }
+
+                ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
+                ctx.checkPermission(targetPlayer == ctx.sender, "stemcraft.pweather.other");
+
+                if("lookup".equals(option)) {
+                    String weatherValue = "server";
+
+                    WeatherType playerWeather = targetPlayer.getPlayerWeather();
+                    if(playerWeather != null) {
+                        if(playerWeather == WeatherType.CLEAR) {
+                            weatherValue = "clear";
+                        } else if(playerWeather == WeatherType.DOWNFALL) {
+                            weatherValue = "rain";
+                        } else {
+                            weatherValue = "unknown";
+                        }
+                    }
+
+                    if(targetPlayer == ctx.sender) {
+                        ctx.returnInfoLocale("PWEATHER_GET", "type", weatherValue);
+                    } else {
+                        ctx.returnInfoLocale("PWEATHER_GET_FOR", "player", targetPlayer.getName(), "type", weatherValue);
+                    }
+                } else if("reset".equals(option)) {
+                    targetPlayer.resetPlayerWeather();
+
+                    if(targetPlayer == ctx.sender) {
+                        ctx.returnInfoLocale("PWEATHER_RESET");
+                    } else {
+                        SMMessenger.infoLocale(ctx.sender, "PWEATHER_RESET_FOR", "player", targetPlayer.getName());
+                        SMMessenger.infoLocale(targetPlayer, "PWEATHER_RESET_BY", "player", ctx.senderName());
+                    }
+                } else {
+                    String weatherValue = weatherTypes.get(option);
+
                     try {
                         WeatherType weatherType = WeatherType.valueOf(weatherValue);
 
                         targetPlayer.setPlayerWeather(weatherType);
 
-                        HashMap<String, String> replacements = new HashMap<>();
-                        replacements.put("TYPE", weatherOption.toLowerCase());
-                        
-                        if(targetPlayer == sender) {
-                            this.plugin.getLanguageManager().sendPhrase(sender, "PWEATHER_SET", replacements);
+                        if(targetPlayer == ctx.sender) {
+                            ctx.returnInfoLocale("PWEATHER_SET", "type", option);
                         } else {
-                            replacements.put("PLAYER_NAME", targetPlayer.getName());
-                            this.plugin.getLanguageManager().sendPhrase(sender, "PWEATHER_SET_FOR", replacements);
-
-                            replacements.put("PLAYER_NAME", sender.getName());
-                            this.plugin.getLanguageManager().sendPhrase(sender, "PWEATHER_SET_BY", replacements);
+                            SMMessenger.infoLocale(ctx.sender, "PWEATHER_SET_FOR", "player", targetPlayer.getName(), "type", option);
+                            SMMessenger.infoLocale(targetPlayer, "PWEATHER_SET_BY", "player", ctx.senderName(), "type", option);
                         }
                     } catch (IllegalArgumentException e) {
                         /* Do nothing */
                     }
                 }
-            }
-
-            return true;
-        }, aliases, tabCompletions);
+            })
+            .register();
 
         return true;
     }

@@ -1,66 +1,45 @@
 package com.stemcraft.feature;
 
-import java.util.HashMap;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.SMMessenger;
+import com.stemcraft.core.command.SMCommand;
 
 public class SMTeleportSpawn extends SMFeature {
+    
+    /**
+     * When feature is enabled
+     */
     @Override
     protected Boolean onEnable() {
-        this.plugin.getLanguageManager().registerPhrase("TPSPAWN", "Teleported to the world spawn");
-        this.plugin.getLanguageManager().registerPhrase("TPSPAWN_FOR", "Teleported %PLAYER_NAME% to the world spawn");
-        this.plugin.getLanguageManager().registerPhrase("TPSPAWN_BY", "Teleported to the world spawn by %PLAYER_NAME%");
+        new SMCommand("tpspawn")
+            .alias("teleportspawn")
+            .permission("stemcraft.teleport.spawn")
+            .tabComplete("{player}")
+            .action(ctx -> {
+                Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
 
-        String commandName = "tpspawn";
-        String[] aliases = new String[]{};
-        String[][] tabCompletions = new String[][]{
-            {"teleportspawn", "%player%"},
-        };
+                // Check player exists when issued from console
+                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length == 0), "CMD_PLAYER_REQ_FROM_CONSOLE");
 
-        this.plugin.getCommandManager().registerCommand(commandName, (sender, command, label, args) -> {
-            Player targetPlayer = null;
+                // Check player has permission to teleport others
+                ctx.checkBooleanLocale(targetPlayer == ctx.sender || ctx.hasPermission("stemcraft.teleport.spawn.other"), "CMD_NO_PERMISSION");
 
-            if (!sender.hasPermission("stemcraft.teleport.spawn") && !sender.hasPermission("stemcraft.teleport.spawn.other")) {
-                this.plugin.getLanguageManager().sendPhrase(sender, "CMD_NO_PERMISSION");
-                return true;
-            }
+                // Check target player exists
+                ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
 
-            if(args.length < 1) {
-                if (sender instanceof Player) {
-                    targetPlayer = (Player) sender;
+                // Teleport player
+                targetPlayer.teleport(targetPlayer.getWorld().getSpawnLocation());
+
+                // Notify players
+                if(targetPlayer == ctx.sender) {
+                    ctx.returnInfoLocale("TPSPAWN");
                 } else {
-                    this.plugin.getLanguageManager().sendPhrase(sender, "CMD_PLAYER_REQ_FROM_CONSOLE");
-                    return true;
+                    SMMessenger.infoLocale(ctx.sender, "TPSPAWN_FOR", "player", targetPlayer.getName());
+                    SMMessenger.infoLocale(targetPlayer, "TPSPAWN_BY", "player", ctx.senderName());
                 }
-            } else {
-                if (!sender.hasPermission("stemcraft.teleport.spawn.other")) {
-                    this.plugin.getLanguageManager().sendPhrase(sender, "CMD_NO_PERMISSION");
-                    return true;
-                }
-
-                targetPlayer = Bukkit.getPlayer(args[0]);
-                if (targetPlayer == null) {
-                    this.plugin.getLanguageManager().sendPhrase(sender, "CMD_PLAYER_NOT_FOUND");
-                    return true;
-                }
-            }
-            
-            targetPlayer.teleport(targetPlayer.getWorld().getSpawnLocation());
-
-            if(targetPlayer == sender) {
-                this.plugin.getLanguageManager().sendPhrase(sender, "TPSPAWN");
-            } else {
-                HashMap<String, String> replacements = new HashMap<>();
-                        
-                replacements.put("PLAYER_NAME", targetPlayer.getName());
-                this.plugin.getLanguageManager().sendPhrase(sender, "TPSPAWN_FOR", replacements);
-
-                replacements.put("PLAYER_NAME", sender.getName());
-                this.plugin.getLanguageManager().sendPhrase(sender, "TPSPAWN_BY", replacements);
-            }
-
-            return true;
-        }, aliases, tabCompletions);
+            })
+            .register();
 
         return true;
     }
