@@ -17,7 +17,7 @@ import com.stemcraft.core.event.SMEvent;
  * Increases the costs of buying from villagers
  */
 public class SMVillagerTrading extends SMFeature {
-    
+
     /**
      * When the feature is enabled
      */
