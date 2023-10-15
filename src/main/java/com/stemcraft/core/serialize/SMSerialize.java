@@ -1,27 +1,31 @@
 package com.stemcraft.core.serialize;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.configuration.MemoryConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stemcraft.core.SMBridge;
 import com.stemcraft.core.SMCommon;
 import com.stemcraft.core.SMValid;
 import com.stemcraft.core.exception.SMInvalidWorldException;
 import de.tr7zw.nbtapi.NBT;
-import de.tr7zw.nbtapi.NBTType;
-import de.tr7zw.nbtapi.iface.ReadWriteNBT;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -37,7 +41,12 @@ public final class SMSerialize {
     /**
      * A list of custom serializers
      */
-    private static Map<Class<Object>, BiFunction<Boolean, Object, Object>> serializers = new HashMap<>();
+    private static Map<Class<Object>, Function<Object, String>> serializers = new HashMap<>();
+
+    /**
+     * A list of custom deserializers
+     */
+    private static Map<Class<Object>, Function<String, Object>> deserializers = new HashMap<>();
 
     /**
      * Add a custom serializer to the list
@@ -47,34 +56,43 @@ public final class SMSerialize {
      * @param serializer
      */
     @SuppressWarnings("unchecked")
-    public static <T> void addSerializer(Class<T> fromClass, BiFunction<Boolean, Object, Object> serializer) {
-        serializers.put((Class<Object>) fromClass, (BiFunction<Boolean, Object, Object>) serializer);
+    public static <T> void addSerializer(Class<T> fromClass, Function<Object, String> serializer) {
+        serializers.put((Class<Object>) fromClass, (Function<Object, String>) serializer);
     }
 
-    public static void initalize() {
-        SMSerialize.addSerializer(World.class, (serialize, data) -> {
-            if(serialize) {
-                return ((World)data).getName();
-            } else {
-                return Bukkit.getServer().getWorld(((String)data));
-            }
-        });
+    /**
+     * Add a custom deserializer to the list
+     *
+     * @param <T>
+     * @param toClass
+     * @param deserializer
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> void addDeserializer(Class<T> toClass, Function<String, Object> deserializer) {
+        deserializers.put((Class<Object>) toClass, (Function<String, Object>) deserializer);
     }
+
+	/**
+	 * How should we de/serialize the objects in this class?
+	 */
+	public enum Mode {
+		JSON,
+		YAML
+	}
 
     /**
      * Converts the given object into something you can safely save in file as a string
      *
-     * @param mode determines the file that the object originated from, if unsure just set to YAML
      * @param object
      * @return
      */
     @SuppressWarnings("deprecation")
-    public static String serialize(Object object) {
+    public static String serialize(Mode type, Object object) {
         if (object == null)
             return null;
 
-        // if (serializers.containsKey(object.getClass()))
-        //     return serializers.get(object.getClass()).apply(object);
+        if (serializers.containsKey(object.getClass()))
+            return serializers.get(object.getClass()).apply(object);
 
         else if (object instanceof Location)
             return serializeLocation((Location) object);
@@ -101,22 +119,25 @@ public final class SMSerialize {
             return ((Enchantment) object).getName();
 
         else if (object instanceof ItemStack)
-            return serializeItemStack((ItemStack)object);
+            return serializeItemStack((ItemStack) object);
 
         else if (object instanceof ItemStack[])
-            return serializeItemStackArray((ItemStack[])object);
+            return serializeItemStackArray((ItemStack[]) object);
 
-        // else if (object instanceof BaseComponent)
-        //     return SMJSON.toJSON((BaseComponent) object);
+        else if (object instanceof ConfigurationSerializable)
+            return serializeCS((ConfigurationSerializable) object);
 
-        // else if (object instanceof BaseComponent[]) {
-        //     return SMJSON.toJSON((BaseComponent[]) object);
+        else if (object instanceof BaseComponent)
+            return serializeJSON((BaseComponent) object);
 
-        // } else if (object instanceof Iterable || object.getClass().isArray()) {
-        //     return SMJSON.toJSON(object);
+        else if (object instanceof BaseComponent[])
+            return serializeJSON((BaseComponent[]) object);
+
+        else if (object instanceof Iterable || object.getClass().isArray())
+            return serializeJSON(object);
 
         else if (object instanceof Map)
-            return serializeMap((Map<Object, Object>)object);
+            return serializeJSON(object);
 
         throw new SerializeFailedException("Does not know how to serialize " + object.getClass().getSimpleName() + "! Does it extends ConfigSerializable? Data: " + object);
     }
@@ -143,107 +164,39 @@ public final class SMSerialize {
     }
 
     private static String serializeItemStack(final ItemStack item) {
-        return NBT.itemStackToNBT(item).toString();
+        Map<String, Object> map = new HashMap<>();
+        ItemMeta meta = item.getItemMeta();
+        
+        map = item.serialize();
+        if(meta != null) {
+            map.put("meta", meta.serialize());
+        }
+
+        return serializeJSON(map);
     }
 
     private static String serializeItemStackArray(final ItemStack[] item) {
-        return NBT.itemStackArrayToNBT(item).toString();
-    }
+        List<Map<String, Object>> list = new ArrayList<>();
 
-    private static String serializeMap(final Map<Object, Object> map) {
-        ReadWriteNBT nbt = NBT.createNBTObject();
+        for(int i = 0; i < item.length; i++) {
+            if(item[i] != null && item[i].getType() != Material.AIR) {
+                Map<String, Object> map = new HashMap<>();
+                String serializedItem = serializeItemStack(item[i]);
 
-        for (Entry<Object, Object> entry : map.entrySet()) {
-            if (!(entry.getKey() instanceof String)) {
-                throw new IllegalArgumentException("Only string keys are permitted to be serialized");
-            }
-            
-            String key = entry.getKey().toString();
-            Object value = entry.getValue();
-
-            if(value instanceof Boolean)
-                nbt.setBoolean(key, (Boolean)value);
-            else if(value instanceof Byte)
-                nbt.setByte(key, (Byte)value);
-            else if(value instanceof byte[])
-                nbt.setByteArray(key, (byte[])value);
-            else if(value instanceof Double)
-                nbt.setDouble(key, (Double)value);
-            else if(value instanceof Float)
-                nbt.setFloat(key, (Float)value);
-            else if(value instanceof Integer)
-                nbt.setInteger(key, (Integer)value);
-            else if(value instanceof int[])
-                nbt.setIntArray(key, (int[])value);
-            else if(value instanceof Long)
-                nbt.setLong(key, (Long)value);
-            else if(value instanceof Short)
-                nbt.setShort(key, (Short)value);
-            else if(value instanceof String)
-                nbt.setString(key, (String)value);
-            else if(value instanceof UUID)
-                nbt.setUUID(key, (UUID)value);
-            else if(value instanceof ItemStack)
-                nbt.setItemStack(key, (ItemStack)value);
-            else if(value instanceof ItemStack[])
-                nbt.setItemStackArray(key, (ItemStack[])value);
-            else
-                nbt.setString(key, serialize(value));
-        }
-
-        return nbt.toString();
-    }
-    
-    private static Map<String, Object> deserializeMap(final String mapString) {
-        ReadWriteNBT nbt = NBT.parseNBT(mapString);
-        Map<String, Object> map = new HashMap<>();
-
-        for (String key : nbt.getKeys()) {
-
-            NBTType type = nbt.getType(key);
-
-            if(type == NBTType.NBTTagByte)
-                map.put(key, nbt.getByte(key));
-            else if(type == NBTType.NBTTagByteArray)
-                map.put(key, nbt.getByteArray(key));
-            else if(type == NBTType.NBTTagCompound)
-                map.put(key, nbt.getCompound(key));
-            else if(type == NBTType.NBTTagDouble)
-                map.put(key, nbt.getDouble(key));
-            else if(type == NBTType.NBTTagFloat)
-                map.put(key, nbt.getFloat(key));
-            else if(type == NBTType.NBTTagInt)
-                map.put(key, nbt.getInteger(key));
-            else if(type == NBTType.NBTTagIntArray)
-                map.put(key, nbt.getIntArray(key));
-            else if(type == NBTType.NBTTagLong)
-                map.put(key, nbt.getLong(key));
-            else if(type == NBTType.NBTTagShort)
-                map.put(key, nbt.getShort(key));
-            else if(type == NBTType.NBTTagString)
-                map.put(key, nbt.getString(key));
-            else if(type == NBTType.NBTTagList) {
-                NBTType listType = nbt.getListType(key);
-
-                if(listType == NBTType.NBTTagCompound)
-                    map.put(key, nbt.getCompoundList(key));
-                else if(listType == NBTType.NBTTagDouble)
-                    map.put(key, nbt.getDoubleList(key));
-                else if(listType == NBTType.NBTTagFloat)
-                    map.put(key, nbt.getFloatList(key));
-                else if(listType == NBTType.NBTTagIntArray)
-                    map.put(key, nbt.getIntArrayList(key));
-                else if(listType == NBTType.NBTTagInt)
-                    map.put(key, nbt.getIntegerList(key));
-                else if(listType == NBTType.NBTTagLong)
-                    map.put(key, nbt.getLongList(key));
-                else if(listType == NBTType.NBTTagString)
-                    map.put(key, nbt.getStringList(key));
+                map.put("slot", i);
+                map.put("item", serializedItem);
+                list.add(map);
             }
         }
 
-        return map;
+        return serializeJSON(list);
     }
+
+    private static String serializeCS(final ConfigurationSerializable cs) {
+        Map<String, Object> map = cs.serialize();
+        return serializeJSON(map);
+    }
+
     // ------------------------------------------------------------------------------------------------------------
     // Converting stored strings from your files back into classes
     // ------------------------------------------------------------------------------------------------------------
@@ -253,145 +206,150 @@ public final class SMSerialize {
      * allows you to parse through more arguments to the static deserialize method
      *
      * @param <T>
-     * @param mode determines the file that the object originated from, if unsure just set to YAML
      * @param classOf
      * @param object
      * @return
      */
     @SuppressWarnings({"rawtypes", "unchecked", "deprecation"})
-    public static <T> T deserialize(@NonNull final Class<T> classOf, @NonNull Object object) {
+    public static <T> T deserialize(@NonNull final Class<T> classOf, @NonNull String string) {
+        if (deserializers.containsKey(classOf))
+            return (T)deserializers.get(classOf).apply(string);
 
         if (classOf == String.class)
-            object = object.toString();
+            return (T)string;
 
         else if (classOf == Integer.class)
-            object = Integer.parseInt(object.toString());
+            return (T)(Integer)Integer.parseInt(string);
 
         else if (classOf == Long.class)
-            object = Long.decode(object.toString());
+            return (T)Long.decode(string);
 
         else if (classOf == Double.class)
-            object = Double.parseDouble(object.toString());
+            return (T)(Double)Double.parseDouble(string);
 
         else if (classOf == Float.class)
-            object = Float.parseFloat(object.toString());
+            return (T)(Float)Float.parseFloat(string);
 
         else if (classOf == Boolean.class)
-            object = Boolean.parseBoolean(object.toString());
+            return (T)(Boolean)Boolean.parseBoolean(string);
 
         else if (classOf == Location.class)
-            object = deserializeLocation(object);
+            return (T)deserializeLocation(string);
 
-        else if (classOf == PotionEffectType.class)
-            object = PotionEffectType.getByName(object.toString());
+        else if (classOf == UUID.class)
+            return (T)UUID.fromString(string);
 
-        else if (classOf == PotionEffect.class)
-            object = deserializePotionEffect(object);
+        else if (Enum.class.isAssignableFrom(classOf))
+            return (T)SMBridge.lookupEnum((Class<Enum>) classOf, string);
 
-        else if (classOf == ItemStack.class)
-            object = deserializeItemStack(object.toString());
+        else if (classOf == World.class)
+            return (T)Bukkit.getWorld(string);
+        
+        // else if (classOf == Entity.class)
+        //     return (T)Bukkit.
 
-        else if (classOf == ItemStack[].class)
-            object = deserializeItemStackArray(object.toString());
+        //     else if (classOf == PotionEffectType.class)
+        //     object = PotionEffectType.getByName(object.toString());
 
-            else if (classOf == UUID.class)
-            object = UUID.fromString(object.toString());
+        // else if (classOf == PotionEffect.class)
+        //     object = deserializePotionEffect(object);
 
-        else if (classOf == BaseComponent.class) {
-            final BaseComponent[] deserialized = ComponentSerializer.parse(object.toString());
-            SMValid.checkBoolean(deserialized.length == 1, "Failed to deserialize into singular BaseComponent: " + object);
+        // else if (classOf == ItemStack.class)
+        //     object = deserializeItemStack(object.toString());
 
-            object = deserialized[0];
+        // else if (classOf == ItemStack[].class)
+        //     object = deserializeItemStackArray(object.toString());
 
-        } else if (classOf == BaseComponent[].class)
-            object = ComponentSerializer.parse(object.toString());
 
-        else if (Enchantment.class.isAssignableFrom(classOf)) {
-            String name = object.toString().toLowerCase();
-            Enchantment enchant = Enchantment.getByName(name);
+        // else if (classOf == BaseComponent.class) {
+        //     final BaseComponent[] deserialized = ComponentSerializer.parse(object.toString());
+        //     SMValid.checkBoolean(deserialized.length == 1, "Failed to deserialize into singular BaseComponent: " + object);
 
-            if (enchant == null) {
-                name = name.toUpperCase();
+        //     object = deserialized[0];
 
-                enchant = Enchantment.getByName(name);
-            }
+        // } else if (classOf == BaseComponent[].class)
+        //     object = ComponentSerializer.parse(object.toString());
 
-            if (enchant == null) {
-                name = EnchantmentWrapper.toBukkit(name);
-                enchant = Enchantment.getByName(name);
+        // else if (Enchantment.class.isAssignableFrom(classOf)) {
+        //     String name = object.toString().toLowerCase();
+        //     Enchantment enchant = Enchantment.getByName(name);
 
-                if (enchant == null)
-                    enchant = Enchantment.getByName(name.toLowerCase());
+        //     if (enchant == null) {
+        //         name = name.toUpperCase();
 
-                if (enchant == null)
-                    enchant = Enchantment.getByName(name.toUpperCase());
-            }
+        //         enchant = Enchantment.getByName(name);
+        //     }
 
-            SMValid.checkNotNull(enchant, "Invalid enchantment '" + name + "'! For SMValid names, see: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/enchantments/Enchantment.html");
-            object = enchant;
-        }
+        //     if (enchant == null) {
+        //         name = EnchantmentWrapper.toBukkit(name);
+        //         enchant = Enchantment.getByName(name);
 
-        else if (PotionEffectType.class.isAssignableFrom(classOf)) {
-            final String name = PotionWrapper.getBukkitName(object.toString());
-            final PotionEffectType potion = PotionEffectType.getByName(name);
+        //         if (enchant == null)
+        //             enchant = Enchantment.getByName(name.toLowerCase());
 
-            SMValid.checkNotNull(potion, "Invalid potion '" + name + "'! For SMValid names, see: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/potion/PotionEffectType.html");
-            object = potion;
-        }
+        //         if (enchant == null)
+        //             enchant = Enchantment.getByName(name.toUpperCase());
+        //     }
 
-        else if (Enum.class.isAssignableFrom(classOf)) {
-            object = SMBridge.lookupEnum((Class<Enum>) classOf, object.toString());
+        //     SMValid.checkNotNull(enchant, "Invalid enchantment '" + name + "'! For SMValid names, see: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/enchantments/Enchantment.html");
+        //     object = enchant;
+        // }
 
-            if (object == null)
-                return null;
-        }
+        // else if (PotionEffectType.class.isAssignableFrom(classOf)) {
+        //     final String name = PotionWrapper.getBukkitName(object.toString());
+        //     final PotionEffectType potion = PotionEffectType.getByName(name);
 
-        else if (List.class.isAssignableFrom(classOf) && object instanceof List) {
-            // Good
+        //     SMValid.checkNotNull(potion, "Invalid potion '" + name + "'! For SMValid names, see: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/potion/PotionEffectType.html");
+        //     object = potion;
+        // }
 
-        } else if (Map.class.isAssignableFrom(classOf)) {
-            // if (object instanceof Map) {
-                // return (T) object;
-                return (T) deserializeMap(object.toString());
-            // }
 
-            // throw new SerializeFailedException("Does not know how to turn " + object.getClass().getSimpleName() + " into a Map! (Keep in mind we can only serialize into Map<String, Object> Data: " + object);
+        // else if (List.class.isAssignableFrom(classOf) && object instanceof List) {
+        //     // Good
 
-        } else if (classOf.isArray()) {
-            final Class<?> arrayType = classOf.getComponentType();
-            T[] array;
+        // } else if (Map.class.isAssignableFrom(classOf)) {
+        //     // if (object instanceof Map) {
+        //         // return (T) object;
+        //         // return (T) deserializeMap(object.toString());
+        //     // }
 
-            if (object instanceof List) {
-                final List<?> rawList = (List<?>) object;
-                array = (T[]) Array.newInstance(classOf.getComponentType(), rawList.size());
+        //     // throw new SerializeFailedException("Does not know how to turn " + object.getClass().getSimpleName() + " into a Map! (Keep in mind we can only serialize into Map<String, Object> Data: " + object);
 
-                for (int i = 0; i < rawList.size(); i++) {
-                    final Object element = rawList.get(i);
+        // } else if (classOf.isArray()) {
+        //     final Class<?> arrayType = classOf.getComponentType();
+        //     T[] array;
 
-                    array[i] = element == null ? null : (T) deserialize(arrayType, element);
-                }
-            }
+        //     if (object instanceof List) {
+        //         final List<?> rawList = (List<?>) object;
+        //         array = (T[]) Array.newInstance(classOf.getComponentType(), rawList.size());
 
-            else {
-                final Object[] rawArray = (Object[]) object;
-                array = (T[]) Array.newInstance(classOf.getComponentType(), rawArray.length);
+        //         for (int i = 0; i < rawList.size(); i++) {
+        //             final Object element = rawList.get(i);
 
-                for (int i = 0; i < array.length; i++)
-                    array[i] = rawArray[i] == null ? null : (T) deserialize(classOf.getComponentType(), rawArray[i]);
-            }
+        //             array[i] = element == null ? null : (T) deserialize(arrayType, element);
+        //         }
+        //     }
 
-            return (T) array;
+        //     else {
+        //         final Object[] rawArray = (Object[]) object;
+        //         array = (T[]) Array.newInstance(classOf.getComponentType(), rawArray.length);
 
-        }
+        //         for (int i = 0; i < array.length; i++)
+        //             array[i] = rawArray[i] == null ? null : (T) deserialize(classOf.getComponentType(), rawArray[i]);
+        //     }
 
-        else if (classOf == Object.class) {
-            // Good
-        }
+            // return (T) array;
 
-        else
-            throw new SerializeFailedException("Does not know how to turn " + classOf + " into a serialized object from data: " + object);
+        // }
 
-        return (T) object;
+        // else if (classOf == Object.class) {
+        //     // Good
+        // }
+
+        // else
+        //     throw new SerializeFailedException("Does not know how to turn " + classOf + " into a serialized object from data: " + object);
+
+        return (T) null;
     }
 
     /**
@@ -486,93 +444,6 @@ public final class SMSerialize {
 
     private static ItemStack[] deserializeItemStackArray(final String items) {
         return NBT.itemStackArrayFromNBT(NBT.parseNBT(items));
-    }
-
-
-    /**
-     * Attempts to turn the given item or map into an item
-     *
-     * @param obj
-     * @return
-     */
-    // private static ItemStack deserializeItemStack(@NonNull Mode mode, @NonNull Object obj) {
-    //     try {
-
-    //         if (obj instanceof ItemStack)
-    //             return (ItemStack) obj;
-
-    //         if (mode == Mode.JSON)
-    //             return JsonItemStack.fromJson(obj.toString());
-
-    //         final SerializedMap map = SerializedMap.of(obj);
-
-    //         final ItemStack item = ItemStack.deserialize(map.asMap());
-    //         final SerializedMap meta = map.getMap("meta");
-
-    //         if (meta != null)
-    //             try {
-    //                 final Class<?> cl = SMBridge.getOBCClass("inventory." + (meta.containsKey("spawnedType") ? "CraftMetaSpawnEgg" : "CraftMetaItem"));
-    //                 final Constructor<?> c = cl.getDeclaredConstructor(Map.class);
-    //                 c.setAccessible(true);
-
-    //                 final Object craftMeta = c.newInstance((Map<String, ?>) meta.serialize());
-
-    //                 if (craftMeta instanceof ItemMeta)
-    //                     item.setItemMeta((ItemMeta) craftMeta);
-
-    //             } catch (final Throwable t) {
-
-    //                 // We have to manually deserialize metadata :(
-    //                 final ItemMeta itemMeta = item.getItemMeta();
-
-    //                 final String display = meta.containsKey("display-name") ? meta.getString("display-name") : null;
-
-    //                 if (display != null)
-    //                     itemMeta.setDisplayName(display);
-
-    //                 final List<String> lore = meta.containsKey("lore") ? meta.getStringList("lore") : null;
-
-    //                 if (lore != null)
-    //                     itemMeta.setLore(lore);
-
-    //                 final SerializedMap enchants = meta.containsKey("enchants") ? meta.getMap("enchants") : null;
-
-    //                 if (enchants != null)
-    //                     for (final Map.Entry<String, Object> entry : enchants.entrySet()) {
-    //                         final Enchantment enchantment = Enchantment.getByName(entry.getKey());
-    //                         final int level = (int) entry.getValue();
-
-    //                         itemMeta.addEnchant(enchantment, level, true);
-    //                     }
-
-    //                 final List<String> itemFlags = meta.containsKey("ItemFlags") ? meta.getStringList("ItemFlags") : null;
-
-    //                 if (itemFlags != null)
-    //                     for (final String flag : itemFlags)
-    //                         try {
-    //                             itemMeta.addItemFlags(ItemFlag.valueOf(flag));
-    //                         } catch (final Exception ex) {
-    //                             // Likely not MC compatible, ignore
-    //                         }
-
-    //                 item.setItemMeta(itemMeta);
-    //             }
-
-    //         return item;
-
-    //     } catch (final Throwable t) {
-    //         t.printStackTrace();
-
-    //         return null;
-    //     }
-    // }
-
-    /**
-     * How should we de/serialize the objects in this class?
-     */
-    public enum Mode {
-        JSON,
-        YAML
     }
 
     /**
@@ -687,6 +558,147 @@ public final class SMSerialize {
 
         public String getBukkitName() {
             return this.bukkitName != null ? this.bukkitName : this.name();
+        }
+    }
+
+    /**
+     * Is item a Java primative
+     * @param item primative to test
+     * @return if item is a primative type
+     */
+    private static boolean isPrimitive(Object item) {
+        return item instanceof String ||
+                item instanceof Byte ||
+                item instanceof Short ||
+                item instanceof Integer ||
+                item instanceof Long ||
+                item instanceof Float ||
+                item instanceof Double ||
+                item instanceof Boolean ||
+                item instanceof Character;
+    }
+
+    /**
+     * Is item supported by the builder
+     * @param item The item to test
+     * @param multiDimensional Support multi-dimensional items
+     * @return If the item is supported
+     */
+    private static boolean isSupportedType(Object item, Boolean multiDimensional, Boolean throwError) {
+        if (item instanceof List) {
+            List<?> list = (List<?>) item;
+            for (Object element : list) {
+                if(isPrimitive(element))
+                    continue;
+                
+                boolean isSupportedContainer = element instanceof List || element instanceof Map || element.getClass().isArray();
+
+                if (isSupportedContainer && multiDimensional) {
+                    if (!isSupportedType(element, true, throwError)) {
+                        return false;
+                    }
+                } else {
+                    if (throwError) {
+                        throw new SerializeFailedException(element.getClass().getSimpleName() + " is not supported by the serialize builder");
+                    }
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        if (item instanceof Map) {
+            Map<?, ?> map = (Map<?, ?>) item;
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                if (!(entry.getKey() instanceof String)) {
+                    return false;
+                }
+
+                if (!isPrimitive(entry.getValue()) && !multiDimensional) {
+                    return false;
+                }
+
+                if(!isSupportedType(entry.getValue(), true, throwError)) {
+                    return false;
+                }
+
+            }
+            return true;
+        }
+
+        if (item.getClass().isArray()) {
+            int length = java.lang.reflect.Array.getLength(item);
+            for (int i = 0; i < length; i++) {
+                Object element = java.lang.reflect.Array.get(item, i);
+                if (!isPrimitive(element) && !multiDimensional) {
+                    return false;
+                }
+    
+                if (!isSupportedType(element, true, throwError)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    
+        return isPrimitive(item);
+    }
+
+    /**
+     * Convert object to YAML
+     * @param item Object to convert
+     * @return converted YAML string
+     */
+    private static String toYAML(final Object item) {
+        YamlConfiguration config = new YamlConfiguration();
+
+        if (item.getClass().isArray()) {
+            Object[] items = (Object[]) item;
+            List<Object> serializedItems = new ArrayList<>();
+            for (Object subItem : items) {
+                serializedItems.add(subItem == null ? "" : serializeJSON(subItem));
+            }
+            config.set("items", serializedItems);  // Set to root
+        } else if (item instanceof List) {
+            List<Object> items = (List<Object>) item;
+            List<Object> serializedItems = new ArrayList<>();
+            for (Object subItem : items) {
+                serializedItems.add(subItem == null ? "" : serializeJSON(subItem));
+            }
+            config.set("items", serializedItems);  // Set to root
+        } else if (item instanceof ConfigurationSerializable) {
+            Map<String, Object> serializedMap = ((ConfigurationSerializable) item).serialize();
+            for (Map.Entry<String, Object> entry : serializedMap.entrySet()) {
+                config.set(entry.getKey(), entry.getValue());
+            }
+        } else if (item instanceof Map) {
+            Map<String, Object> itemMap = (Map<String, Object>) item;
+            for (Map.Entry<String, Object> entry : itemMap.entrySet()) {
+                config.set(entry.getKey(), entry.getValue());
+            }
+        } else {
+            throw new SerializeFailedException("Cannot serialize " + item.getClass());
+        }
+
+        return config.saveToString();
+    }
+
+    /**
+     * Convert Object to JSON
+     * @param item item to convert
+     * @return converted string
+     */
+    private static String toJSON(final Object item) {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        if(!isSupportedType(item, true)) {
+
+        }
+
+        try {
+            return objectMapper.writeValueAsString(item);
+        } catch(Exception e) {
+            throw new SerializeFailedException(e.getLocalizedMessage());
         }
     }
 }
