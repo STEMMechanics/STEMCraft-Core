@@ -3,8 +3,6 @@ package com.stemcraft.feature;
 import java.util.HashMap;
 import org.bukkit.WeatherType;
 import org.bukkit.entity.Player;
-import com.stemcraft.STEMCraft;
-import com.stemcraft.core.SMCommon;
 import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.SMMessenger;
 import com.stemcraft.core.command.SMCommand;

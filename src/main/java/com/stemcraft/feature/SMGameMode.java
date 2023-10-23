@@ -2,7 +2,6 @@ package com.stemcraft.feature;
 
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
-import com.stemcraft.STEMCraft;
 import com.stemcraft.core.SMCommon;
 import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.SMMessenger;

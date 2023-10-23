@@ -7,6 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -397,4 +398,22 @@ public class SMCommon {
 	public static <T> String join(final Iterable<T> array, final String delimiter) {
 		return join(array, delimiter);
 	}
+
+    /**
+     * Is player holding a tool with silk touch?
+     * 
+     * @param Player the player.
+     * @return if it is true.
+     */
+    public static Boolean playerHasSilkTouch(Player player) {
+        ItemStack itemInHand = player.getInventory().getItemInMainHand();
+
+        if (itemInHand != null && itemInHand.getType() != Material.AIR) {
+            if (itemInHand.getEnchantments().containsKey(Enchantment.SILK_TOUCH)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

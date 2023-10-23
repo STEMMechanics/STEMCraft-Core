@@ -52,7 +52,7 @@ public class SMChunkPruning extends SMFeature {
                 "last_visited INTEGER NOT NULL)").executeUpdate();
         });
 
-        this.pruneChunks();
+        // this.pruneChunks();
 
         SMEvent.register(BlockBreakEvent.class, ctx -> {
             Player player = ctx.event.getPlayer();

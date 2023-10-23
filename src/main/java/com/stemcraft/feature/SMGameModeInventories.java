@@ -2,6 +2,7 @@ package com.stemcraft.feature;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
@@ -10,10 +11,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import com.stemcraft.core.SMDatabase;
 import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.SMJson;
 import com.stemcraft.core.SMMessenger;
 import com.stemcraft.core.event.SMEvent;
-import com.stemcraft.core.serialize.SMSerialize;
 import com.stemcraft.core.util.SMXPCalculator;
+import de.tr7zw.nbtapi.NBT;
+import de.tr7zw.nbtapi.iface.ReadWriteNBT;
 
 public class SMGameModeInventories extends SMFeature {
     @Override
@@ -46,6 +49,55 @@ public class SMGameModeInventories extends SMFeature {
             
             SMDatabase.prepareStatement(
                     "UPDATE gamemode_inventories SET world = 'world' WHERE world = ''").executeUpdate();
+        });
+
+        SMDatabase.runMigration("231022154400_ConvertInventoryFormat", () -> {
+            PreparedStatement statement = SMDatabase.prepareStatement(
+                "SELECT id,inventory,armour,enderchest FROM gamemode_inventories WHERE 1"
+            );
+            
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                Integer id = resultSet.getInt("id");
+                String oldInventory = resultSet.getString("inventory");
+                String oldArmour = resultSet.getString("armour");
+                String oldEnderchest = resultSet.getString("enderchest");
+                
+                try {
+                    ReadWriteNBT nbtInventory = NBT.parseNBT(oldInventory);
+                    ReadWriteNBT nbtArmour = NBT.parseNBT(oldArmour);
+                    ReadWriteNBT nbtEnderchest = NBT.parseNBT(oldEnderchest);
+                    
+                    ItemStack[] itemStackInventory = NBT.itemStackArrayFromNBT(nbtInventory);
+                    ItemStack[] itemStackArmour = NBT.itemStackArrayFromNBT(nbtArmour);
+                    ItemStack[] itemStackEnderchest = NBT.itemStackArrayFromNBT(nbtEnderchest);
+                    
+                    String jsonInventory = SMJson.toJson(itemStackInventory, ItemStack[].class);
+                    String jsonArmour = SMJson.toJson(itemStackArmour, ItemStack[].class);
+                    String jsonEnderchest = SMJson.toJson(itemStackEnderchest, ItemStack[].class);
+
+                    PreparedStatement updateStatement = SMDatabase.prepareStatement(
+                        "UPDATE gamemode_inventories SET inventory = ?, armour = ?, enderchest = ? WHERE id = ?"
+                    );
+                
+                    updateStatement.setString(1, jsonInventory);
+                    updateStatement.setString(2, jsonArmour);
+                    updateStatement.setString(3, jsonEnderchest);
+                    updateStatement.setInt(4, id);
+                    updateStatement.executeUpdate();
+                    updateStatement.close();
+                } catch(Exception e) {
+                    e.printStackTrace();
+
+                    PreparedStatement updateStatement = SMDatabase.prepareStatement(
+                        "DELETE FROM gamemode_inventories WHERE id = ?"
+                    );
+
+                    updateStatement.setInt(1, id);
+                    updateStatement.executeUpdate();
+                    updateStatement.close();
+                }
+            }
         });
 
         SMEvent.register(PlayerGameModeChangeEvent.class, ctx -> {
@@ -135,9 +187,9 @@ public class SMGameModeInventories extends SMFeature {
 
         PlayerInventory playerInventory = player.getInventory();
         if(foundInventory) {
-            playerInventory.setContents(SMSerialize.deserialize(ItemStack[].class, inventoryContents));
-            playerInventory.setArmorContents(SMSerialize.deserialize(ItemStack[].class, armourContents));
-            player.getEnderChest().setContents(SMSerialize.deserialize(ItemStack[].class, enderChestContents));
+            playerInventory.setContents(SMJson.fromJson(ItemStack[].class, inventoryContents));
+            playerInventory.setArmorContents(SMJson.fromJson(ItemStack[].class, armourContents));
+            player.getEnderChest().setContents(SMJson.fromJson(ItemStack[].class, enderChestContents));
             xpc.setExp(xp);
         } else {
             playerInventory.clear();
@@ -170,10 +222,10 @@ public class SMGameModeInventories extends SMFeature {
         String uuid = player.getUniqueId().toString();
         String currentGameMode = player.getGameMode().toString();
         int xp = xpc.getCurrentExp();
-        String inventoryContents = SMSerialize.serialize(player.getInventory().getContents());
-        String armourContents = SMSerialize.serialize(player.getInventory().getArmorContents());
-        String enderChestContents = SMSerialize.serialize(player.getEnderChest().getContents());
-        String location = SMSerialize.serialize(player.getLocation());
+        String inventoryContents = SMJson.toJson(player.getInventory().getContents(), ItemStack[].class);
+        String armourContents = SMJson.toJson(player.getInventory().getArmorContents(), ItemStack[].class);
+        String enderChestContents = SMJson.toJson(player.getEnderChest().getContents(), ItemStack[].class);
+        String location = SMJson.toJson(player.getLocation(), Location.class);
 
         // Save player state
         try {

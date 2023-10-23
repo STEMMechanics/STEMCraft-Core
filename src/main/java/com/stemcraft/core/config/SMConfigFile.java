@@ -99,6 +99,45 @@ public class SMConfigFile {
     }
 
     /**
+     * Set key value in config.
+     * @param key
+     * @param value
+     */
+    public void set(String key, Object value) {
+        set(key, value, "");
+    }
+
+    /**
+     * Set key value in config.
+     * @param key
+     * @param value
+     * @param comment
+     */
+    public void set(String key, Object value, String comment) {
+        if(file != null) {
+            file.set(key, value);
+
+            if(comment != null && comment != "") {
+                file.getBlock(key).addComment(comment);
+            }
+        }
+    }
+
+    /**
+     * remove key value in config.
+     * @param key
+     */
+    public void remove(String key) {
+        if(file != null) {
+            if(file.getBlock(key) != null) {
+                file.getBlock(key).removeComments();
+            }
+            
+            file.remove(key);
+        }
+    }
+
+    /**
      * Check if specific key exists.
      * @param key
      * @return

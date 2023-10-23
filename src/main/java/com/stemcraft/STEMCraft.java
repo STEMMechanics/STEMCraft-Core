@@ -7,37 +7,32 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
-import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.stemcraft.core.SMCommon;
 import com.stemcraft.core.SMDatabase;
 import com.stemcraft.core.SMDebugger;
 import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.SMJson;
 import com.stemcraft.core.SMLocale;
 import com.stemcraft.core.SMMessenger;
 import com.stemcraft.core.SMTask;
+import com.stemcraft.core.adapters.SMAdapterItemStack;
 import com.stemcraft.core.command.SMCommand;
 import com.stemcraft.core.config.SMConfig;
 import com.stemcraft.core.interfaces.SMCallback;
-import com.stemcraft.core.serialize.SMSerialize;
 import com.stemcraft.core.tabcomplete.SMTabComplete;
-import de.tr7zw.nbtapi.NBT;
-import de.tr7zw.nbtapi.NBTContainer;
-import de.tr7zw.nbtapi.iface.ReadWriteNBT;
 import lombok.NonNull;
 import net.md_5.bungee.api.ChatColor;
 
@@ -161,63 +156,19 @@ public class STEMCraft extends JavaPlugin implements Listener {
                     if("info".equals(ctx.args[0])) {
                         ctx.returnInfo("STEMCraft " + STEMCraft.getVersion());
                     } else if("test".equals(ctx.args[0])) {
-                        // Map<String,Object> map = new HashMap<>();
                         Player p = Bukkit.getServer().getPlayer("nomadjimbob");
-                        // ItemStack itemStack = p.getInventory().getContents()[0];
-                        // ItemMeta meta = itemStack.getItemMeta();
+                        // ItemStack item = p.getInventory().getContents()[0];
+                        // String json = SMJson.toJson(item, ItemStack.class);
 
-                        // map = itemStack.serialize();
-                        // if(meta != null) {
-                        //     map.put("meta", meta.serialize());
-                        // }
+                        String json = SMJson.toJson(p.getLocation(), Location.class);
 
-                        // ObjectMapper objectMapper = new ObjectMapper();
-                        String json = "";
-                        // try {
-                        //     json = objectMapper.writeValueAsString(map);
-                        // } catch(Exception e) {
-
-                        // }
-
-                        json = SMSerialize.serialize(p.getInventory().getContents());
+                        // json = SMSerialize.serialize(p.getInventory().getContents()).toString();
                         STEMCraft.info(json);
+                        // SMConfig.main().set("inventory", json);
+                        // SMConfig.main().save();
 
-                        // try {
-                        //     map = objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
-                        //     ItemStack deserializedItem = ItemStack.deserialize(map);
-                        //     if(map.containsKey("meta")) {
-                        //         ItemMeta deserializedMeta = (ItemMeta) ConfigurationSerialization.deserializeObject((Map<String, Object>) map.get("meta"), ConfigurationSerialization.getClassByAlias("ItemMeta"));
-                        //         deserializedItem.setItemMeta(deserializedMeta);
-                        //     }
-                        //     p.getInventory().addItem(deserializedItem);
-                        // } catch(Exception e) {
-                        //     STEMCraft.error(e);
-                        // }
-
-
-                        // map.put("size", 54);
-                        // map.put("title", "The title");
-                        // map.put("contents", p.getInventory().getContents());
-                        
-                        // ReadWriteNBT nbt = NBT.createNBTObject();
-                        // nbt.setInteger("size", 54);
-                        // nbt.setString("title", "The title");
-                        // nbt.setItemStackArray("contents", p.getInventory().getContents());
-
-                        // NBTContainer nbt = new NBTContainer(map);
-                        // String serialized = "";
-
-                        // serialized = p.getInventory().getContents()[0].serialize().toString();
-                        // ItemStack i = 
-// ConfigurationSerializable
-                        // STEMCraft.info(nbtString);
-
-                        // map = SMSerialize.deserialize(Map.class, nbtString);
-                        
-                        // ItemStack[] is = (ItemStack[])map.get("contents");
-                        // STEMCraft.info(json);
-
-                        
+                        // ItemStack newItem = SMJson.fromJson(ItemStack.class, json);
+                        // p.getInventory().addItem(newItem);
                     } else {
                         ctx.returnInvalidArgs();
                     }
@@ -230,7 +181,22 @@ public class STEMCraft extends JavaPlugin implements Listener {
      */
     @Override
     public void onDisable() {
-        // TODO - Disable features?
+        // Disable features
+        features.forEach((name, instance) -> {
+            if(instance.isEnabled()) {
+                instance.disable();
+                if(instance.isEnabled()) {
+                    getLogger().info("Feature " + name + " disabled");
+                } else {
+                    getLogger().info("Feature " + name + " could not be disabled");
+                }
+            }
+        });
+
+        // Disconnect from Database
+        if(SMDatabase.isConnected()) {
+            SMDatabase.disconnect();
+        }
     }
 
     /**
