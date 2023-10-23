@@ -13,7 +13,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A JSON adapter for the Bukkit ConfigurationSerializable class
+ */
 public class SMAdapterConfigurationSerializable implements SMJsonAdapter, JsonSerializer<ConfigurationSerializable>, JsonDeserializer<ConfigurationSerializable> {
+    
+    /**
+     * Return the class this JSON supports
+     * 
+     * @return The class type
+     */
     @Override
     public Class<?> adapterFor() {
         return ConfigurationSerializable.class;

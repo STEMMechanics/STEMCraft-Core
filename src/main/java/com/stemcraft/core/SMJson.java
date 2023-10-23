@@ -1,13 +1,11 @@
 package com.stemcraft.core;
 
 import java.lang.reflect.Constructor;
-import org.bukkit.inventory.ItemStack;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.stream.JsonReader;
 import com.stemcraft.STEMCraft;
-import com.stemcraft.core.adapters.SMAdapterItemStackArray;
 
 public final class SMJson {
     private static Gson gson = null;
