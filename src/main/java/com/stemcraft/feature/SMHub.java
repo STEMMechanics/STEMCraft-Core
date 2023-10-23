@@ -47,7 +47,7 @@ public class SMHub extends SMFeature {
      * @param player
      */
     private final static void teleportToHub(Player player) {
-        final String hubWorldName = SMConfig.main().getString("hub.world");
+        final String hubWorldName = SMConfig.main().getString("hub.world", "world");
         final String key = "hub.tp-commands." + player.getWorld().getName().toLowerCase();
 
         World hubWorld = Bukkit.getWorld(hubWorldName);
