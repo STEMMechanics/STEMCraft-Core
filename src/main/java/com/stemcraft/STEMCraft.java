@@ -149,26 +149,21 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
         new SMCommand("stemcraft")
             .tabComplete("info")
+            .tabComplete("reload")
             .action(ctx -> {
                 if(ctx.args.length == 0) {
                     ctx.returnInvalidArgs();
                 } else {
-                    if("info".equals(ctx.args[0])) {
+                    if("info".equalsIgnoreCase(ctx.args[0])) {
                         ctx.returnInfo("STEMCraft " + STEMCraft.getVersion());
-                    } else if("test".equals(ctx.args[0])) {
-                        Player p = Bukkit.getServer().getPlayer("nomadjimbob");
-                        // ItemStack item = p.getInventory().getContents()[0];
-                        // String json = SMJson.toJson(item, ItemStack.class);
+                    } else if("reload".equalsIgnoreCase(ctx.args[0])) {
+                        ctx.checkPermission("stemcraft.reload");
+                        
+                        onDisable();
+                        onLoad();
+                        onEnable();
 
-                        String json = SMJson.toJson(p.getLocation(), Location.class);
-
-                        // json = SMSerialize.serialize(p.getInventory().getContents()).toString();
-                        STEMCraft.info(json);
-                        // SMConfig.main().set("inventory", json);
-                        // SMConfig.main().save();
-
-                        // ItemStack newItem = SMJson.fromJson(ItemStack.class, json);
-                        // p.getInventory().addItem(newItem);
+                        ctx.returnInfo("STEMCraft reloaded");
                     } else {
                         ctx.returnInvalidArgs();
                     }
