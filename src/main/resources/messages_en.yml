@@ -7,7 +7,7 @@ CMD_PLAYER_NOT_FOUND: "Player not found"
 CMD_INVALID_OPTION: "Unknown option"
 CMD_OPTION_REQUIRED: "An option is required"
 
-HUB_TELEPORTED: "sTeleported back to the hub"
+HUB_TELEPORTED: "Teleported back to the hub"
 HUB_NOT_DEFINED: "Hub world not defined in config"
 
 GAMEMODE_UNKNOWN: "Gamemode unknown"
