@@ -187,7 +187,7 @@ public class SMCommand implements TabCompleter {
 
                         } else {
                             // string does not match arg
-                            if(args[i] != listItem) {
+                            if(!args[i].equalsIgnoreCase(listItem)) {
                                 ignoreList = true;
                                 break;
                             }
@@ -225,6 +225,7 @@ public class SMCommand implements TabCompleter {
             }
         });
 
+        // remove non-matching items
         if(args[args.length - 1].length() > 0) {
             String startingWith = args[args.length - 1];
             Iterator<String> iterator = stringList.iterator();
