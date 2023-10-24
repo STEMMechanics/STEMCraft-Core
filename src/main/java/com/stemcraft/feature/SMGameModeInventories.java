@@ -2,6 +2,7 @@ package com.stemcraft.feature;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -13,6 +14,7 @@ import com.stemcraft.core.SMDatabase;
 import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.SMJson;
 import com.stemcraft.core.SMMessenger;
+import com.stemcraft.core.config.SMConfig;
 import com.stemcraft.core.event.SMEvent;
 import com.stemcraft.core.util.SMXPCalculator;
 import de.tr7zw.nbtapi.NBT;
@@ -244,6 +246,8 @@ public class SMGameModeInventories extends SMFeature {
             statement.setString(10, world);
             statement.executeUpdate();
             statement.close();
+
+            RemoveOldInventories(player, player.getGameMode(), world);
         } catch(Exception e) {
             e.printStackTrace();
             SMMessenger.errorLocale(player, "GMI_FAILED");
@@ -251,5 +255,40 @@ public class SMGameModeInventories extends SMFeature {
         }
 
         return success;
+    }
+
+    private void RemoveOldInventories(Player player, GameMode gameMode, String world) {
+        String uuidString = player.getUniqueId().toString();
+        String gameModeString = gameMode.toString();
+        Integer maxRows = SMConfig.main().getInt("gamemode-inventories.max-count", 50);
+
+        String sql = 
+            "WITH RankedRows AS (" +
+                "SELECT *," +
+                "ROW_NUMBER() OVER (ORDER BY created DESC) as rn" +
+                "FROM gamemode_inventories" +
+                "WHERE uuid = ?" +
+                "AND gamemode = ?" +
+                "AND world = ?" +
+            ")" +
+            "DELETE FROM gamemode_inventories" +
+            "WHERE id IN (" +
+                "SELECT id" +
+                "FROM RankedRows" +
+                "WHERE rn > ?" +
+            ");";
+        
+        try {
+            PreparedStatement statement = SMDatabase.prepareStatement(sql);
+            statement.setString(1, uuidString);
+            statement.setString(2, gameModeString);
+            statement.setString(3, world);
+            statement.setInt(4, maxRows);
+            statement.executeUpdate();
+            statement.close();
+        } catch(Exception e) {
+            e.printStackTrace();
+            SMMessenger.errorLocale(player, "GMI_FAILED");
+        }
     }
 }

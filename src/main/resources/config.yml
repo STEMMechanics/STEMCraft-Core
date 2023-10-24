@@ -15,11 +15,15 @@ hub:
     world: "world"
     tp-commands:
         bw_amazon:
-        - "bw leave"
-        - "teleport {hub-world} {player}"
+            - "bw leave"
+            - "teleport {hub-world} {player}"
 
 chat-format: "<{prefix}{name}{suffix}> {message}"
 remove-recipes: []
+
+gamemode-inventories:
+    # keep this many inventories per player/gamemode/world
+    max-count: 50
 
 # Number of days after which unvisited chunks are regenerated
 chunk-regenerate-delay: 56
