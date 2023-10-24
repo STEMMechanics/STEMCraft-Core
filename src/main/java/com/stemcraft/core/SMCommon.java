@@ -86,10 +86,23 @@ public class SMCommon {
         for (int i = 0; i < messages.length; i++) {
             colorizedMessages[i] = colorize(messages[i]);
         }
+
         return colorizedMessages;
     }
 
+    /**
+     * Colourize a string array.
+     * @param messages
+     * @return
+     */
+    public static List<String> colorizeAll(List<String> messages) {
+        List<String> colorizedMessages = new ArrayList<>();
+        for (int i = 0; i < messages.size(); i++) {
+            colorizedMessages.add(colorize(messages.get(i)));
+        }
 
+        return colorizedMessages;
+    }
 
     /**
      * Retrieve a player by name or UUID.
