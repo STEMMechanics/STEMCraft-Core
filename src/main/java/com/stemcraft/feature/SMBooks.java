@@ -49,7 +49,7 @@ public class SMBooks extends SMFeature {
 
         this.buildCacheList();
 
-        SMTabComplete.register("booknames", () -> {
+        SMTabComplete.register("book", () -> {
             return this.cacheList;
         });
 
@@ -185,7 +185,7 @@ public class SMBooks extends SMFeature {
                 // Sub command - show
                 } else if("show".equals(sub)) {
                     ctx.checkArgsLocale(2, "BOOK_USAGE_SHOW");
-                    ctx.checkBooleanLocale(ctx.fromConsole() && ctx.args.length < 3, "CMD_PLAYER_REQ_FROM_CONSOLE");
+                    ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length < 3), "CMD_PLAYER_REQ_FROM_CONSOLE");
 
                     Player targetPlayer = ctx.getArgAsPlayer(3, ctx.player);
                     ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
