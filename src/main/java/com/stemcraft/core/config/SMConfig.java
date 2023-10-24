@@ -71,4 +71,14 @@ public class SMConfig {
     public static SMConfigFile getConfig(String path) {
         return configFiles.getOrDefault(path, null);
     }
+
+    /**
+     * Reload all config files
+     * @return
+     */
+    public static void reloadAll() {
+        for(SMConfigFile file : configFiles.values()) {
+            file.reload();
+        }
+    }
 }
