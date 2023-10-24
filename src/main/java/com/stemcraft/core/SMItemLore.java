@@ -27,8 +27,10 @@ public class SMItemLore {
             } else {
                 if(loreSuppliers.containsKey(loreId)) {
                     List<String> result = loreSuppliers.get(loreId).apply(item);
+
                     if (result != null && !result.isEmpty()) {
                         lore.addAll(result);
+                        hasLore = true;
                     }
                 }
             }
@@ -36,7 +38,7 @@ public class SMItemLore {
 
         if(hasLore) {
             ItemMeta meta = item.getItemMeta();
-            meta.setLore(lore);
+            meta.setLore(SMCommon.colorizeAll(lore));
             item.setItemMeta(meta);
         }
     }

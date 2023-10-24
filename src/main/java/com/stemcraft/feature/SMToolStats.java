@@ -213,7 +213,7 @@ public class SMToolStats extends SMFeature {
      * @param tool
      */
     private Integer updateBlockCountData(ItemStack tool, NamespacedKey key, Integer increase) {
-    ItemMeta meta = tool.getItemMeta();
+        ItemMeta meta = tool.getItemMeta();
         if (meta == null) {
             return null;
         }
