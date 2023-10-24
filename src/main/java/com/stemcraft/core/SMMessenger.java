@@ -347,9 +347,14 @@ public class SMMessenger {
      * Internal function to send message to sender.
      */
     private static void tell(final CommandSender player, final String prefix, String message) {
-        final String coloredPrefix = SMCommon.colorize(prefix);
+        String coloredPrefix = SMCommon.colorize(prefix);
         final String colorless = SMCommon.stripColors(message);
-        
+
+        // Remove prefix for console
+        if(!(player instanceof Player)) {
+            coloredPrefix = coloredPrefix.replaceAll(".*(?=(§[0-9a-fr])).*", "$1");
+        }
+
         player.sendMessage(coloredPrefix + colorless);
     }
 
@@ -357,11 +362,14 @@ public class SMMessenger {
      * Internal function to send message to sender.
      */
     private static void tell(final CommandSender player, final String prefix, List<String> messages) {
-        final String coloredPrefix = SMCommon.colorize(prefix);
+        String coloredPrefix = SMCommon.colorize(prefix);
+        final String transformedPrefix = player instanceof Player ? coloredPrefix : coloredPrefix.replaceAll(".*(?=(§[0-9a-fr])).*", "$1");
+
         messages.forEach(message -> {
             final String colorless = SMCommon.stripColors(message);
         
-            player.sendMessage(coloredPrefix + colorless);
+            
+            player.sendMessage(transformedPrefix + colorless);
         });
     }
 
