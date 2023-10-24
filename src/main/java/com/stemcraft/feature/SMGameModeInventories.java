@@ -263,19 +263,19 @@ public class SMGameModeInventories extends SMFeature {
         Integer maxRows = SMConfig.main().getInt("gamemode-inventories.max-count", 50);
 
         String sql = 
-            "WITH RankedRows AS (" +
-                "SELECT *," +
-                "ROW_NUMBER() OVER (ORDER BY created DESC) as rn" +
-                "FROM gamemode_inventories" +
-                "WHERE uuid = ?" +
-                "AND gamemode = ?" +
-                "AND world = ?" +
-            ")" +
-            "DELETE FROM gamemode_inventories" +
-            "WHERE id IN (" +
-                "SELECT id" +
-                "FROM RankedRows" +
-                "WHERE rn > ?" +
+            "WITH RankedRows AS ( " +
+                "SELECT *, " +
+                "ROW_NUMBER() OVER (ORDER BY created DESC) as rn " +
+                "FROM gamemode_inventories " +
+                "WHERE uuid = ? " +
+                "AND gamemode = ? " +
+                "AND world = ? " +
+            ") " +
+            "DELETE FROM gamemode_inventories " +
+            "WHERE id IN ( " +
+                "SELECT id " +
+                "FROM RankedRows " +
+                "WHERE rn > ? " +
             ");";
         
         try {
