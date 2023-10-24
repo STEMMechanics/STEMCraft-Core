@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -107,6 +108,10 @@ public class SMGraves extends SMFeature {
             SMEvent.register(PlayerDeathEvent.class, ctx -> {
                 if(ctx.event.getEventName().equalsIgnoreCase("playerdeathevent")) {
                     Player player = ctx.event.getEntity();
+
+                    if(player.getGameMode() != GameMode.SURVIVAL) {
+                        return;
+                    }
 
                     String title = player.getName() + (player.getName().endsWith("s") ? "'" : "'s") + " Grave";
                     Inventory inventory = Bukkit.createInventory(null, 54, title);
