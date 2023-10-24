@@ -15,7 +15,6 @@ GAMEMODE_CHANGED: "Gamemode set to {gamemode}"
 GAMEMODE_CHANGED_FOR: "Gamemode for {player} set to {gamemode}"
 GAMEMODE_CHANGED_BY: "Gamemode set to {gamemode} by {player}"
 
-
 SPAWNEGGS_DENIED: "You do not have permission to use spawn eggs"
 
 INV_CLEARED: "Inventory cleared"
@@ -104,3 +103,9 @@ PWEATHER_SET_BY: "Weather set to {type} by {player}"
 
 WORKSHOP_ENTER: "You have been teleported to the workshop"
 WORKSHOP_NOT_FOUND: "Workshop not found"
+
+TOOLSTATS-BLOCKS-MINED: "&7Blocks mined: &8{blocks}"
+TOOLSTATS-CROPS-HARVESTED: "&7Crops harvested: &8{crops}"
+TOOLSTATS-FISH-CAUGHT: "&7Fish caught: &8{fish}"
+TOOLSTATS-ARROWS-SHOT: "&7Arrows shot: &8{arrows}"
+TOOLSTATS-SHEEP-SHEARED: "&7Sheep sheared: &8{sheep}"

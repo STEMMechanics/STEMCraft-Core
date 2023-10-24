@@ -31,3 +31,6 @@ chunk-regenerate-delay: 56
 private-server:
     enabled: false
     password: "cats"
+
+item-lore:
+    - toolstats
