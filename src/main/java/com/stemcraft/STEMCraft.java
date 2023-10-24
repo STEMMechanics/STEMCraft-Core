@@ -160,6 +160,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
                         ctx.checkPermission("stemcraft.reload");
                         
                         onDisable();
+                        SMConfig.reloadAll();
                         onLoad();
                         onEnable();
 
