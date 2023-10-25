@@ -82,6 +82,7 @@ NO_BACK_LOCATION: "There is no location to teleport back to {player}"
 
 MAINTENANCE_SET_TO: "Server maintenance set to {mode}"
 MAINTENANCE_KICK: "The server is currently undergoing maintenance"
+MAINTENANCE_MOTD: "&eThe server is currently undergoing maintenance"
 
 PRIVATE_CORRECT: "Private password correct!"
 PRIVATE_INCORRECT: "Incorrect password"
