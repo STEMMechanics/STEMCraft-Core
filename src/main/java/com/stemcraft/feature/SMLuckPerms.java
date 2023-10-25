@@ -38,6 +38,10 @@ public class SMLuckPerms extends SMFeature {
         return true;
     }
 
+    /**
+     * Get a list of groups in LuckPerms
+     * @return
+     */
     public List<String> groups() {
         List<String> groupList = new ArrayList<>();
 
@@ -51,10 +55,21 @@ public class SMLuckPerms extends SMFeature {
         return groupList;
     }
 
+    /**
+     * Check that a group exists in LuckPerms
+     * @param group
+     * @return
+     */
     public Boolean groupExists(String group) {
         return this.groups().contains(group);
     }
 
+    /**
+     * Check that a player exists in a LuckPerms group
+     * @param player
+     * @param group
+     * @return
+     */
     public Boolean playerInGroup(Player player, String group) {
         if(this.isEnabled()) {
             return player.hasPermission("group." + group);

@@ -70,6 +70,7 @@ public class SMBooks extends SMFeature {
                 // Sub command - new
                 if("new".equals(sub)) {
                     ctx.checkNotConsole();
+                    ctx.checkPermission("stemcraft.book.edit");
 
                     Material material = Material.getMaterial("BOOK_AND_QUILL");
                     if (material == null)
@@ -89,6 +90,7 @@ public class SMBooks extends SMFeature {
                 // Sub command - save
                 } else if("save".equals(sub)) {
                     ctx.checkNotConsole();
+                    ctx.checkPermission("stemcraft.book.edit");
                     ctx.checkArgsLocale(3, "BOOK_USAGE_SAVE");
 
                     // Player holding a writable book?
@@ -199,6 +201,7 @@ public class SMBooks extends SMFeature {
 
                 // Sub command - del
                 } else if("del".equals(sub)) {
+                    ctx.checkPermission("stemcraft.book.edit");
                     ctx.checkArgsLocale(2, "BOOK_USAGE_DEL");
 
                     try {
@@ -228,6 +231,7 @@ public class SMBooks extends SMFeature {
                 // Sub command - unlock
                 } else if("unlock".equals(sub)) {
                     ctx.checkNotConsole();
+                    ctx.checkPermission("stemcraft.book.edit");
 
                     ItemStack item = ctx.player.getInventory().getItemInMainHand();
                     if(item.getType() == Material.WRITTEN_BOOK) {
