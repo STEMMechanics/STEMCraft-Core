@@ -11,6 +11,8 @@ STEMMechanics brings creativity to life by developing engaging resources and pro
 ### 1.0.1
 
 -   Internal code refactoring
+-   Fix shift click crafting tool stats
+-   Plugin version announced in server console on load
 
 ### 1.0.0
 
