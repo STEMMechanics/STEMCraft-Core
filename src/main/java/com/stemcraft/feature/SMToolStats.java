@@ -3,8 +3,10 @@ package com.stemcraft.feature;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -31,6 +33,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.java.JavaPlugin;
 import com.stemcraft.core.event.SMEvent;
 import com.stemcraft.core.persistentDataTypes.SMPersistentUUIDDataType;
 import com.stemcraft.STEMCraft;
@@ -278,6 +281,25 @@ public class SMToolStats extends SMFeature {
             if(!isTrackedItem(itemStack.getType())) {
                 return;
             }
+
+            // Apply to all items of the same type that have been added
+            final Material material = itemStack.getType();
+            HashMap<Integer, ItemStack> origItems = (HashMap<Integer, ItemStack>) player.getInventory().all(material);
+
+            STEMCraft.runLater(1, () -> {
+                HashMap<Integer, ItemStack> newItems = (HashMap<Integer, ItemStack>) player.getInventory().all(material);
+
+                for (Map.Entry<Integer, ItemStack> entry : newItems.entrySet()) {
+                    Integer key = entry.getKey();
+                    ItemStack newItem = entry.getValue();
+
+                    // Check if this key does not exist in the origItems map
+                    if (!origItems.containsKey(key)) {
+                        setItemCreatedAt(newItem);
+                        setItemCreatedBy(newItem, player);
+                    }
+                }
+            });
 
             setItemCreatedAt(itemStack);
             setItemCreatedBy(itemStack, player);
