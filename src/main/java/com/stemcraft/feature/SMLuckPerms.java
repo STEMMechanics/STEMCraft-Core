@@ -3,9 +3,10 @@ package com.stemcraft.feature;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import org.bukkit.Server;
 import org.bukkit.entity.Player;
-import com.stemcraft.STEMCraft;
+import com.stemcraft.core.SMDependency;
+import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.tabcomplete.SMTabComplete;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.group.Group;
@@ -14,12 +15,12 @@ public class SMLuckPerms extends SMFeature {
     LuckPerms luckPerms;
 
     @Override
-    public Boolean onLoad(STEMCraft plugin) {
-        if(!super.onLoad(plugin)) {
+    public Boolean onLoad() {
+        if(!super.onLoad()) {
             return false;
         }
 
-        if(!this.plugin.getDependManager().getDependencyLoaded("LuckPerms")) {
+        if(!SMDependency.dependencyLoaded("LuckPerms")) {
             return false;
         }
 
@@ -30,13 +31,17 @@ public class SMLuckPerms extends SMFeature {
     protected Boolean onEnable() {
         this.luckPerms = LuckPermsProvider.get();
 
-        this.plugin.getCommandManager().registerTabPlaceholder("groups", (Server server, String match) -> {
+        SMTabComplete.register("groups", () -> {
             return this.groups();
         });
 
         return true;
     }
 
+    /**
+     * Get a list of groups in LuckPerms
+     * @return
+     */
     public List<String> groups() {
         List<String> groupList = new ArrayList<>();
 
@@ -50,10 +55,21 @@ public class SMLuckPerms extends SMFeature {
         return groupList;
     }
 
+    /**
+     * Check that a group exists in LuckPerms
+     * @param group
+     * @return
+     */
     public Boolean groupExists(String group) {
         return this.groups().contains(group);
     }
 
+    /**
+     * Check that a player exists in a LuckPerms group
+     * @param player
+     * @param group
+     * @return
+     */
     public Boolean playerInGroup(Player player, String group) {
         if(this.isEnabled()) {
             return player.hasPermission("group." + group);

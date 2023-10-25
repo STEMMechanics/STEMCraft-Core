@@ -9,9 +9,13 @@ import java.util.HashMap;
 import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Server;
-import org.bukkit.entity.Player;
-import com.stemcraft.SMUtil;
+import com.stemcraft.STEMCraft;
+import com.stemcraft.core.SMCommon;
+import com.stemcraft.core.SMDatabase;
+import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.SMPaginate;
+import com.stemcraft.core.command.SMCommand;
+import com.stemcraft.core.tabcomplete.SMTabComplete;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -19,21 +23,12 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class SMTeleportLocation extends SMFeature {
-    private List<String> cacheList = new ArrayList<>();
+    private HashMap<String, Location> cacheList = new HashMap<>();
 
     @Override
     protected Boolean onEnable() {
-        this.plugin.getLanguageManager().registerPhrase("TPLOC_USAGE", "Usage: /tploc <name>");
-        this.plugin.getLanguageManager().registerPhrase("TPLOC_NOT_EXIST", "&cTeleport location '%NAME%' does not exist");
-
-        this.plugin.getLanguageManager().registerPhrase("TPLOC_SAVE_SUCCESSFUL", "Location saved successfully");
-        this.plugin.getLanguageManager().registerPhrase("TPLOC_SAVE_FAILED", "&cFailed to save location");
-        this.plugin.getLanguageManager().registerPhrase("TPLOC_DELETE_SUCCESSFUL", "Location deleted successfully");
-        this.plugin.getLanguageManager().registerPhrase("TPLOC_DELETE_FAILED", "&cFailed to delete location");
-
-
-        this.plugin.getDatabaseManager().addMigration("230601229800_CreateTpLocationsTable", (databaseManager) -> {
-            databaseManager.prepareStatement(
+        SMDatabase.runMigration("230601229800_CreateTpLocationsTable", () -> {
+            SMDatabase.prepareStatement(
                 "CREATE TABLE IF NOT EXISTS tp_locations (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "name TEXT," +
@@ -45,267 +40,189 @@ public class SMTeleportLocation extends SMFeature {
                     "pitch REAL)").executeUpdate();
         });
 
-        this.plugin.getCommandManager().registerTabPlaceholder("tplocations", (Server server, String match) -> {
-            return this.cacheList;
+        SMTabComplete.register("tplocations", () -> {
+            return List.copyOf(this.cacheList.keySet());
         });
 
-        String commandName = "teleportlocation";
-        String[] aliases = new String[]{"teleportloc", "tploc"};
-        String[][] tabCompletions = new String[][]{
-            {commandName, "%tplocations%"},
-        };
+        new SMCommand("teleportlocation")
+            .alias("teleportloc", "tploc")
+            .tabComplete("{tplocations}")
+            .permission("stemcraft.teleport.location")
+            .action(ctx -> {
+                ctx.checkNotConsole();
+                ctx.checkArgsLocale(1, "TPLOC_USAGE");
+                String name = ctx.args[0].toLowerCase();
 
-        this.plugin.getCommandManager().registerCommand(commandName, (sender, command, label, args) -> {
-            if(!(sender instanceof Player)) {
-                this.plugin.getLanguageManager().sendPhrase(sender, "CMD_PLAYERS_ONLY");
-                return true;
-            }
-
-            if (!sender.hasPermission("stemcraft.teleport.location")) {
-                this.plugin.getLanguageManager().sendPhrase(sender, "CMD_NO_PERMISSION");
-                return true;
-            }
-
-            if (args.length == 0) {
-                this.plugin.getLanguageManager().sendPhrase(sender, "TPLOC_USAGE");
-                return true;
-            }
-
-            try {
-                String name = args[0];
-
-                PreparedStatement statement = this.plugin.getDatabaseManager().prepareStatement(
-                    "SELECT world, x, y, z, yaw, pitch FROM tp_locations WHERE name = ?");
-                statement.setString(1, name);
-                ResultSet resultSet = statement.executeQuery();
-
-                if(resultSet.next()) {
-                    String worldName = resultSet.getString("world");
-                    double x = resultSet.getDouble("x");
-                    double y = resultSet.getDouble("y");
-                    double z = resultSet.getDouble("z");
-                    float yaw = resultSet.getFloat("yaw");
-                    float pitch = resultSet.getFloat("pitch");
-
-                    Location location = new Location(sender.getServer().getWorld(worldName), x, y, z, yaw, pitch);
-
-                    Player player = (Player) sender;
-                    this.plugin.delayedTask(1L, (data) -> {
-                        player.teleport(location);
-                    }, null);
-                } else {
-                    HashMap<String, String> replacements = new HashMap<>();
-                    replacements.put("NAME", name);
-                    this.plugin.getLanguageManager().sendPhrase(sender, "TPLOC_NOT_EXIST", replacements);
+                if(!cacheList.containsKey(name)) {
+                    ctx.returnErrorLocale("TPLOC_NOT_EXIST", "name", ctx.args[0]);
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                
+                SMCommon.delayedPlayerTeleport(ctx.player, cacheList.get(name));
+            })
+            .register();
 
-            return true;
-        }, aliases, tabCompletions);
+        new SMCommand("listteleportlocation")
+            .alias("listteleportloc", "listtploc")
+            .action(ctx -> {
+                Integer itemCount = 0;
 
-        commandName = "listteleportlocation";
-        aliases = new String[]{"listteleportloc", "listtploc"};
-        tabCompletions = new String[][]{
-            {commandName},
-        };
-
-        this.plugin.getCommandManager().registerCommand(commandName, (sender, command, label, args) -> {
-            Integer page = 1;
-
-            if (args.length > 0) {
                 try {
-                    page = Integer.parseInt(args[0]);
-                } catch (NumberFormatException e) {
-                    sender.sendMessage("Usage: /listtploc (page)");
-                    return true;
-                }
-            }
+                    PreparedStatement countStatement = SMDatabase.prepareStatement("SELECT COUNT(*) FROM tp_locations");
+                    ResultSet countResultSet = countStatement.executeQuery();
 
-            try {
-                Integer maxPages = 1;
-
-                PreparedStatement countStatement = this.plugin.getDatabaseManager().prepareStatement("SELECT COUNT(*) FROM tp_locations");
-                ResultSet countResultSet = countStatement.executeQuery();
-
-                if (countResultSet.next()) {
-                    int rowCount = countResultSet.getInt(1);
-                    maxPages = (int) Math.ceil((double) rowCount / 8);
+                    if (countResultSet.next()) {
+                        itemCount = countResultSet.getInt(1);
+                    }
+                } catch(Exception e) {
+                    e.printStackTrace();
                 }
 
-                if(maxPages == 0) {
-                    sender.sendMessage(ChatColor.RED + "No teleport locations where found");
-                    return true;
+                new SMPaginate(ctx.sender, ctx.getArgInt(1, 1))
+                    .count(itemCount)
+                    .command("listtploc")
+                    .title("Teleport Locations")
+                    .none("No teleport locations where found")
+                    .showItems((start, max) -> {
+                        List<BaseComponent[]> rows = new ArrayList<>();
+
+                        try {
+                            PreparedStatement statement = SMDatabase.prepareStatement(
+                                    "SELECT name, world, x, y, z FROM tp_locations LIMIT ?, ?");
+                            statement.setInt(1, start);
+                            statement.setInt(2, max);
+                            ResultSet resultSet = statement.executeQuery();
+
+                            while(resultSet.next()) {
+                                String name = resultSet.getString("name");
+                                String worldName = resultSet.getString("world");
+                                double x = resultSet.getDouble("x");
+                                double y = resultSet.getDouble("y");
+                                double z = resultSet.getDouble("z");
+
+                                DecimalFormat df = new DecimalFormat("#");
+
+                                TextComponent tpName = new TextComponent(ChatColor.GOLD + name + " " + ChatColor.GRAY + df.format(x) + "," + df.format(y) + "," + df.format(z) + " " + worldName);
+                                tpName.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tploc " + name));
+                                tpName.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Teleport to X:" + df.format(x) + " Y:" + df.format(y) + " Z:" + df.format(z) + " " + worldName)));
+
+                                TextComponent update = new TextComponent(ChatColor.WHITE + "[Update]");
+                                update.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/addtploc " + name));
+                                update.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Update location to X:" + Double.parseDouble(df.format(ctx.player.getLocation().getX())) + " Y:" + Double.parseDouble(df.format(ctx.player.getLocation().getY())) + " Z:" + Double.parseDouble(df.format(ctx.player.getLocation().getZ())) + " " + ctx.player.getLocation().getWorld().getName())));
+
+                                TextComponent delTp = new TextComponent(ChatColor.RED + "[Del]");
+                                delTp.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/deltploc " + name));
+                                delTp.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Delete teleport location")));
+
+                                BaseComponent[] row = new BaseComponent[]{tpName, new TextComponent(" "), update, new TextComponent(" "), delTp};
+                                rows.add(row);
+                            }
+                        } catch(Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        return rows;
+                    });
+            })
+            .register();
+
+        new SMCommand("addteleportlocation")
+            .alias("addteleportloc", "addtploc")
+            .permission("stemcraft.teleport.location.add")
+            .action(ctx -> {
+                ctx.checkNotConsole();
+                ctx.checkArgs(1, "TPLOC_USAGE");
+
+                String name = ctx.args[0];
+                Location location = ctx.player.getLocation();
+
+                String world = location.getWorld().getName();
+                double x = location.getX();
+                double y = location.getY();
+                double z = location.getZ();
+                float yaw = location.getYaw();
+                float pitch = location.getPitch();
+
+                try {
+                    PreparedStatement selectStatement = SMDatabase.prepareStatement(
+                            "SELECT COUNT(*) FROM tp_locations WHERE name = ?");
+                    selectStatement.setString(1, name);
+                    ResultSet selectResult = selectStatement.executeQuery();
+                    selectResult.next();
+
+                    int rowCount = selectResult.getInt(1);
+
+                    PreparedStatement statement;
+                    if (rowCount > 0) {
+                        // Update existing row
+                        statement = SMDatabase.prepareStatement(
+                                "UPDATE tp_locations SET world = ?, x = ?, y = ?, z = ?, yaw = ?, pitch = ? WHERE name = ?");
+
+                        statement.setString(1, world);
+                        statement.setDouble(2, x);
+                        statement.setDouble(3, y);
+                        statement.setDouble(4, z);
+                        statement.setFloat(5, yaw);
+                        statement.setFloat(6, pitch);
+                        statement.setString(7, name);
+                    } else {
+                        // Insert new row
+                        statement = SMDatabase.prepareStatement(
+                                "INSERT INTO tp_locations (name, world, x, y, z, yaw, pitch) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                        statement.setString(1, name);
+                        statement.setString(2, world);
+                        statement.setDouble(3, x);
+                        statement.setDouble(4, y);
+                        statement.setDouble(5, z);
+                        statement.setFloat(6, yaw);
+                        statement.setFloat(7, pitch);
+                    }
+
+                    int rowsAffected = statement.executeUpdate();
+                    if (rowsAffected > 0) {
+                        ctx.returnSuccessLocale("TPLOC_SAVE_SUCCESSFUL");
+                    } else {
+                        ctx.returnErrorLocale("TPLOC_SAVE_FAILED");
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
 
-                PreparedStatement statement = plugin.getDatabaseManager().prepareStatement(
-                        "SELECT name, world, x, y, z FROM tp_locations LIMIT ?, 8");
-                statement.setInt(1, (page - 1) * 8);
-                ResultSet resultSet = statement.executeQuery();
+                this.buildCacheList();
+            })
+            .register();
 
-                List<BaseComponent[]> rows = new ArrayList<>();
+        new SMCommand("delteleportlocation")
+            .alias("delteleportloc", "deltploc")
+            .permission("stemcraft.teleport.location.delete")
+            .tabComplete("tplocations")
+            .action(ctx -> {
+                ctx.checkArgs(1, "TPLOC_DELETE_USAGE");
 
-                while(resultSet.next()) {
-                    String name = resultSet.getString("name");
-                    String worldName = resultSet.getString("world");
-                    double x = resultSet.getDouble("x");
-                    double y = resultSet.getDouble("y");
-                    double z = resultSet.getDouble("z");
-
-                    Player player = (Player)sender;
-                    DecimalFormat df = new DecimalFormat("#");
-
-                    TextComponent tpName = new TextComponent(ChatColor.GOLD + name + " " + ChatColor.GRAY + df.format(x) + "," + df.format(y) + "," + df.format(z) + " " + worldName);
-                    tpName.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tploc " + name));
-                    tpName.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Teleport to X:" + df.format(x) + " Y:" + df.format(y) + " Z:" + df.format(z) + " " + worldName)));
-
-                    TextComponent update = new TextComponent(ChatColor.WHITE + "[Update]");
-                    update.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/addtploc " + name));
-                    update.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Update location to X:" + Double.parseDouble(df.format(player.getLocation().getX())) + " Y:" + Double.parseDouble(df.format(player.getLocation().getY())) + " Z:" + Double.parseDouble(df.format(player.getLocation().getZ())) + " " + player.getLocation().getWorld().getName())));
-
-                    TextComponent delTp = new TextComponent(ChatColor.RED + "[Del]");
-                    delTp.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/deltploc " + name));
-                    delTp.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Delete teleport location")));
-
-                    BaseComponent[] row = new BaseComponent[]{tpName, new TextComponent(" "), update, new TextComponent(" "), delTp};
-                    rows.add(row);
+                String name = ctx.args[0];
+                if (!this.cacheList.containsKey(name)) {
+                    ctx.returnErrorLocale("TPLOC_NOT_EXIST", "name", name);
                 }
 
-                String title = "Teleport Locations";
-                String baseCommand = "/listtploc";
+                try {
+                    PreparedStatement statement;
+                    statement = SMDatabase.prepareStatement(
+                            "DELETE FROM tp_locations WHERE name = ?");
 
-                SMUtil.paginate(sender, title, rows, page, maxPages, baseCommand);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            return true;
-        }, aliases, tabCompletions);
-
-        commandName = "addteleportlocation";
-        aliases = new String[]{"addteleportloc", "addtploc"};
-        tabCompletions = new String[][]{
-            {commandName},
-        };
-
-        this.plugin.getCommandManager().registerCommand(commandName, (sender, command, label, args) -> {
-            if (!sender.hasPermission("stemcraft.teleport.location.add")) {
-                this.plugin.getLanguageManager().sendPhrase(sender, "CMD_NO_PERMISSION");
-                return true;
-            }
-
-            if (!(sender instanceof Player)) {
-                this.plugin.getLanguageManager().sendPhrase(sender, "CMD_ONLY_PLAYERS");
-                return true;
-            }
-
-            if (args.length == 0) {
-                this.plugin.getLanguageManager().sendPhrase(sender, "TPLOC_USAGE");
-                return true;
-            }
-
-            Player player = (Player) sender;
-            String name = args[0];
-            Location location = player.getLocation();
-
-            String world = location.getWorld().getName();
-            double x = location.getX();
-            double y = location.getY();
-            double z = location.getZ();
-            float yaw = location.getYaw();
-            float pitch = location.getPitch();
-
-            try {
-                PreparedStatement selectStatement = this.plugin.getDatabaseManager().prepareStatement(
-                        "SELECT COUNT(*) FROM tp_locations WHERE name = ?");
-                selectStatement.setString(1, name);
-                ResultSet selectResult = selectStatement.executeQuery();
-                selectResult.next();
-
-                int rowCount = selectResult.getInt(1);
-
-                PreparedStatement statement;
-                if (rowCount > 0) {
-                    // Update existing row
-                    statement = this.plugin.getDatabaseManager().prepareStatement(
-                            "UPDATE tp_locations SET world = ?, x = ?, y = ?, z = ?, yaw = ?, pitch = ? WHERE name = ?");
-
-                    statement.setString(1, world);
-                    statement.setDouble(2, x);
-                    statement.setDouble(3, y);
-                    statement.setDouble(4, z);
-                    statement.setFloat(5, yaw);
-                    statement.setFloat(6, pitch);
-                    statement.setString(7, name);
-                } else {
-                    // Insert new row
-                    statement = this.plugin.getDatabaseManager().prepareStatement(
-                            "INSERT INTO tp_locations (name, world, x, y, z, yaw, pitch) VALUES (?, ?, ?, ?, ?, ?, ?)");
                     statement.setString(1, name);
-                    statement.setString(2, world);
-                    statement.setDouble(3, x);
-                    statement.setDouble(4, y);
-                    statement.setDouble(5, z);
-                    statement.setFloat(6, yaw);
-                    statement.setFloat(7, pitch);
+
+                    int rowsAffected = statement.executeUpdate();
+                    if (rowsAffected > 0) {
+                        ctx.returnSuccessLocale("TPLOC_DELETE_SUCCESSFUL");
+                    } else {
+                        ctx.returnErrorLocale("TPLOC_DELETE_FAILED");
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
 
-                int rowsAffected = statement.executeUpdate();
-                if (rowsAffected > 0) {
-                    this.plugin.getLanguageManager().sendPhrase(sender, "TPLOC_SAVE_SUCCESSFUL");
-                } else {
-                    this.plugin.getLanguageManager().sendPhrase(sender, "TPLOC_SAVE_FAILED");
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-
-            this.buildCacheList();
-            return true;
-        }, aliases, tabCompletions);
-
-        commandName = "delteleportlocation";
-        aliases = new String[]{"delteleportloc", "deltploc"};
-        tabCompletions = new String[][]{
-            {commandName},
-        };
-
-        this.plugin.getCommandManager().registerCommand(commandName, (sender, command, label, args) -> {
-            if (!sender.hasPermission("stemcraft.teleport.location.delete")) {
-                this.plugin.getLanguageManager().sendPhrase(sender, "CMD_NO_PERMISSION");
-                return true;
-            }
-
-            String name = args[0];
-
-            if (!this.cacheList.contains(name)) {
-                HashMap<String, String> replacements = new HashMap<>();
-                replacements.put("NAME", name);
-                this.plugin.getLanguageManager().sendPhrase(sender, "TPLOC_NOT_EXIST", replacements);
-                return true;
-            }
-
-            try {
-                PreparedStatement statement;
-                statement = this.plugin.getDatabaseManager().prepareStatement(
-                        "DELETE FROM tp_locations WHERE name = ?");
-
-                statement.setString(1, name);
-
-                int rowsAffected = statement.executeUpdate();
-                if (rowsAffected > 0) {
-                    this.plugin.getLanguageManager().sendPhrase(sender, "TPLOC_DELETE_SUCCESSFUL");
-                } else {
-                    this.plugin.getLanguageManager().sendPhrase(sender, "TPLOC_DELETE_FAILED");
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-
-            this.buildCacheList();
-            return true;
-        }, aliases, tabCompletions);
+                this.buildCacheList();
+            })
+            .register();
 
         this.buildCacheList();
         return true;
@@ -313,14 +230,22 @@ public class SMTeleportLocation extends SMFeature {
 
     private void buildCacheList() {
         try {
-            PreparedStatement statement = this.plugin.getDatabaseManager().prepareStatement(
-                "SELECT name FROM tp_locations");
+            PreparedStatement statement = SMDatabase.prepareStatement(
+                "SELECT name, world, x, y, z, yaw, pitch FROM tp_locations");
             ResultSet resultSet = statement.executeQuery();
 
             this.cacheList.clear();
             while(resultSet.next()) {
                 String name = resultSet.getString("name");
-                this.cacheList.add(name);
+                String worldName = resultSet.getString("world");
+                double x = resultSet.getDouble("x");
+                double y = resultSet.getDouble("y");
+                double z = resultSet.getDouble("z");
+                float yaw = resultSet.getFloat("yaw");
+                float pitch = resultSet.getFloat("pitch");
+
+                Location location = new Location(STEMCraft.getPlugin().getServer().getWorld(worldName), x, y, z, yaw, pitch);
+                this.cacheList.put(name, location);
             }
         } catch (Exception e) {
             e.printStackTrace();

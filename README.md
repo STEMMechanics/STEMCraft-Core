@@ -1,4 +1,4 @@
-<p align="center"><img src="https://github.com/STEMMechanics/STEMCraft/blob/main/docs/stemcraft-sky-logo.jpg?raw=true" width="666" height="198"></p>
+<p align="center"><img src="https://github.com/STEMMechanics/.github/blob/main/stemcraft-sky-logo.jpg?raw=true" width="666" height="198"></p>
 
 STEMMechanics brings creativity to life by developing engaging resources and programs. Powered by open source by an amazing community.
 
@@ -7,6 +7,11 @@ STEMMechanics brings creativity to life by developing engaging resources and pro
 🫂 We aim to create a welcoming and inclusive community. Please note that STEMMechanics open source projects are governed by our [code of conduct](code-of-conduct.md).
 
 ## Changes
+
+### 1.0.0
+
+-   Rewrite of the framework to make adding features easier
+-   When clicking a waystone, if the nearest does not have a safe location, instead of giving up, it will try other waystones
 
 ### 0.4.2
 

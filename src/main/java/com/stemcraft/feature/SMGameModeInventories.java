@@ -2,19 +2,29 @@ package com.stemcraft.feature;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import com.stemcraft.SMSerialize;
-import com.stemcraft.library.SMXPCalculator;
+import com.stemcraft.core.SMDatabase;
+import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.SMJson;
+import com.stemcraft.core.SMMessenger;
+import com.stemcraft.core.config.SMConfig;
+import com.stemcraft.core.event.SMEvent;
+import com.stemcraft.core.util.SMXPCalculator;
+import de.tr7zw.nbtapi.NBT;
+import de.tr7zw.nbtapi.iface.ReadWriteNBT;
 
 public class SMGameModeInventories extends SMFeature {
     @Override
     protected Boolean onEnable() {
-        this.plugin.getDatabaseManager().addMigration("230805142700_CreateGameModeInventoriesTable", (databaseManager) -> {
-            databaseManager.prepareStatement(
+        SMDatabase.runMigration("230805142700_CreateGameModeInventoriesTable", () -> {
+            SMDatabase.prepareStatement(
             "CREATE TABLE IF NOT EXISTS gamemode_inventories (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "uuid TEXT NOT NULL," +
@@ -28,53 +38,97 @@ public class SMGameModeInventories extends SMFeature {
                 "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP)").executeUpdate();
         });
 
-        this.plugin.getDatabaseManager().addMigration("230805160400_AddReasonToGameModeInventoriesTable", (databaseManager) -> {
-            databaseManager.prepareStatement(
+        SMDatabase.runMigration("230805160400_AddReasonToGameModeInventoriesTable", () -> {
+            SMDatabase.prepareStatement(
                 "ALTER TABLE gamemode_inventories " +
                 "ADD COLUMN reason TEXT DEFAULT ''").executeUpdate();
         });
 
-        this.plugin.getDatabaseManager().addMigration("230817181600_AddWorldToGameModeInventoriesTable", (databaseManager) -> {
-            databaseManager.prepareStatement(
+        SMDatabase.runMigration("230817181600_AddWorldToGameModeInventoriesTable", () -> {
+            SMDatabase.prepareStatement(
                 "ALTER TABLE gamemode_inventories " +
                 "ADD COLUMN world TEXT DEFAULT 'world'").executeUpdate();
             
-            databaseManager.prepareStatement(
+            SMDatabase.prepareStatement(
                     "UPDATE gamemode_inventories SET world = 'world' WHERE world = ''").executeUpdate();
         });
 
-        this.plugin.getLanguageManager().registerPhrase("GMI_FAILED", "&cThe server failed updating your inventory");
+        SMDatabase.runMigration("231022154400_ConvertInventoryFormat", () -> {
+            PreparedStatement statement = SMDatabase.prepareStatement(
+                "SELECT id,inventory,armour,enderchest FROM gamemode_inventories WHERE 1"
+            );
+            
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                Integer id = resultSet.getInt("id");
+                String oldInventory = resultSet.getString("inventory");
+                String oldArmour = resultSet.getString("armour");
+                String oldEnderchest = resultSet.getString("enderchest");
+                
+                try {
+                    ReadWriteNBT nbtInventory = NBT.parseNBT(oldInventory);
+                    ReadWriteNBT nbtArmour = NBT.parseNBT(oldArmour);
+                    ReadWriteNBT nbtEnderchest = NBT.parseNBT(oldEnderchest);
+                    
+                    ItemStack[] itemStackInventory = NBT.itemStackArrayFromNBT(nbtInventory);
+                    ItemStack[] itemStackArmour = NBT.itemStackArrayFromNBT(nbtArmour);
+                    ItemStack[] itemStackEnderchest = NBT.itemStackArrayFromNBT(nbtEnderchest);
+                    
+                    String jsonInventory = SMJson.toJson(itemStackInventory, ItemStack[].class);
+                    String jsonArmour = SMJson.toJson(itemStackArmour, ItemStack[].class);
+                    String jsonEnderchest = SMJson.toJson(itemStackEnderchest, ItemStack[].class);
 
-        this.plugin.getEventManager().registerEvent(PlayerGameModeChangeEvent.class, (listener, rawEvent) -> {
-            PlayerGameModeChangeEvent event = (PlayerGameModeChangeEvent)rawEvent;
-            Player player = event.getPlayer();
-            String newGameMode = event.getNewGameMode().toString();
+                    PreparedStatement updateStatement = SMDatabase.prepareStatement(
+                        "UPDATE gamemode_inventories SET inventory = ?, armour = ?, enderchest = ? WHERE id = ?"
+                    );
+                
+                    updateStatement.setString(1, jsonInventory);
+                    updateStatement.setString(2, jsonArmour);
+                    updateStatement.setString(3, jsonEnderchest);
+                    updateStatement.setInt(4, id);
+                    updateStatement.executeUpdate();
+                    updateStatement.close();
+                } catch(Exception e) {
+                    e.printStackTrace();
+
+                    PreparedStatement updateStatement = SMDatabase.prepareStatement(
+                        "DELETE FROM gamemode_inventories WHERE id = ?"
+                    );
+
+                    updateStatement.setInt(1, id);
+                    updateStatement.executeUpdate();
+                    updateStatement.close();
+                }
+            }
+        });
+
+        SMEvent.register(PlayerGameModeChangeEvent.class, ctx -> {
+            Player player = ctx.event.getPlayer();
+            String newGameMode = ctx.event.getNewGameMode().toString();
             
             if(!this.SaveInventory(player, false, "Gamemode changed to " + newGameMode)) {
-                this.plugin.getLanguageManager().sendPhrase(player, "GMI_FAILED");
+                SMMessenger.errorLocale(player, "GMI_FAILED");
                 return;
             }
             
             if(!this.LoadLastInventory(player, newGameMode, player.getLocation().getWorld().getName())) {
-                this.plugin.getLanguageManager().sendPhrase(player, "GMI_FAILED");
+                SMMessenger.errorLocale(player, "GMI_FAILED");
                 return;
             }
         });
 
-        this.plugin.getEventManager().registerEvent(PlayerDeathEvent.class, (listener, rawEvent) -> {
-            if(rawEvent.getEventName().equalsIgnoreCase("playerdeathevent")) {
-                PlayerDeathEvent event = (PlayerDeathEvent)rawEvent;
-                Player player = event.getEntity();
+        SMEvent.register(PlayerDeathEvent.class, ctx -> {
+            if(ctx.event.getEventName().equalsIgnoreCase("playerdeathevent")) {
+                Player player = ctx.event.getEntity();
                 this.SaveInventory(player, true, "Player death");
             }
         });
 
-        this.plugin.getEventManager().registerEvent(PlayerTeleportEvent.class, (listener, rawEvent) -> {
-            PlayerTeleportEvent event = (PlayerTeleportEvent)rawEvent;
-            Player player = event.getPlayer();
+        SMEvent.register(PlayerTeleportEvent.class, ctx -> {
+            Player player = ctx.event.getPlayer();
 
-            this.SaveInventory(player, event.getFrom().getWorld().getName(), false, "Player Teleport");
-            this.LoadLastInventory(player, player.getGameMode().toString(), event.getTo().getWorld().getName());
+            this.SaveInventory(player, ctx.event.getFrom().getWorld().getName(), false, "Player Teleport");
+            this.LoadLastInventory(player, player.getGameMode().toString(), ctx.event.getTo().getWorld().getName());
         });
 
 
@@ -104,7 +158,7 @@ public class SMGameModeInventories extends SMFeature {
 
         // Load player state
         try {
-            PreparedStatement statement = this.plugin.getDatabaseManager().prepareStatement(
+            PreparedStatement statement = SMDatabase.prepareStatement(
                     "SELECT * FROM gamemode_inventories WHERE uuid = ? AND death = ? AND gamemode = ? AND world = ? ORDER BY created DESC"
             );
             statement.setString(1, uuid);
@@ -124,7 +178,7 @@ public class SMGameModeInventories extends SMFeature {
             }
         } catch(Exception e) {
             e.printStackTrace();
-            this.plugin.getLanguageManager().sendPhrase(player, "GMI_FAILED");
+            SMMessenger.errorLocale(player, "GMI_FAILED");
             success = false;
         }
 
@@ -135,9 +189,9 @@ public class SMGameModeInventories extends SMFeature {
 
         PlayerInventory playerInventory = player.getInventory();
         if(foundInventory) {
-            playerInventory.setContents(SMSerialize.deserializeItemStackArray(inventoryContents));
-            playerInventory.setArmorContents(SMSerialize.deserializeItemStackArray(armourContents));
-            player.getEnderChest().setContents(SMSerialize.deserializeItemStackArray(enderChestContents));
+            playerInventory.setContents(SMJson.fromJson(ItemStack[].class, inventoryContents));
+            playerInventory.setArmorContents(SMJson.fromJson(ItemStack[].class, armourContents));
+            player.getEnderChest().setContents(SMJson.fromJson(ItemStack[].class, enderChestContents));
             xpc.setExp(xp);
         } else {
             playerInventory.clear();
@@ -170,14 +224,14 @@ public class SMGameModeInventories extends SMFeature {
         String uuid = player.getUniqueId().toString();
         String currentGameMode = player.getGameMode().toString();
         int xp = xpc.getCurrentExp();
-        String inventoryContents = SMSerialize.serialize(player.getInventory().getContents());
-        String armourContents = SMSerialize.serialize(player.getInventory().getArmorContents());
-        String enderChestContents = SMSerialize.serialize(player.getEnderChest().getContents());
-        String location = SMSerialize.serialize(player.getLocation());
+        String inventoryContents = SMJson.toJson(player.getInventory().getContents(), ItemStack[].class);
+        String armourContents = SMJson.toJson(player.getInventory().getArmorContents(), ItemStack[].class);
+        String enderChestContents = SMJson.toJson(player.getEnderChest().getContents(), ItemStack[].class);
+        String location = SMJson.toJson(player.getLocation(), Location.class);
 
         // Save player state
         try {
-            PreparedStatement statement = this.plugin.getDatabaseManager().prepareStatement(
+            PreparedStatement statement = SMDatabase.prepareStatement(
                     "INSERT INTO gamemode_inventories (uuid, death, location, gamemode, xp, inventory, armour, enderchest, reason, world) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             );
             statement.setString(1, uuid);
@@ -192,12 +246,49 @@ public class SMGameModeInventories extends SMFeature {
             statement.setString(10, world);
             statement.executeUpdate();
             statement.close();
+
+            RemoveOldInventories(player, player.getGameMode(), world);
         } catch(Exception e) {
             e.printStackTrace();
-            this.plugin.getLanguageManager().sendPhrase(player, "GMI_FAILED");
+            SMMessenger.errorLocale(player, "GMI_FAILED");
             success = false;
         }
 
         return success;
+    }
+
+    private void RemoveOldInventories(Player player, GameMode gameMode, String world) {
+        String uuidString = player.getUniqueId().toString();
+        String gameModeString = gameMode.toString();
+        Integer maxRows = SMConfig.main().getInt("gamemode-inventories.max-count", 50);
+
+        String sql = 
+            "WITH RankedRows AS ( " +
+                "SELECT *, " +
+                "ROW_NUMBER() OVER (ORDER BY created DESC) as rn " +
+                "FROM gamemode_inventories " +
+                "WHERE uuid = ? " +
+                "AND gamemode = ? " +
+                "AND world = ? " +
+            ") " +
+            "DELETE FROM gamemode_inventories " +
+            "WHERE id IN ( " +
+                "SELECT id " +
+                "FROM RankedRows " +
+                "WHERE rn > ? " +
+            ");";
+        
+        try {
+            PreparedStatement statement = SMDatabase.prepareStatement(sql);
+            statement.setString(1, uuidString);
+            statement.setString(2, gameModeString);
+            statement.setString(3, world);
+            statement.setInt(4, maxRows);
+            statement.executeUpdate();
+            statement.close();
+        } catch(Exception e) {
+            e.printStackTrace();
+            SMMessenger.errorLocale(player, "GMI_FAILED");
+        }
     }
 }

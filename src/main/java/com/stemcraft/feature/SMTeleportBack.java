@@ -6,53 +6,41 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import com.stemcraft.core.SMCommon;
+import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.command.SMCommand;
+import com.stemcraft.core.event.SMEvent;
 
 public class SMTeleportBack extends SMFeature {
     private final HashMap<UUID, Location> playerPreviousLocations = new HashMap<>();
 
     @Override
     protected Boolean onEnable() {
-        this.plugin.getLanguageManager().registerPhrase("NO_BACK_LOCATION", "There is no location to teleport back to %PLAYER_NAME%");
-
-        this.plugin.getEventManager().registerEvent(PlayerTeleportEvent.class, (listener, event) -> {
-            this.onPlayerTeleport((PlayerTeleportEvent)event);
+        SMEvent.register(PlayerTeleportEvent.class, ctx -> {
+            this.onPlayerTeleport(ctx.event);
         });
 
-        this.plugin.getEventManager().registerEvent(PlayerDeathEvent.class, (listener, rawEvent) -> {
-            if(rawEvent.getEventName().equalsIgnoreCase("playerdeathevent")) {
-                PlayerDeathEvent event = (PlayerDeathEvent)rawEvent;
-                Player player = event.getEntity();
+        SMEvent.register(PlayerDeathEvent.class, ctx -> {
+            if(ctx.event.getEventName().equalsIgnoreCase("playerdeathevent")) {
+                Player player = ctx.event.getEntity();
                 this.playerPreviousLocations.put(player.getUniqueId(), player.getLocation());
             }
         });
 
-        this.plugin.getCommandManager().registerCommand("back", (sender, command, label, args) -> {
-            if (sender instanceof Player) {
-                Player player = (Player) sender;
-                UUID playerId = player.getUniqueId();
-
-                if (!sender.hasPermission("stemcraft.teleport.back")) {
-                    this.plugin.getLanguageManager().sendPhrase(sender, "CMD_NO_PERMISSION");
-                    return true;
-                }    
+        new SMCommand("back")
+            .permission("stemcraft.teleport.back")
+            .action(ctx -> {
+                ctx.checkNotConsole();
+                UUID playerId = ctx.player.getUniqueId();
 
                 if (!this.playerPreviousLocations.containsKey(playerId)) {
-                    HashMap<String, String> replacements = new HashMap<>();
-                    
-                    replacements.put("PLAYER_NAME", player.getName());
-
-                    player.sendMessage(this.plugin.getLanguageManager().getPhrase("NO_BACK_LOCATION", replacements));
-                    return true;
+                    ctx.returnErrorLocale("NO_BACK_LOCATION", "player", ctx.senderName());
                 }
 
                 Location previousLocation = this.playerPreviousLocations.get(playerId);
-                player.teleport(previousLocation);
-                return true;
-            }
-
-            this.plugin.getLanguageManager().sendPhrase(sender, "CMD_ONLY_PLAYERS");
-            return true;
-        });
+                SMCommon.delayedPlayerTeleport(ctx.player, previousLocation);
+            })
+            .register();
     
         return true;
     }

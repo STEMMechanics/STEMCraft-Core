@@ -1,39 +1,54 @@
 package com.stemcraft.feature;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
 import com.stemcraft.STEMCraft;
+import com.stemcraft.core.SMDependency;
+import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.event.SMEvent;
 import dev.lone.itemsadder.api.CustomStack;
 import dev.lone.itemsadder.api.FontImages.FontImageWrapper;
 
 public class SMItemsAdder extends SMFeature {
-    private Boolean itemsAdderReady = false;
+    private String dependantName = "ItemsAdder";
+    private String dependantClazz = "dev.lone.itemsadder.api.Events.ItemsAdderLoadDataEvent";
+    private Boolean dependantReady = false;
 
     @Override
-    public Boolean onLoad(STEMCraft plugin) {
-        if(!super.onLoad(plugin)) {
+    public Boolean onLoad() {
+        if(!super.onLoad()) {
             return false;
         }
 
-        if(!this.plugin.getDependManager().getDependencyLoaded("ItemsAdder")) {
-            return false;
+        if(Bukkit.getPluginManager().getPlugin(dependantName) == null) {
+            STEMCraft.warning(dependantName + " is not loaded. Features requiring this plugin won't be available");
         }
 
         return true;
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected Boolean onEnable() {
-        this.plugin.getDependManager().onDependencyReady("ItemsAdder", () -> {
-            this.itemsAdderReady = true;
-        });
+        try {
+            Class<? extends Event> eventClass = (Class<? extends Event>)Class.forName(dependantClazz);
+            
+            SMEvent.register(eventClass, ctx -> {
+                dependantReady = true;
+                SMDependency.setDependencyReady(dependantName);
+            });
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
 
         return true;
     }
 
     public Boolean isItemsAdderReady() {
-        return this.itemsAdderReady;
+        return this.dependantReady;
     }
 
     public ItemStack createItemStack(String name) {
@@ -52,21 +67,18 @@ public class SMItemsAdder extends SMFeature {
         if(!name.contains(":")) {
             Material material = Material.getMaterial(name.toUpperCase());
             if(material != null) {
-                this.plugin.getLogger().finest(name + " is returned");
                 return new ItemStack(material, quantity);
             }
-        } else if(this.itemsAdderReady) {
+        } else if(this.dependantReady) {
             CustomStack customStack = CustomStack.getInstance(name);
             if(customStack != null) {
                 ItemStack itemStack = customStack.getItemStack();
                 itemStack.setAmount(quantity);
 
-                this.plugin.getLogger().finest(name + " is returned");
                 return itemStack;
             }
         }
 
-        this.plugin.getLogger().finer(name + " is null");
         if(returnEmpty) {
             return new ItemStack(Material.AIR);
         }
@@ -83,7 +95,7 @@ public class SMItemsAdder extends SMFeature {
     }
 
     public String formatString(Player player, String string) {
-        if(this.itemsAdderReady) {
+        if(this.dependantReady) {
             if(player != null) {
                 return FontImageWrapper.replaceFontImages(string);
             } else {

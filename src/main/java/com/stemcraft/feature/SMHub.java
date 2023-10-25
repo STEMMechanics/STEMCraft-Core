@@ -1,44 +1,70 @@
 package com.stemcraft.feature;
 
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
+import com.stemcraft.core.config.SMConfig;
+import com.stemcraft.core.event.SMEvent;
+import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.SMLocale;
+import com.stemcraft.core.SMMessenger;
+import com.stemcraft.core.SMReplacer;
+import com.stemcraft.core.command.SMCommand;
+import com.stemcraft.core.exception.SMException;
 
 public class SMHub extends SMFeature {
+    /**
+     * When the feature is enabled
+     */
     @Override
     protected Boolean onEnable() {
-        this.plugin.getLanguageManager().registerPhrase("HUB_TELEPORTED", "&eTeleported back to the hub");
+        new SMCommand("hub")
+            .alias("lobby")
+            .permission("stemcraft.command.hub")
+            .action(ctx -> {
+                ctx.checkNotConsole();
+                if(ctx.player != null) {
+                    teleportToHub(ctx.player);
+                }
+            })
+            .register();
 
-        String[] aliases = new String[]{};
-
-        // Hub Command
-        this.plugin.getCommandManager().registerCommand("hub", (sender, command, label, args) -> {
-            if (!(sender instanceof Player)) {
-                this.plugin.getLanguageManager().sendPhrase(sender, "CMD_ONLY_PLAYERS");
-                return true;
-            }
-
-            if (!sender.hasPermission("stemcraft.hub")) {
-                this.plugin.getLanguageManager().sendPhrase(sender, "CMD_NO_PERMISSION");
-                return true;
-            }
-
-            Player player = (Player)sender;
-            player.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
-
-            return true;
-        }, aliases);
-
-        // Player Join Event
-        this.plugin.getEventManager().registerEvent(PlayerJoinEvent.class, (listener, rawEvent) -> {
-            PlayerJoinEvent event = (PlayerJoinEvent)rawEvent;
+        SMEvent.register(PlayerJoinEvent.class, (ctx) -> {
+            PlayerJoinEvent event = (PlayerJoinEvent)ctx.event;
             Player player = event.getPlayer();
 
             if(!player.hasPermission("stemcraft.hub.override")) {
-                player.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
+                teleportToHub(player);
             }
         });
-
+        
         return true;
+    }
+
+    /**
+     * Teleport player to hub world.
+     * @param player
+     */
+    private final static void teleportToHub(Player player) {
+        final String hubWorldName = SMConfig.main().getString("hub.world", "world");
+        final String key = "hub.tp-commands." + player.getWorld().getName().toLowerCase();
+
+        World hubWorld = Bukkit.getWorld(hubWorldName);
+        if(hubWorld == null) {
+            SMMessenger.error(player, SMLocale.get("HUB_NOT_DEFINED"));
+            throw new SMException("Hub world " + hubWorldName + " not found"); 
+        }
+
+        if(SMConfig.main().contains(key)) {
+            SMConfig.main().getStringList(key).forEach(command -> {
+                SMReplacer.replaceVariables(command, "player", player.getName(), "hub-world", hubWorldName);
+                Bukkit.getServer().dispatchCommand(player, command);
+            });
+        } else {
+            player.teleport(hubWorld.getSpawnLocation());
+        }
+
+        SMMessenger.info(player, SMLocale.get("HUB_TELEPORTED"));
     }
 }

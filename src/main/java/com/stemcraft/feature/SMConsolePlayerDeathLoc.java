@@ -3,15 +3,23 @@ package com.stemcraft.feature;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import com.stemcraft.STEMCraft;
+import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.event.SMEvent;
 
+/**
+ * Print the players death location in the console
+ */
 public class SMConsolePlayerDeathLoc extends SMFeature {
+
+    /**
+     * When feature is enabled
+     */
     @Override
     protected Boolean onEnable() {
-        this.plugin.getEventManager().registerEvent(PlayerDeathEvent.class, (listener, rawEvent) -> {
-            if(rawEvent.getEventName().equalsIgnoreCase("playerdeathevent")) {
-                PlayerDeathEvent event = (PlayerDeathEvent)rawEvent;
-                
-                Player player = event.getEntity();
+        SMEvent.register(PlayerDeathEvent.class, ctx -> {
+            if(ctx.event.getEventName().equalsIgnoreCase("playerdeathevent")) {
+                Player player = ctx.event.getEntity();
                 Location deathLocation = player.getLocation();
         
                 String worldName = deathLocation.getWorld().getName();
@@ -19,7 +27,7 @@ public class SMConsolePlayerDeathLoc extends SMFeature {
                 int y = deathLocation.getBlockY();
                 int z = deathLocation.getBlockZ();
             
-                this.plugin.getLogger().info(player.getName() + " died at " + x + ", " + y + ", " + z + ", " + worldName);
+                STEMCraft.info(player.getName() + " died at " + x + ", " + y + ", " + z + ", " + worldName);
             }
         });
 

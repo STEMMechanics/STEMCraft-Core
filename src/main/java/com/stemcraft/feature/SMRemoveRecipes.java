@@ -3,18 +3,25 @@ package com.stemcraft.feature;
 import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import com.stemcraft.STEMCraft;
+import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.config.SMConfig;
 
 public class SMRemoveRecipes extends SMFeature {
+
+    /**
+     * When feature is enabled
+     */
     @Override
     protected Boolean onEnable() {
-        List<String> itemList = this.plugin.getConfigManager().getConfig().registerStringList("remove-recipes", null, "Remove the following receipes from the game");
+        List<String> itemList = SMConfig.main().getStringList("remove-recipes");
 
         for (String item : itemList) {
             if(item.length() > 0) {
                 NamespacedKey namespaceItem = NamespacedKey.fromString(item);
 
                 Bukkit.removeRecipe(namespaceItem);
-                this.plugin.getLogger().info("Removed recipe " + namespaceItem.getNamespace() + ":" + namespaceItem.getKey());
+                STEMCraft.info("Removed recipe " + namespaceItem.getNamespace() + ":" + namespaceItem.getKey());
             }
         }
 

@@ -4,9 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -20,16 +18,21 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import com.stemcraft.SMUtil;
+import com.stemcraft.STEMCraft;
+import com.stemcraft.core.SMCommon;
+import com.stemcraft.core.SMDatabase;
+import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.SMMessenger;
+import com.stemcraft.core.event.SMEvent;
 
 public class SMWaystones extends SMFeature {
     private List<String> waystoneTypes = Arrays.asList("GOLD_BLOCK", "EMERALD_BLOCK", "DIAMOND_BLOCK");
-    private static final Set<String> interactNonce = new HashSet<>();
 
     @Override
     protected Boolean onEnable() {
-        this.plugin.getDatabaseManager().addMigration("230615131000_CreateWaystonesTable", (databaseManager) -> {
-            databaseManager.prepareStatement(
+        // Add database migration
+        SMDatabase.runMigration("230615131000_CreateWaystonesTable", () -> {
+            SMDatabase.prepareStatement(
             "CREATE TABLE IF NOT EXISTS waystones (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "world TEXT NOT NULL," +
@@ -39,10 +42,8 @@ public class SMWaystones extends SMFeature {
                 "under_block TEXT NOT NULL)").executeUpdate();
         });
 
-        this.plugin.getEventManager().registerEvent(BlockBreakEvent.class, (listener, rawEvent) -> {
-            BlockBreakEvent event = (BlockBreakEvent) rawEvent;
-
-            Block block = event.getBlock();
+        SMEvent.register(BlockBreakEvent.class, ctx -> {
+            Block block = ctx.event.getBlock();
             if (block.getType() == Material.LODESTONE) {
                 try {
                     this.removeWaystone(block);
@@ -62,10 +63,8 @@ public class SMWaystones extends SMFeature {
             }
         });
 
-        this.plugin.getEventManager().registerEvent(BlockPlaceEvent.class, (listener, rawEvent) -> {
-            BlockPlaceEvent event = (BlockPlaceEvent) rawEvent;
-
-            Block block = event.getBlock();
+        SMEvent.register(BlockPlaceEvent.class, ctx -> {
+            Block block = ctx.event.getBlock();
             if (block.getType() == Material.LODESTONE) {
                 try {
                     insertWaystone(block);
@@ -85,37 +84,30 @@ public class SMWaystones extends SMFeature {
             }
         });
 
-        this.plugin.getEventManager().registerEvent(PlayerInteractEvent.class, (listener, rawEvent) -> {
-            PlayerInteractEvent event = (PlayerInteractEvent) rawEvent;
-            Player player = event.getPlayer();
-            Block clickedBlock = event.getClickedBlock();
+        SMEvent.register(PlayerInteractEvent.class, ctx -> {
+            Player player = ctx.event.getPlayer();
+            Block clickedBlock = ctx.event.getClickedBlock();
 
             if (clickedBlock == null) {
                 return;
             }
     
-            if (!interactNonce.contains(player.getName())) {
-                interactNonce.add(player.getName());
-
-                this.plugin.delayedTask(5L, (data) -> {
-                    interactNonce.remove(player.getName());
-                }, null);
-
-                if(player.getGameMode() == GameMode.SURVIVAL && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            STEMCraft.runOnce("waystone-" + player.getName(), 5L, () -> {
+                if(player.getGameMode() == GameMode.SURVIVAL && ctx.event.getAction() == Action.RIGHT_CLICK_BLOCK) {
                     if (clickedBlock.getType() == Material.LODESTONE && (player.getInventory().getItemInMainHand() == null || player.getInventory().getItemInMainHand().getType().equals(Material.AIR))) {
                         if(this.checkWaystoneExists(clickedBlock.getLocation())) {
                             this.teleportToNearestWaystone(clickedBlock.getLocation(), player);
                         }
                     }
                 }
-            }
+            });
         });
 
         return true;
     }
 
     private void removeWaystone(Block block) throws SQLException {
-        PreparedStatement statement = this.plugin.getDatabaseManager().prepareStatement(
+        PreparedStatement statement = SMDatabase.prepareStatement(
                 "DELETE FROM waystones WHERE world = ? AND x = ? AND y = ? AND z = ?"
         );
         statement.setString(1, block.getWorld().getName());
@@ -133,7 +125,7 @@ public class SMWaystones extends SMFeature {
 
         String blockBelowName = blockBelow.getType().name();
         if(this.waystoneTypes.contains(blockBelowName)) {
-            PreparedStatement statement = this.plugin.getDatabaseManager().prepareStatement(
+            PreparedStatement statement = SMDatabase.prepareStatement(
                     "INSERT INTO waystones (world, x, y, z, under_block) VALUES (?, ?, ?, ?, ?)"
             );
             statement.setString(1, block.getWorld().getName());
@@ -151,7 +143,7 @@ public class SMWaystones extends SMFeature {
     public boolean checkWaystoneExists(Location location) {
         try {
             String query = "SELECT COUNT(*) FROM waystones WHERE x = ? AND y = ? AND z = ? AND world = ?";
-            PreparedStatement statement = this.plugin.getDatabaseManager().prepareStatement(query);
+            PreparedStatement statement = SMDatabase.prepareStatement(query);
             statement.setInt(1, location.getBlockX());
             statement.setInt(2, location.getBlockY());
             statement.setInt(3, location.getBlockZ());
@@ -188,7 +180,7 @@ public class SMWaystones extends SMFeature {
         int maxZ = z + search;
         
         try {
-            PreparedStatement statement = this.plugin.getDatabaseManager().prepareStatement(
+            PreparedStatement statement = SMDatabase.prepareStatement(
                     "SELECT * FROM waystones WHERE under_block = ? AND world = ? AND x BETWEEN ? AND ? AND y BETWEEN ? AND ? AND z BETWEEN ? AND ?"
             );
             statement.setString(1, underBlock.getType().name());
@@ -223,20 +215,20 @@ public class SMWaystones extends SMFeature {
 
             if (closestWaystoneLocation != null) {
                 // Teleport the player to a safe location near the closest waystone
-                Location safeLocation = SMUtil.findSafeLocation(closestWaystoneLocation, 6, true);
+                Location safeLocation = SMCommon.findSafeLocation(closestWaystoneLocation, 6, true);
                 if (safeLocation != null) {
-                    this.plugin.delayedTask(1L, (data) -> {
+                    STEMCraft.runLater(() -> {
                         location.getWorld().playSound(location, Sound.BLOCK_METAL_PRESSURE_PLATE_CLICK_OFF, 1f, 0.5f);
                         location.getWorld().playSound(location, Sound.BLOCK_BEACON_ACTIVATE, 0.5f, 3f);
                         player.teleport(safeLocation);
                         location.getWorld().playSound(safeLocation, Sound.BLOCK_BEACON_ACTIVATE, 0.5f, 3f);
                         location.getWorld().playSound(safeLocation, Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
-                    }, null);
+                    });
                 } else {
                     player.sendMessage("Unable to find a safe location near the waystone");
                 }
             } else {
-                player.sendMessage("No waystones found nearby");
+                SMMessenger.infoLocale(player, "WAYSTONE_NONE_FOUND");
             }
         } catch (SQLException e) {
             e.printStackTrace();
