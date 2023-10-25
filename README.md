@@ -8,6 +8,10 @@ STEMMechanics brings creativity to life by developing engaging resources and pro
 
 ## Changes
 
+### 1.0.1
+
+-   Internal code refactoring
+
 ### 1.0.0
 
 -   Rewrite of the framework to make adding features easier
@@ -35,5 +39,3 @@ STEMMechanics brings creativity to life by developing engaging resources and pro
 Learn more about what we're doing at [stemmechanics.com.au](https://stemmechanics.com.au).
 
 👋 [@STEMMechanics](https://twitter.com/STEMMechanics)
-
--   Drop Mob heads when killed by a player in survival
