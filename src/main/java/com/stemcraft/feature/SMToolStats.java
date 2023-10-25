@@ -107,7 +107,7 @@ public class SMToolStats extends SMFeature {
             // crops-mined
             Integer cropsMined = getCropsHarvested(item);
             if(cropsMined != null) {
-                lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-CROPS-MINED"), "crops", SMCommon.formatInt(cropsMined)));
+                lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-CROPS-HARVESTED"), "crops", SMCommon.formatInt(cropsMined)));
             }
 
             // fish-caught
