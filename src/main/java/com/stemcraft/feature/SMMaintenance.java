@@ -66,10 +66,10 @@ public class SMMaintenance extends SMFeature {
                             SMMOTD.clearMOTDOverride();
                         }
                     }
-                } else {
-                    String modeString = SMMeta.getBool("maintenance", false) ? "enabled" : "disabled";
-                    ctx.returnInfoLocale("MAINTENANCE_SET_TO", "mode", modeString);
                 }
+
+                String modeString = SMMeta.getBool("maintenance", false) ? "enabled" : "disabled";
+                ctx.returnInfoLocale("MAINTENANCE_SET_TO", "mode", modeString);
             })
             .register();
 
