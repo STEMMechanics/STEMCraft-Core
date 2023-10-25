@@ -587,7 +587,7 @@ public class SMToolStats extends SMFeature {
         }
 
         mobKillCount++;
-        container.set(playerKills, PersistentDataType.INTEGER, mobKillCount);
+        container.set(mobKills, PersistentDataType.INTEGER, mobKillCount);
         tool.setItemMeta(meta);
         SMItemLore.updateLore(tool);
 
