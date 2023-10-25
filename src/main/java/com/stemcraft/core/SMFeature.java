@@ -1,10 +1,26 @@
 package com.stemcraft.core;
 
+import java.util.ArrayList;
+import java.util.List;
+import lombok.Getter;
+
 public class SMFeature {
     /**
      * Is this feature enabled
      */
     private Boolean enabled = false;
+
+    /**
+     * Load this feature after the following features
+     */
+    @Getter
+    protected List<String> loadAfterFeatures = new ArrayList<>();
+
+    /**
+     * Requires the following features to be enabled beforehand
+     */
+    @Getter
+    protected List<String> requireFeatures = new ArrayList<>();
 
     /**
      * Called when the feature is to be loaded (after enable).

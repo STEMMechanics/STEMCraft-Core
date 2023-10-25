@@ -11,10 +11,22 @@ import com.stemcraft.core.command.SMCommand;
 import com.stemcraft.core.event.SMEvent;
 
 public class SMMaintenance extends SMFeature {
+    private Boolean motdFeatureEnabled = false;
     private String permission = "stemcraft.maintenance";
+
+    public SMMaintenance() {
+        loadAfterFeatures.add("SMMOTD");
+    }
 
     @Override
     protected Boolean onEnable() {
+        if(STEMCraft.featureEnabled("SMMOTD")) {
+            motdFeatureEnabled = true;
+            if(SMMeta.getBool("maintenance", false)) {
+                SMMOTD.setMOTDOverride(SMLocale.get("MAINTENANCE_MOTD"));
+            }
+        }
+
         SMEvent.register(PlayerLoginEvent.class, ctx -> {
             Player player = ctx.event.getPlayer();
 
@@ -43,8 +55,16 @@ public class SMMaintenance extends SMFeature {
                                 player.kickPlayer(SMLocale.get(player, "MAINTENANCE_KICK"));
                             }
                         });
+
+                        if(motdFeatureEnabled) {
+                            SMMOTD.setMOTDOverride(SMLocale.get("MAINTENANCE_MOTD"));
+                        }
                     } else {
                         SMMeta.set("maintenance", false);
+
+                        if(motdFeatureEnabled) {
+                            SMMOTD.clearMOTDOverride();
+                        }
                     }
                 } else {
                     String modeString = SMMeta.getBool("maintenance", false) ? "enabled" : "disabled";

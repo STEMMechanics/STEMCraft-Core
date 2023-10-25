@@ -9,26 +9,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
+import java.util.logging.Logger;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginDisableEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.stemcraft.core.SMCommon;
 import com.stemcraft.core.SMDatabase;
 import com.stemcraft.core.SMDebugger;
 import com.stemcraft.core.SMFeature;
-import com.stemcraft.core.SMJson;
 import com.stemcraft.core.SMLocale;
 import com.stemcraft.core.SMMessenger;
 import com.stemcraft.core.SMTask;
-import com.stemcraft.core.adapters.SMAdapterItemStack;
 import com.stemcraft.core.command.SMCommand;
 import com.stemcraft.core.config.SMConfig;
 import com.stemcraft.core.interfaces.SMCallback;
@@ -129,22 +123,9 @@ public class STEMCraft extends JavaPlugin implements Listener {
             return names;
         });
 
-        // Enable the features
+        // Enable features
         features.forEach((name, instance) -> {
-            if(SMConfig.main().getBoolean("features." + name, true)) {
-                if(!instance.isEnabled()) {
-                    instance.enable();
-                    if(instance.isEnabled()) {
-                        getLogger().info("Feature " + name + " enabled");
-                    } else {
-                        getLogger().info("Feature " + name + " could not be enabled");
-                    }
-                } else {
-                    getLogger().info("Feature " + name + " already enabled");
-                }
-            } else {
-                getLogger().info("Feature " + name + " disabled in config");
-            }
+            enableFeature(name);
         });
 
         new SMCommand("stemcraft")
@@ -318,6 +299,44 @@ public class STEMCraft extends JavaPlugin implements Listener {
                 }
             }
         });
+    }
+
+    private static Boolean enableFeature(String name) {
+        Logger logger = STEMCraft.getPlugin().getLogger();
+
+        if(SMConfig.main().getBoolean("features." + name, true)) {
+            SMFeature instance = features.getOrDefault(name, null);
+            if(instance != null) {
+                if(!instance.isEnabled()) {
+                    // check required features are enabled
+                    for(String required : instance.getRequireFeatures()) {
+                        if(!enableFeature(required)) {
+                            logger.info("Feature " + name + " not enabled as it requires " + required + " to be enabled");
+                            return false;
+                        }
+                    }
+
+                    // perform any load befores
+                    for(String loadAfter : instance.getLoadAfterFeatures()) {
+                        enableFeature(loadAfter);
+                    }
+
+                    instance.enable();
+                    if(instance.isEnabled()) {
+                        logger.info("Feature " + name + " enabled");
+                        return true;
+                    }
+                } else {
+                    return true;
+                }
+            }
+
+            logger.info("Feature " + name + " not enabled");
+            return false;
+        } else {
+            logger.info("Feature " + name + " disabled in config");
+            return false;
+        }
     }
 
     /**
