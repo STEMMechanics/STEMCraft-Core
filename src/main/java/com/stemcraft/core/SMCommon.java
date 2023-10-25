@@ -505,7 +505,7 @@ public class SMCommon {
      * @param number The number to format.
      * @return The formatted number.
      */
-    public String formatInt(int number) {
+    public static String formatInt(int number) {
         initalizeFormatting();
         String finalNumber = COMMA_FORMAT.format(number);
         finalNumber = finalNumber.replaceAll("[\\x{202f}\\x{00A0}]", " ");
@@ -518,7 +518,7 @@ public class SMCommon {
      * @param number The number to format.
      * @return The formatted number.
      */
-    public String formatDouble(double number) {
+    public static String formatDouble(double number) {
         initalizeFormatting();
         String finalNumber = DECIMAL_FORMAT.format(number);
         finalNumber = finalNumber.replaceAll("[\\x{202f}\\x{00A0}]", " ");
