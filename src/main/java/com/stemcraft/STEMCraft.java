@@ -84,6 +84,8 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
         // Load plugin features
         loadFeatures();
+
+        getLogger().info("STEMCraft " + getVersion() + " loaded");
     }
 
     /**
