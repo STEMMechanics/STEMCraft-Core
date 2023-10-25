@@ -13,12 +13,18 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import com.stemcraft.STEMCraft;
+import com.stemcraft.core.config.SMConfig;
 import lombok.NonNull;
 import static org.bukkit.ChatColor.COLOR_CHAR;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.function.Supplier;
@@ -35,6 +41,10 @@ public class SMCommon {
     /** Pattern matching "nicer" legacy hex chat color codes - &#rrggbb */
     private static final Pattern HEX_COLOR_PATTERN = Pattern.compile("&#([0-9a-fA-F]{6})");
     
+    private static DecimalFormat DECIMAL_FORMAT = null;
+    private static DecimalFormat COMMA_FORMAT = null;
+    private static SimpleDateFormat DATE_FORMAT = null;
+
     /**
      * Strip color codes from string.
      * @param message
@@ -443,5 +453,86 @@ public class SMCommon {
         }
 
         return false;
+    }
+
+    private static void initalizeFormatting() {
+        if(COMMA_FORMAT == null || DECIMAL_FORMAT == null || DATE_FORMAT == null) {
+            String defaultDateFormat = "dd/M/yyyy";
+            String defaultDecimalSeparator = ".";
+            String defaultCommaSeparator = ",";
+            String defaultCommaFormat = "#,###";
+            String defaultDecimalFormat = "#,###.00";
+
+            String dateFormat = SMConfig.main().getString("date-format", defaultDateFormat);
+            String decimalSeparator = SMConfig.main().getString("number-formats.decimal-separator", defaultDecimalSeparator);
+            String commaSeparator = SMConfig.main().getString("number-formats.comma-separator", defaultCommaSeparator);
+            String commaFormat = SMConfig.main().getString("number-formats.comma-format", defaultCommaFormat);
+            String decimalFormat = SMConfig.main().getString("number-formats.decimal-format", defaultDecimalFormat);
+
+            DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.getDefault());
+            formatSymbols.setDecimalSeparator(decimalSeparator.charAt(0));
+            formatSymbols.setGroupingSeparator(commaSeparator.charAt(0));
+        
+            try {
+                DATE_FORMAT = new SimpleDateFormat(SMConfig.main().getString("date-format", "dd/M/yyyy"), Locale.getDefault());
+            } catch (NullPointerException | IllegalArgumentException exception) {
+                STEMCraft.warning("date-format is NOT a valid format! Using default American English format.");
+                exception.printStackTrace();
+                DATE_FORMAT = new SimpleDateFormat(defaultDateFormat, Locale.ENGLISH);
+            }
+
+            try {
+                COMMA_FORMAT = new DecimalFormat(commaFormat, formatSymbols);
+            } catch (NullPointerException | IllegalArgumentException exception) {
+                STEMCraft.warning("number-formats.comma-format is NOT a valid format! Using default #,### instead.");
+                exception.printStackTrace();
+                COMMA_FORMAT = new DecimalFormat(defaultCommaFormat, formatSymbols);
+            }
+
+            try {
+                DECIMAL_FORMAT = new DecimalFormat(decimalFormat, formatSymbols);
+            } catch (NullPointerException | IllegalArgumentException exception) {
+                STEMCraft.warning("number-formats.decimal-format is NOT a valid format! Using default #,###.00 instead.");
+                exception.printStackTrace();
+                DECIMAL_FORMAT = new DecimalFormat(defaultDecimalFormat, formatSymbols);
+            }
+        }
+    }
+
+    /**
+     * Formats a number to make it pretty. Example: 4322 to 4,322
+     *
+     * @param number The number to format.
+     * @return The formatted number.
+     */
+    public String formatInt(int number) {
+        initalizeFormatting();
+        String finalNumber = COMMA_FORMAT.format(number);
+        finalNumber = finalNumber.replaceAll("[\\x{202f}\\x{00A0}]", " ");
+        return finalNumber;
+    }
+
+    /**
+     * Formats a number to make it pretty. Example: 4322.33 to 4,322.33
+     *
+     * @param number The number to format.
+     * @return The formatted number.
+     */
+    public String formatDouble(double number) {
+        initalizeFormatting();
+        String finalNumber = DECIMAL_FORMAT.format(number);
+        finalNumber = finalNumber.replaceAll("[\\x{202f}\\x{00A0}]", " ");
+        return finalNumber;
+    }
+
+    /**
+     * Formats a date into the readable format.
+     *
+     * @param date The date to format.
+     * @return The date into a readable format.
+     */
+    public static String formatDate(Date date) {
+        initalizeFormatting();
+        return DATE_FORMAT.format(date);
     }
 }
