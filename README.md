@@ -13,6 +13,7 @@ STEMMechanics brings creativity to life by developing engaging resources and pro
 -   Internal code refactoring
 -   Fix shift click crafting tool stats
 -   Plugin version announced in server console on load
+-   Player heads only drop in survival PVP
 
 ### 1.0.0
 
