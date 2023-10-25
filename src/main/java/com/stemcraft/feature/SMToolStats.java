@@ -1,19 +1,29 @@
 package com.stemcraft.feature;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Sheep;
+import org.bukkit.entity.Trident;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemStack;
@@ -22,7 +32,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import com.stemcraft.core.event.SMEvent;
+import com.stemcraft.core.persistentDataTypes.SMPersistentUUIDDataType;
 import com.stemcraft.STEMCraft;
+import com.stemcraft.core.SMCommon;
 import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.SMItemLore;
 import com.stemcraft.core.SMLocale;
@@ -34,7 +46,25 @@ public class SMToolStats extends SMFeature {
     private final NamespacedKey fishingRodCaught = new NamespacedKey(STEMCraft.getPlugin(), "fish-caught");
     private final NamespacedKey arrowsShot = new NamespacedKey(STEMCraft.getPlugin(), "arrows-shot");
     private final NamespacedKey sheepSheared = new NamespacedKey(STEMCraft.getPlugin(), "sheep-sheared");
+    private final NamespacedKey itemCreated = new NamespacedKey(STEMCraft.getPlugin(), "time-created");
+    private final NamespacedKey itemOwner = new NamespacedKey(STEMCraft.getPlugin(), "owner");
+    /**
+     * Stores how an item was created.
+     * 0 = crafted.
+     * 1 = dropped.
+     * 2 = looted.
+     * 3 = traded.
+     * 4 = founded (for elytras).
+     * 5 = fished.
+     * 6 = spawned in (creative).
+     */
+    public final NamespacedKey originType = new NamespacedKey(STEMCraft.getPlugin(), "origin");
+    public final NamespacedKey playerKills = new NamespacedKey(STEMCraft.getPlugin(), "player-kills");
+    public final NamespacedKey mobKills = new NamespacedKey(STEMCraft.getPlugin(), "mob-kills");
 
+    private final List<EntityDamageEvent.DamageCause> ignoredDamagaCauses = Arrays.asList(EntityDamageEvent.DamageCause.SUICIDE, EntityDamageEvent.DamageCause.VOID, EntityDamageEvent.DamageCause.CUSTOM);
+
+    
     /**
      * When the feature is enabled
      */
@@ -43,35 +73,60 @@ public class SMToolStats extends SMFeature {
         SMItemLore.register("toolstats", (item) -> {
             List<String> lore = new ArrayList<>();
             
+            // created-at
+            Long createdAt = getItemCreatedAt(item);
+            if(createdAt != null) {
+                Date formattedDate = new Date(createdAt);
+                lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-CREATED-AT"), "date", SMCommon.formatDate(formattedDate)));
+            }
+
+            // created-by
+            Player createdBy = getItemCreatedBy(item);
+            if(createdBy != null) {
+                lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-CREATED-BY"), "name", createdBy.getName()));
+            }
+
+            // player-kills
+            Integer playerKills = itemGetPlayerKills(item);
+            if(playerKills != null) {
+                lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-PLAYER-KILLS"), "count", SMCommon.formatInt(playerKills)));
+            }
+
+            // mob-kills
+            Integer mobKills = itemGetMobKills(item);
+            if(mobKills != null) {
+                lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-MOB-KILLS"), "count", SMCommon.formatInt(mobKills)));
+            }
+
             // blocks-mined
             Integer blocksMined = getBlocksMined(item);
             if(blocksMined != null) {
-                lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-BLOCKS-MINED"), "blocks", blocksMined.toString()));
+                lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-BLOCKS-MINED"), "blocks", SMCommon.formatInt(blocksMined)));
             }
 
             // crops-mined
             Integer cropsMined = getCropsHarvested(item);
             if(cropsMined != null) {
-                lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-CROPS-MINED"), "crops", cropsMined.toString()));
+                lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-CROPS-MINED"), "crops", SMCommon.formatInt(cropsMined)));
             }
 
             // fish-caught
             Integer fishCaught = getFishCaught(item);
             if(fishCaught != null) {
-                lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-FISH-CAUGHT"), "fish", fishCaught.toString()));
+                lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-FISH-CAUGHT"), "fish", SMCommon.formatInt(fishCaught)));
             }
 
             // arrows-shot
             Integer arrowsShot = getArrowsShot(item);
             if(arrowsShot != null) {
-                lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-ARROWS-SHOT"), "arrows", arrowsShot.toString()));
+                lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-ARROWS-SHOT"), "arrows", SMCommon.formatInt(arrowsShot)));
 
             }
 
             // sheep-sheared
             Integer sheepSheared = getSheepSheared(item);
             if(sheepSheared != null) {
-                lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-SHEEP-SHEARED"), "sheep", sheepSheared.toString()));
+                lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-SHEEP-SHEARED"), "sheep", SMCommon.formatInt(sheepSheared)));
 
             }
 
@@ -205,14 +260,133 @@ public class SMToolStats extends SMFeature {
             updateSheepSheared(shears);
         });
 
+        SMEvent.register(CraftItemEvent.class, EventPriority.HIGHEST, ctx -> {
+            if(ctx.event.isCancelled()) {
+                return;
+            }
+
+            Player player = (Player) ctx.event.getWhoClicked();
+            if(player.getGameMode() != GameMode.SURVIVAL) {
+                return;
+            }
+
+            ItemStack itemStack = ctx.event.getCurrentItem();
+            if (itemStack == null || itemStack.getType() == Material.AIR) {
+                return;
+            }
+
+            if(!isTrackedItem(itemStack.getType())) {
+                return;
+            }
+
+            setItemCreatedAt(itemStack);
+            setItemCreatedBy(itemStack, player);
+        });
+
+        SMEvent.register(EntityDamageByEntityEvent.class, EventPriority.MONITOR, ctx -> {
+            if(ctx.event.isCancelled()) {
+                return;
+            }
+
+            if (!(ctx.event.getEntity() instanceof LivingEntity)) {
+                return;
+            }
+            
+            LivingEntity mobBeingAttacked = (LivingEntity) ctx.event.getEntity();
+            EntityDamageEvent.DamageCause cause = ctx.event.getCause();
+            if (ignoredDamagaCauses.contains(cause)) {
+                return;
+            }
+
+            // mob is going to die
+            if (mobBeingAttacked.getHealth() - ctx.event.getFinalDamage() <= 0) {
+                // a player is killing something
+                if (ctx.event.getDamager() instanceof Player) {
+                    Player attackingPlayer = (Player) ctx.event.getDamager();
+                    if (attackingPlayer.getGameMode() != GameMode.SURVIVAL) {
+                        return;
+                    }
+
+                    PlayerInventory attackingPlayerInventory = attackingPlayer.getInventory();
+                    ItemStack heldItem = attackingPlayerInventory.getItemInMainHand();
+                    // only check certain items
+                    if (!isMeleeWeapon(heldItem.getType())) {
+                        return;
+                    }
+                    // a player is killing another player
+                    if (mobBeingAttacked instanceof Player) {
+                        itemAddPlayerKill(heldItem);
+                        return;
+                    }
+                    // player is killing regular mob
+                    itemAddMobKill(heldItem);
+                }
+
+                // trident is being thrown at something
+                if (ctx.event.getDamager() instanceof Trident) {
+                    Trident trident = (Trident) ctx.event.getDamager();
+                    ItemStack newTrident = trident.getItem().clone();
+                    // trident is killing player
+                    if (mobBeingAttacked instanceof Player) {
+                        itemAddPlayerKill(newTrident);
+                    } else {
+                        // trident is killing a mob
+                        itemAddMobKill(newTrident);
+                    }
+                    if (newTrident != null) {
+                        trident.setItem(newTrident);
+                    }
+                }
+                // arrow is being shot
+                if (ctx.event.getDamager() instanceof Arrow) {
+                    Arrow arrow = (Arrow) ctx.event.getDamager();
+                    // if the shooter is a player
+                    if (arrow.getShooter() instanceof Player) {
+                        Player shootingPlayer = (Player) arrow.getShooter();
+                        if (shootingPlayer.getGameMode() == GameMode.CREATIVE || shootingPlayer.getGameMode() == GameMode.SPECTATOR) {
+                            return;
+                        }
+                        PlayerInventory inventory = shootingPlayer.getInventory();
+                        boolean isMainHand = inventory.getItemInMainHand().getType() == Material.BOW || inventory.getItemInMainHand().getType() == Material.CROSSBOW;
+                        boolean isOffHand = inventory.getItemInOffHand().getType() == Material.BOW || inventory.getItemInMainHand().getType() == Material.CROSSBOW;
+                        ItemStack heldBow = null;
+                        if (isMainHand) {
+                            heldBow = inventory.getItemInMainHand();
+                        }
+                        if (isOffHand) {
+                            heldBow = inventory.getItemInOffHand();
+                        }
+
+                        // if the player is holding a bow in both hands
+                        // default to main hand since that takes priority
+                        if (isMainHand && isOffHand) {
+                            heldBow = inventory.getItemInMainHand();
+                        }
+
+                        // player swapped
+                        if (heldBow == null) {
+                            return;
+                        }
+
+                        // player is shooting another player
+                        if (mobBeingAttacked instanceof Player) {
+                            itemAddPlayerKill(heldBow);
+                        } else {
+                            itemAddMobKill(heldBow);
+                        }
+                    }
+                }
+            }
+        });
+        
         return true;
     }
 
     /**
-     * Update the number of blocks mined by this tool. Returns the mined count or null.
+     * Update the item count key. Returns the count or null.
      * @param tool
      */
-    private Integer updateBlockCountData(ItemStack tool, NamespacedKey key, Integer increase) {
+    private Integer updateItemCount(ItemStack tool, NamespacedKey key, Integer increase) {
         ItemMeta meta = tool.getItemMeta();
         if (meta == null) {
             return null;
@@ -237,6 +411,188 @@ public class SMToolStats extends SMFeature {
         return value;
     }
 
+    /**
+     * Get the item crafted at -data for this tool. Returns the date or null.
+     * @param tool
+     */
+    private Long getItemCreatedAt(ItemStack tool) {
+        ItemMeta meta = tool.getItemMeta();
+        if (meta == null) {
+            return null;
+        }
+
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        Long timeCreated = container.get(itemCreated, PersistentDataType.LONG);
+        return timeCreated;
+    }
+
+    /**
+     * Set the item crafted at data for this tool.
+     * @param tool
+     */
+    private void setItemCreatedAt(ItemStack tool) {
+        if(!isTrackedItem(tool.getType())) {
+            return;
+        }
+
+        ItemMeta meta = tool.getItemMeta();
+        if (meta == null) {
+            return;
+        }
+
+        long timeCreated = System.currentTimeMillis();
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+
+        if (container.has(itemCreated, PersistentDataType.LONG)) {
+            return;
+        }
+
+        container.set(itemCreated, PersistentDataType.LONG, timeCreated);
+        container.set(originType, PersistentDataType.INTEGER, 0);
+        tool.setItemMeta(meta);
+        SMItemLore.updateLore(tool);
+
+        return;
+    }
+
+    /**
+     * Get the item crafted by data for this tool. Returns the date or null.
+     * @param tool
+     */
+    public Player getItemCreatedBy(ItemStack tool) {
+        ItemMeta meta = tool.getItemMeta();
+        if (meta == null) {
+            return null;
+        }
+
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        UUID playerUUID = container.get(itemOwner, new SMPersistentUUIDDataType());
+        if(playerUUID == null) {
+            return null;
+        }
+
+        return Bukkit.getPlayer(playerUUID);
+    }
+
+    /**
+     * Set the item crafted by data for this tool.
+     * @param tool
+     */
+    private void setItemCreatedBy(ItemStack tool, Player player) {
+        if(!isTrackedItem(tool.getType())) {
+            return;
+        }
+
+        ItemMeta meta = tool.getItemMeta();
+        if (meta == null) {
+            return;
+        }
+
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        if (container.has(itemOwner, new SMPersistentUUIDDataType())) {
+            return;
+        }
+
+        container.set(itemOwner, new SMPersistentUUIDDataType(), player.getUniqueId());
+        tool.setItemMeta(meta);
+        SMItemLore.updateLore(tool);
+
+        return;
+    }
+
+    /**
+     * Get the item crafted by data for this tool. Returns the date or null.
+     * @param tool
+     */
+    public Integer itemGetPlayerKills(ItemStack tool) {
+        ItemMeta meta = tool.getItemMeta();
+        if (meta == null) {
+            return null;
+        }
+
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        Integer playerKillsCount = container.get(playerKills, PersistentDataType.INTEGER);
+        
+        return playerKillsCount;
+    }
+
+    /**
+     * Set the item crafted by data for this tool.
+     * @param tool
+     */
+    private void itemAddPlayerKill(ItemStack tool) {
+        if(!isTrackedItem(tool.getType())) {
+            return;
+        }
+
+        ItemMeta meta = tool.getItemMeta();
+        if (meta == null) {
+            return;
+        }
+
+        Integer playerKillCount = 0;
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        if (container.has(playerKills, PersistentDataType.INTEGER)) {
+            playerKillCount = container.get(playerKills, PersistentDataType.INTEGER);
+            if(playerKillCount == null) {
+                playerKillCount = 0;
+            }
+        }
+
+        playerKillCount++;
+        container.set(playerKills, PersistentDataType.INTEGER, playerKillCount);
+        tool.setItemMeta(meta);
+        SMItemLore.updateLore(tool);
+
+        return;
+    }
+    
+    /**
+     * Get the item crafted by data for this tool. Returns the date or null.
+     * @param tool
+     */
+    public Integer itemGetMobKills(ItemStack tool) {
+        ItemMeta meta = tool.getItemMeta();
+        if (meta == null) {
+            return null;
+        }
+
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        Integer mobKillsCount = container.get(mobKills, PersistentDataType.INTEGER);
+        
+        return mobKillsCount;
+    }
+
+    /**
+     * Set the item crafted by data for this tool.
+     * @param tool
+     */
+    private void itemAddMobKill(ItemStack tool) {
+        if(!isTrackedItem(tool.getType())) {
+            return;
+        }
+
+        ItemMeta meta = tool.getItemMeta();
+        if (meta == null) {
+            return;
+        }
+
+        Integer mobKillCount = 0;
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        if (container.has(mobKills, PersistentDataType.INTEGER)) {
+            mobKillCount = container.get(mobKills, PersistentDataType.INTEGER);
+            if(mobKillCount == null) {
+                mobKillCount = 0;
+            }
+        }
+
+        mobKillCount++;
+        container.set(playerKills, PersistentDataType.INTEGER, mobKillCount);
+        tool.setItemMeta(meta);
+        SMItemLore.updateLore(tool);
+
+        return;
+    }
     /**
      * Get the number of blocks mined with this tool
      * @param tool
@@ -263,7 +619,7 @@ public class SMToolStats extends SMFeature {
             return null;
         }
         
-        return updateBlockCountData(tool, blocksMined, increase);
+        return updateItemCount(tool, blocksMined, increase);
     }
 
     /**
@@ -292,7 +648,7 @@ public class SMToolStats extends SMFeature {
             return null;
         }
         
-        return updateBlockCountData(tool, cropsHarvested, increase);
+        return updateItemCount(tool, cropsHarvested, increase);
     }
 
     /**
@@ -321,7 +677,7 @@ public class SMToolStats extends SMFeature {
             return null;
         }
         
-        return updateBlockCountData(tool, fishingRodCaught, increase);
+        return updateItemCount(tool, fishingRodCaught, increase);
     }
 
     /**
@@ -350,7 +706,7 @@ public class SMToolStats extends SMFeature {
             return null;
         }
         
-        return updateBlockCountData(tool, arrowsShot, increase);
+        return updateItemCount(tool, arrowsShot, increase);
     }
 
     /**
@@ -379,7 +735,7 @@ public class SMToolStats extends SMFeature {
             return null;
         }
         
-        return updateBlockCountData(tool, sheepSheared, increase);
+        return updateItemCount(tool, sheepSheared, increase);
     }
 
     /**
