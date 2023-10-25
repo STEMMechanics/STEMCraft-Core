@@ -474,7 +474,7 @@ public class SMCommon {
             formatSymbols.setGroupingSeparator(commaSeparator.charAt(0));
         
             try {
-                DATE_FORMAT = new SimpleDateFormat(dateFormat), Locale.getDefault());
+                DATE_FORMAT = new SimpleDateFormat(dateFormat, Locale.getDefault());
             } catch (NullPointerException | IllegalArgumentException exception) {
                 STEMCraft.warning("date-format is NOT a valid format! Using default American English format.");
                 exception.printStackTrace();
