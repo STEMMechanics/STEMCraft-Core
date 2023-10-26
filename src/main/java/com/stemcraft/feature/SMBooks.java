@@ -20,6 +20,9 @@ import com.stemcraft.core.SMMessenger;
 import com.stemcraft.core.command.SMCommand;
 import com.stemcraft.core.tabcomplete.SMTabComplete;
 
+/**
+ * Allows the creation of custom books that can be saved and shown to the player using a command
+ */
 public class SMBooks extends SMFeature {
     private List<String> cacheList = new ArrayList<>();
 

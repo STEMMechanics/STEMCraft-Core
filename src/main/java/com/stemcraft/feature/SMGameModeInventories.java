@@ -131,7 +131,6 @@ public class SMGameModeInventories extends SMFeature {
             this.LoadLastInventory(player, player.getGameMode().toString(), ctx.event.getTo().getWorld().getName());
         });
 
-
         return true;
     }
 
