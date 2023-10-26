@@ -3,16 +3,22 @@ package com.stemcraft.feature;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import com.stemcraft.core.SMDependency;
+import com.stemcraft.STEMCraft;
 import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.tabcomplete.SMTabComplete;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.group.Group;
+import net.luckperms.api.model.user.User;
+import net.luckperms.api.node.Node;
+import net.luckperms.api.node.types.InheritanceNode;
+import net.luckperms.api.node.types.PermissionNode;
 
 public class SMLuckPerms extends SMFeature {
-    LuckPerms luckPerms;
+    private static String dependantName = "LuckPerms";
+    private static LuckPerms luckPerms = null;
 
     @Override
     public Boolean onLoad() {
@@ -20,7 +26,8 @@ public class SMLuckPerms extends SMFeature {
             return false;
         }
 
-        if(!SMDependency.dependencyLoaded("LuckPerms")) {
+        if(Bukkit.getPluginManager().getPlugin(SMLuckPerms.dependantName) == null) {
+            STEMCraft.warning(SMLuckPerms.dependantName + " is not loaded. Features requiring this plugin won't be available");
             return false;
         }
 
@@ -29,10 +36,10 @@ public class SMLuckPerms extends SMFeature {
 
     @Override
     protected Boolean onEnable() {
-        this.luckPerms = LuckPermsProvider.get();
+        SMLuckPerms.luckPerms = LuckPermsProvider.get();
 
         SMTabComplete.register("groups", () -> {
-            return this.groups();
+            return SMLuckPerms.groups();
         });
 
         return true;
@@ -42,11 +49,11 @@ public class SMLuckPerms extends SMFeature {
      * Get a list of groups in LuckPerms
      * @return
      */
-    public List<String> groups() {
+    public static List<String> groups() {
         List<String> groupList = new ArrayList<>();
 
-        if(this.isEnabled()) {
-            Set<Group> groups = this.luckPerms.getGroupManager().getLoadedGroups();
+        if(luckPerms != null) {
+            Set<Group> groups = luckPerms.getGroupManager().getLoadedGroups();
             for (Group group : groups) {
                 groupList.add(group.getName());
             }
@@ -60,8 +67,8 @@ public class SMLuckPerms extends SMFeature {
      * @param group
      * @return
      */
-    public Boolean groupExists(String group) {
-        return this.groups().contains(group);
+    public static Boolean groupExists(String group) {
+        return groups().contains(group);
     }
 
     /**
@@ -70,11 +77,79 @@ public class SMLuckPerms extends SMFeature {
      * @param group
      * @return
      */
-    public Boolean playerInGroup(Player player, String group) {
-        if(this.isEnabled()) {
+    public static Boolean playerInGroup(Player player, String group) {
+        if(luckPerms != null) {
             return player.hasPermission("group." + group);
         }
 
         return false;
+    }
+
+    /**
+     * Add a permission to a player
+     * @param player
+     * @param permission
+     * @return
+     */
+    public static void addPermission(Player player, String permission) {
+        if(luckPerms != null) {
+            User user = luckPerms.getUserManager().getUser(player.getUniqueId());
+            if(user != null) {
+                Node node = PermissionNode.builder(permission).build();
+                user.data().add(node);
+                luckPerms.getUserManager().saveUser(user);
+            }
+        }
+    }
+
+    /**
+     * Remove a permission from a player
+     * @param player
+     * @param permission
+     * @return
+     */
+    public static void removePermission(Player player, String permission) {
+        if(luckPerms != null) {
+            User user = luckPerms.getUserManager().getUser(player.getUniqueId());
+            if(user != null) {
+                Node node = PermissionNode.builder(permission).build();
+                user.data().remove(node);
+                luckPerms.getUserManager().saveUser(user);
+            }
+        }
+    }
+
+    /**
+     * Add a group to a player
+     * @param player
+     * @param group
+     * @return
+     */
+    public static void addGroup(Player player, String group) {
+        LuckPerms luckPerms = LuckPermsProvider.get();
+        User user = luckPerms.getUserManager().getUser(player.getUniqueId());
+
+        if (user != null) {
+            InheritanceNode groupNode = InheritanceNode.builder(group).build();
+            user.data().add(groupNode);
+            luckPerms.getUserManager().saveUser(user);
+        }
+    }
+
+    /**
+     * Remove a group from a player
+     * @param player
+     * @param group
+     * @return
+     */
+    public static void removeGroup(Player player, String group) {
+        LuckPerms luckPerms = LuckPermsProvider.get();
+        User user = luckPerms.getUserManager().getUser(player.getUniqueId());
+
+        if (user != null) {
+            InheritanceNode groupNode = InheritanceNode.builder(group).build();
+            user.data().remove(groupNode);
+            luckPerms.getUserManager().saveUser(user);
+        }
     }
 }
