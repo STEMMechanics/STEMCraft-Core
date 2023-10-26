@@ -18,7 +18,6 @@ public class SMDependency extends SMFeature {
         super.onLoad();
 
         dependencies.put("Citizens", "net.citizensnpcs.api.event.CitizensEnableEvent");
-        dependencies.put("LuckPerms", null);
 
         dependencies.forEach((name, clazz) -> {
             if(Bukkit.getPluginManager().getPlugin(name) != null) {
