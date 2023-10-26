@@ -23,9 +23,9 @@ STEMMechanics brings creativity to life by developing engaging resources and pro
 ### 0.4.2
 
 -   Added Restrictive Creative which disables players interacting, dropping and picking items unless they have the `stemcraft.creative.override` permission.
--   Added `/seen <player>` command requiring the `stemcraft.seen` permission.
+-   Added `/seen <player>` command requiring the `stemcraft.seen` permission
 -   Moved from custom YAML framework to [BoostedYAML](https://github.com/dejvokep/boosted-yaml)
--   Added /repair command
+-   Added `/repair (<player>)` command to any repair in the main hand of a player
 -   `/back` will now teleport a player to their last death location
 -   Added this.plugin.DebugLog(String s) to output debug strings (if enabled in config)
 
