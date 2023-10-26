@@ -59,7 +59,7 @@ public class SMWorkshop extends SMFeature {
                     }
                 } else {
                     Location center = worldRegion.center();
-                    SMCommon.delayedPlayerTeleport(ctx.player, center);
+                    SMCommon.safePlayerTeleport(ctx.player, center);
                 }
 
                 ctx.returnSuccessLocale("WORKSHOP_ENTER");
