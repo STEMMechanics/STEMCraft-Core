@@ -14,6 +14,7 @@ STEMMechanics brings creativity to life by developing engaging resources and pro
 -   Fix shift click crafting tool stats
 -   Plugin version announced in server console on load
 -   Player heads only drop in survival PVP
+-   Waystones will now deactivate/reactive correctly when using pistons
 
 ### 1.0.0
 

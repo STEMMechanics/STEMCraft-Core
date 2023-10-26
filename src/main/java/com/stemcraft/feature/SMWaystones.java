@@ -3,8 +3,10 @@ package com.stemcraft.feature;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -16,7 +18,10 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import com.stemcraft.STEMCraft;
 import com.stemcraft.core.SMCommon;
@@ -65,21 +70,13 @@ public class SMWaystones extends SMFeature {
 
         SMEvent.register(BlockPlaceEvent.class, ctx -> {
             Block block = ctx.event.getBlock();
-            if (block.getType() == Material.LODESTONE) {
+            Block waystone = isValidWaystone(block);
+
+            if(waystone != null) {
                 try {
-                    insertWaystone(block);
+                    insertWaystone(waystone);
                 } catch (SQLException e) {
                     e.printStackTrace();
-                }
-            } else {
-                Block blockAbove = block.getRelative(BlockFace.UP);
-
-                if (blockAbove.getType() == Material.LODESTONE) {
-                    try {
-                        insertWaystone(blockAbove);
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
                 }
             }
         });
@@ -103,9 +100,89 @@ public class SMWaystones extends SMFeature {
             });
         });
 
+        SMEvent.register(EntityExplodeEvent.class, ctx -> {
+            List<Location> locations = ctx.event.blockList().stream()
+                .map(Block::getLocation)
+                .collect(Collectors.toList());
+
+            try {
+                removeWaystones(locations);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+
+        SMEvent.register(BlockPistonExtendEvent.class, ctx -> {
+            List<Location> blockLocations = getPistonBlockLocations(ctx.event.getBlocks(), ctx.event.getDirection());
+
+            try {
+                updateWaystone(blockLocations);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+
+        SMEvent.register(BlockPistonRetractEvent.class, ctx -> {
+            List<Location> blockLocations = getPistonBlockLocations(ctx.event.getBlocks(), ctx.event.getDirection());
+            try {
+                updateWaystone(blockLocations);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+
         return true;
     }
 
+    /**
+     * Include the blocks before and after the list of blocks in the direction of the piston
+     */
+    private List<Location> getPistonBlockLocations(List<Block> blocks, BlockFace direction) {
+        List<Location> extendedLocations = new ArrayList<>();
+        
+        for (Block block : blocks) {
+            extendedLocations.add(block.getLocation());
+
+            Block target = block.getRelative(direction.getOppositeFace());
+            if(target != null) {
+                extendedLocations.add(target.getLocation()); // Block before the move
+            }
+
+            target = block.getRelative(direction);
+            if(target != null) {
+                extendedLocations.add(target.getLocation()); // Block before after move
+            }
+        }
+
+        return extendedLocations;
+    }
+
+    /**
+     * Is the location a valid waystone. Returns the lodestone block.
+     * @param loc
+     * @return
+     */
+    private Block isValidWaystone(Block block) {
+        if (block.getType() == Material.LODESTONE) {
+            Block blockBelow = block.getRelative(BlockFace.DOWN);
+            if(waystoneTypes.contains(blockBelow.getType().name())) {
+                return block;
+            }
+        } else if(waystoneTypes.contains(block.getType().name())) {
+            Block blockAbove = block.getRelative(BlockFace.UP);
+            if(blockAbove.getType() == Material.LODESTONE) {
+                return blockAbove;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Remove a Waystone
+     * @param block
+     * @throws SQLException
+     */
     private void removeWaystone(Block block) throws SQLException {
         PreparedStatement statement = SMDatabase.prepareStatement(
                 "DELETE FROM waystones WHERE world = ? AND x = ? AND y = ? AND z = ?"
@@ -120,6 +197,57 @@ public class SMWaystones extends SMFeature {
         block.getWorld().playSound(block.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 0.5f, 2.0f);
     }
 
+    /**
+     * Remove a list of blocks that could be a waystone
+     * @param blocks
+     * @throws SQLException
+     */
+    private void removeWaystones(List<Location> locations) throws SQLException {
+        if (locations.isEmpty()) return;
+    
+        for (Location location : locations) {
+            Block waystone = isValidWaystone(location.getBlock());
+            if(waystone != null) {
+                removeWaystone(waystone);
+            }
+        }
+    }
+
+    private void updateWaystone(List<Location> locations) throws SQLException {
+        STEMCraft.runLater(5, () -> {
+            try {
+
+                for(Location location : locations) {
+                    Location above = location.add(0f, 1f, 0f);
+                    Block waystone = isValidWaystone(above.getBlock());
+                    Boolean exists = checkWaystoneExists(above);
+
+                    if(exists && (waystone == null || !waystone.getLocation().equals(above))) {
+                        removeWaystone(above.getBlock());
+                    } else if(!exists && waystone != null && waystone.getLocation().equals(above)) {
+                        insertWaystone(waystone);
+                    }
+                }
+
+                for(Location location : locations) {
+                    Block waystone = isValidWaystone(location.getBlock());
+                    Boolean exists = checkWaystoneExists(location);
+
+                    if(exists && (waystone == null || !waystone.getLocation().equals(location))) {
+                        removeWaystone(location.getBlock());
+                    } else if(!exists && waystone != null && waystone.getLocation().equals(location)) {
+                        insertWaystone(waystone);
+                    }
+                }
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    /**
+     * Insert a waystone
+     */
     private void insertWaystone(Block block) throws SQLException {
         Block blockBelow = block.getRelative(BlockFace.DOWN);
 
