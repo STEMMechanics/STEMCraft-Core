@@ -551,4 +551,27 @@ public class SMCommon {
         initalizeFormatting();
         return DATE_FORMAT.format(date);
     }
+
+    /**
+     * Show the player a full screen greeting
+     * @param player
+     * @param title
+     * @param subtitle
+     */
+    public static void showGreeting(Player player, String title, String subtitle) {
+        showGreeting(player, title, subtitle, 10, 60, 10);
+    }
+
+    /**
+     * Show the player a full screen greeting
+     * @param player
+     * @param title
+     * @param subtitle
+     * @param fadeInTime
+     * @param showTime
+     * @param fadeOutTime
+     */
+    public static void showGreeting(Player player, String title, String subtitle, int fadeInTime, int showTime, int fadeOutTime) {
+        player.sendTitle(title, subtitle, fadeInTime, showTime, fadeOutTime);
+    }
 }
