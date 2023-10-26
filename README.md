@@ -16,6 +16,7 @@ STEMMechanics brings creativity to life by developing engaging resources and pro
 -   Player heads only drop in survival PVP
 -   Waystones will now deactivate/reactive correctly when using pistons
 -   A player will now teleport to the nearest safe location when entering a workshop
+-   Workshop permissions and gamemode changes now work correctly
 
 ### 1.0.0
 
