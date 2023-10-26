@@ -328,9 +328,25 @@ public class SMCommon {
         return item;
     }
 
+    /**
+     * Teleport a player after 1 tick. This avoids the moved too quickly issue
+     * @param player
+     * @param location
+     */
     public static void delayedPlayerTeleport(Player player, Location location) {
         STEMCraft.runLater(1, () -> {
             player.teleport(location);
+        });
+    }
+
+    /**
+     * Teleport a player to the nearest safe location
+     * @param player
+     * @param location
+     */
+    public static void safePlayerTeleport(Player player, Location location) {
+        STEMCraft.runLater(1, () -> {
+            player.teleport(findSafeLocation(location, 30));
         });
     }
 
