@@ -572,6 +572,6 @@ public class SMCommon {
      * @param fadeOutTime
      */
     public static void showGreeting(Player player, String title, String subtitle, int fadeInTime, int showTime, int fadeOutTime) {
-        player.sendTitle(title, subtitle, fadeInTime, showTime, fadeOutTime);
+        player.sendTitle(SMCommon.colorize(title), SMCommon.colorize(subtitle), fadeInTime, showTime, fadeOutTime);
     }
 }
