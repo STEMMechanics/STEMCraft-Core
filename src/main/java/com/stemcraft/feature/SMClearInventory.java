@@ -7,6 +7,9 @@ import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.SMMessenger;
 import com.stemcraft.core.command.SMCommand;
 
+/**
+ * Command to clear the players inventory
+ */
 public class SMClearInventory extends SMFeature {
 
     /**

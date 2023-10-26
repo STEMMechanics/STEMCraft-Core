@@ -328,9 +328,25 @@ public class SMCommon {
         return item;
     }
 
+    /**
+     * Teleport a player after 1 tick. This avoids the moved too quickly issue
+     * @param player
+     * @param location
+     */
     public static void delayedPlayerTeleport(Player player, Location location) {
         STEMCraft.runLater(1, () -> {
             player.teleport(location);
+        });
+    }
+
+    /**
+     * Teleport a player to the nearest safe location
+     * @param player
+     * @param location
+     */
+    public static void safePlayerTeleport(Player player, Location location) {
+        STEMCraft.runLater(1, () -> {
+            player.teleport(findSafeLocation(location, 30));
         });
     }
 
@@ -474,7 +490,7 @@ public class SMCommon {
             formatSymbols.setGroupingSeparator(commaSeparator.charAt(0));
         
             try {
-                DATE_FORMAT = new SimpleDateFormat(SMConfig.main().getString("date-format", "dd/M/yyyy"), Locale.getDefault());
+                DATE_FORMAT = new SimpleDateFormat(dateFormat, Locale.getDefault());
             } catch (NullPointerException | IllegalArgumentException exception) {
                 STEMCraft.warning("date-format is NOT a valid format! Using default American English format.");
                 exception.printStackTrace();
@@ -534,5 +550,28 @@ public class SMCommon {
     public static String formatDate(Date date) {
         initalizeFormatting();
         return DATE_FORMAT.format(date);
+    }
+
+    /**
+     * Show the player a full screen greeting
+     * @param player
+     * @param title
+     * @param subtitle
+     */
+    public static void showGreeting(Player player, String title, String subtitle) {
+        showGreeting(player, title, subtitle, 10, 60, 10);
+    }
+
+    /**
+     * Show the player a full screen greeting
+     * @param player
+     * @param title
+     * @param subtitle
+     * @param fadeInTime
+     * @param showTime
+     * @param fadeOutTime
+     */
+    public static void showGreeting(Player player, String title, String subtitle, int fadeInTime, int showTime, int fadeOutTime) {
+        player.sendTitle(SMCommon.colorize(title), SMCommon.colorize(subtitle), fadeInTime, showTime, fadeOutTime);
     }
 }

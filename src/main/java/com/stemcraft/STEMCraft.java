@@ -84,6 +84,8 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
         // Load plugin features
         loadFeatures();
+
+        getLogger().info("STEMCraft " + getVersion() + " loaded");
     }
 
     /**
@@ -162,7 +164,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
         features.forEach((name, instance) -> {
             if(instance.isEnabled()) {
                 instance.disable();
-                if(instance.isEnabled()) {
+                if(!instance.isEnabled()) {
                     getLogger().info("Feature " + name + " disabled");
                 } else {
                     getLogger().info("Feature " + name + " could not be disabled");

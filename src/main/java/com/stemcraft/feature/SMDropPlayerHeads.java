@@ -22,22 +22,23 @@ public class SMDropPlayerHeads extends SMFeature {
                 Player player = ctx.event.getEntity();
                 Player killer = player.getKiller();
 
-                // Check if the killer is a player and not in survival gamemode
-                if (killer instanceof Player && (killer.getUniqueId() == player.getUniqueId() || killer.getGameMode() != GameMode.SURVIVAL)) {
-                    SMDebugger.debug(this, "Player not killed by another player that was in survival");
-                    return;
-                }
+                if (killer instanceof Player) {
+                    if(killer.getUniqueId().equals(player.getUniqueId())) {
+                        return;
+                    }
 
-                if (player.getGameMode() == GameMode.SURVIVAL) {
-                    ItemStack playerHead = new ItemStack(Material.PLAYER_HEAD);
-                    SkullMeta skullMeta = (SkullMeta) playerHead.getItemMeta();
-                    skullMeta.setOwningPlayer(player);
-                    playerHead.setItemMeta(skullMeta);
+                    if(killer.getGameMode() != GameMode.SURVIVAL) {
+                        return;
+                    }
 
-                    ctx.event.getDrops().add(playerHead);
-                    SMDebugger.debug(this, "Player killed by another player. Added head to drop list");
-                } else {
-                    SMDebugger.debug(this, "Player killed by another player but not in survival game mode");
+                    if (player.getGameMode() == GameMode.SURVIVAL) {
+                        ItemStack playerHead = new ItemStack(Material.PLAYER_HEAD);
+                        SkullMeta skullMeta = (SkullMeta) playerHead.getItemMeta();
+                        skullMeta.setOwningPlayer(player);
+                        playerHead.setItemMeta(skullMeta);
+
+                        ctx.event.getDrops().add(playerHead);
+                    }
                 }
             }
         });
