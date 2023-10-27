@@ -4,6 +4,7 @@ import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import com.stemcraft.STEMCraft;
 import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.SMMessenger;
 import com.stemcraft.core.SMPersistent;
@@ -13,6 +14,17 @@ import com.stemcraft.core.command.SMCommand;
  * Allows players to enable/disable night vision via command.
  */
 public class SMNightVision extends SMFeature {
+    /**
+     * If the SMPersistent feature is enabled to be used.
+     */
+    private static Boolean persistentEnabled = false;
+
+    /**
+     * Class constructor
+     */
+    public SMNightVision() {
+        loadAfterFeatures.add("SMPersistent");
+    }
 
     /**
      * Enables the night vision feature by registering the command.
@@ -21,6 +33,10 @@ public class SMNightVision extends SMFeature {
      */
     @Override
     protected Boolean onEnable() {
+        if(STEMCraft.featureEnabled("SMPersistent")) {
+            SMNightVision.persistentEnabled = true;
+        }
+        
         new SMCommand("nightvision")
             .alias("nv")
             .permission("stemcraft.command.nightvision")
@@ -43,11 +59,11 @@ public class SMNightVision extends SMFeature {
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
 
                 if(action.equals("toggle")) {
-                    toggleNightVision(targetPlayer);
+                    SMNightVision.toggleNightVision(targetPlayer);
                 } else if(action.equals("enable")) {
-                    enableNightVision(targetPlayer);
+                    SMNightVision.enableNightVision(targetPlayer);
                 } else if(action.equals("disable")) {
-                    disableNightVision(targetPlayer);
+                    SMNightVision.disableNightVision(targetPlayer);
                 } else {
                     ctx.returnErrorLocale("NIGHTVISION_USAGE");
                 }
@@ -67,7 +83,7 @@ public class SMNightVision extends SMFeature {
         UUID playerUUID = player.getUniqueId();
 
         // Save any current nightvision
-        if (player.hasPotionEffect(PotionEffectType.NIGHT_VISION) && !SMPersistent.exists(SMNightVision.class, playerUUID.toString())) {
+        if (persistentEnabled && player.hasPotionEffect(PotionEffectType.NIGHT_VISION) && !SMPersistent.exists(SMNightVision.class, playerUUID.toString())) {
             for (PotionEffect effect : player.getActivePotionEffects()) {
                 if (effect.getType() == PotionEffectType.NIGHT_VISION) {
                     SMPersistent.set(SMNightVision.class, playerUUID.toString(), effect);
@@ -92,7 +108,7 @@ public class SMNightVision extends SMFeature {
         player.removePotionEffect(PotionEffectType.NIGHT_VISION);
 
         // Restore any previous nightvision
-        if(SMPersistent.exists(SMNightVision.class, playerUUID.toString())) {
+        if(persistentEnabled && SMPersistent.exists(SMNightVision.class, playerUUID.toString())) {
             player.addPotionEffect(SMPersistent.getObject(SMNightVision.class, playerUUID.toString(), PotionEffect.class));
             SMPersistent.clear(SMNightVision.class, playerUUID.toString());
         }
@@ -124,7 +140,10 @@ public class SMNightVision extends SMFeature {
         UUID playerUUID = player.getUniqueId();
 
         if (player.hasPotionEffect(PotionEffectType.NIGHT_VISION)) {
-            SMPersistent.clear(SMNightVision.class, playerUUID.toString());
+            if(persistentEnabled) {
+                SMPersistent.clear(SMNightVision.class, playerUUID.toString());
+            }
+
             player.removePotionEffect(PotionEffectType.NIGHT_VISION);
         }
     }
