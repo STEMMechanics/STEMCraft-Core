@@ -123,7 +123,14 @@ public class SMNightVision extends SMFeature {
      * @param player The player for whom the night vision effect is to be toggled.
      */
     public static void toggleNightVision(Player player) {
-        if (player.hasPotionEffect(PotionEffectType.NIGHT_VISION)) {
+        Boolean hasState = true;
+
+        if(persistentEnabled) {
+            UUID playerUUID = player.getUniqueId();
+            hasState = SMPersistent.exists(SMNightVision.class, playerUUID.toString());
+        }
+
+        if (player.hasPotionEffect(PotionEffectType.NIGHT_VISION) && hasState) {
             disableNightVision(player);
         } else {
             enableNightVision(player);
