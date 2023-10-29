@@ -120,3 +120,6 @@ TOOLSTATS-CREATED-AT: "&7Created on: &8{date}"
 TOOLSTATS-CREATED-BY: "&7Created by: &8{name}"
 TOOLSTATS-PLAYER-KILLS: "&7Player kills: &8{count}"
 TOOLSTATS-MOB-KILLS: "&7Mob kills: &8{count}"
+
+TPTOP_TELEPORTED: "Teleported to a safe location above you"
+TPTOP_NO_SAFE_LOCATION: "There are no safe locations above you"
