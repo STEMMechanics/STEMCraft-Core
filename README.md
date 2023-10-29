@@ -25,6 +25,8 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 
 ### 1.1
 
+-   Added the /enchant command that add or removes enchantments from player items
+
 ### 1.0.1
 
 -   Internal code refactoring
