@@ -46,6 +46,7 @@ BOOK_DELETE_SUCCESSFUL: "Book deleted"
 
 WAYSTONE_NONE_FOUND: "No waystones found nearby"
 
+NIGHTVISION_USAGE: "Usage: /nightvision (toggle|enable|disable) (<player>)"
 NIGHTVISION_ENABLED: "Night vision enabled"
 NIGHTVISION_DISABLED: "Night vision disabled"
 
