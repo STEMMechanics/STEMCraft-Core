@@ -12,7 +12,7 @@
     "java.compile.nullAnalysis.mode": "automatic",
     "java.format.settings.profile": "CustomGoogleStyle",
     "java.format.settings.url": "formatter.xml",
-    "java.format.enabled": false,
+    "java.format.enabled": true,
     "editor.wordBasedSuggestions": true,
     "yaml.schemas": {
         "https://json.schemastore.org/bukkit-plugin.json": "file:///Users/james/Repositories/STEMMechanics/STEMCraft/src/main/resources/plugin.yml"
