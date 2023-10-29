@@ -134,3 +134,6 @@ ENCHANT_REMOVED_ALL: "All enchantments removed from item"
 
 TPTOP_TELEPORTED: "Teleported to a safe location above you"
 TPTOP_NO_SAFE_LOCATION: "There are no safe locations above you"
+
+REMOVED_DUPLICATE_ITEM: "Removed found duplicate item {item}"
+REMOVED_DUPLICATE_ITEM_FOR: "Removed found duplicate item {item} on {player}, hash: {hash}"
