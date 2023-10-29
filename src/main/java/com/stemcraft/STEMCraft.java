@@ -354,6 +354,20 @@ public class STEMCraft extends JavaPlugin implements Listener {
     }
 
     /**
+     * Send a info message to the console.
+     * @param message
+     * @param replacements
+     */
+    public static void info(String message, String... replacements) {
+        String replacedMessage = SMReplacer.replaceVariables(message, replacements);
+        if(Bukkit.getConsoleSender() != null) {
+            Bukkit.getConsoleSender().sendMessage("[" + getNamed() + "] " + SMCommon.colorize(replacedMessage));
+        } else {
+            Bukkit.getLogger().info(SMCommon.stripColors(replacedMessage));
+        }
+    }
+
+    /**
      * Send a warn message to the console.
      * @param message
      */
@@ -366,6 +380,20 @@ public class STEMCraft extends JavaPlugin implements Listener {
     }
 
     /**
+     * Send a warn message to the console.
+     * @param message
+     * @param replacements
+     */
+    public static void warning(String message, String... replacements) {
+        String replacedMessage = SMReplacer.replaceVariables(message, replacements);
+        if(Bukkit.getConsoleSender() != null) {
+            Bukkit.getConsoleSender().sendMessage(SMCommon.colorize(replacedMessage));
+        } else {
+            Bukkit.getLogger().warning(SMCommon.stripColors(replacedMessage));
+        }
+    }
+
+    /**
      * Send a severe message to the console.
      * @param message
      */
@@ -374,6 +402,20 @@ public class STEMCraft extends JavaPlugin implements Listener {
             Bukkit.getConsoleSender().sendMessage(ChatColor.COLOR_CHAR + "c" + SMCommon.colorize(message));
         } else {
             Bukkit.getLogger().severe(SMCommon.stripColors(message));
+        }
+    }
+
+    /**
+     * Send a severe message to the console.
+     * @param message
+     * @param replacements
+     */
+    public static void severe(String message, String... replacements) {
+        String replacedMessage = SMReplacer.replaceVariables(message, replacements);
+        if(Bukkit.getConsoleSender() != null) {
+            Bukkit.getConsoleSender().sendMessage(ChatColor.COLOR_CHAR + "c" + SMCommon.colorize(replacedMessage));
+        } else {
+            Bukkit.getLogger().severe(SMCommon.stripColors(replacedMessage));
         }
     }
 
