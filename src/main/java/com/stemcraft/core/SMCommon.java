@@ -582,7 +582,7 @@ public class SMCommon {
      * @param hash The hash to use for generatation.
      * @return Generated MD5 hash or NULL if failed.
      */
-    private String generateMD5(String hash) {
+    public String generateMD5(String hash) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
             byte[] messageDigest = md.digest(data.getBytes());
@@ -598,4 +598,20 @@ public class SMCommon {
             return null;
         }
     }
+
+    /**
+     * List contains item ignoring case
+     * 
+     * @param list The list of strings to check
+     * @param item The item string to check is contained within list
+     * @return If the item is contained within list
+     */
+    public Boolean listContainsIgnoreCase(List<String> list, String item) {
+    for (String listItem : list) {
+        if (listItem.equalsIgnoreCase(item)) {
+            return true;
+        }
+    }
+    return false;
+}
 }
