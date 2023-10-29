@@ -130,3 +130,6 @@ ENCHANT_INVALID_ITEM: "That item cannot be enchanted"
 ENCHANT_ADDED: "Enchantment added to item"
 ENCHANT_REMOVED: "Enchantment removed from item"
 ENCHANT_REMOVED_ALL: "All enchantments removed from item"
+
+TPTOP_TELEPORTED: "Teleported to a safe location above you"
+TPTOP_NO_SAFE_LOCATION: "There are no safe locations above you"
