@@ -16,6 +16,7 @@ import com.stemcraft.STEMCraft;
 import com.stemcraft.core.config.SMConfig;
 import lombok.NonNull;
 import static org.bukkit.ChatColor.COLOR_CHAR;
+import java.security.*;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -573,5 +574,28 @@ public class SMCommon {
      */
     public static void showGreeting(Player player, String title, String subtitle, int fadeInTime, int showTime, int fadeOutTime) {
         player.sendTitle(SMCommon.colorize(title), SMCommon.colorize(subtitle), fadeInTime, showTime, fadeOutTime);
+    }
+
+    /**
+     * Generate a MD5 based on a hash.
+     * 
+     * @param hash The hash to use for generatation.
+     * @return Generated MD5 hash or NULL if failed.
+     */
+    private String generateMD5(String hash) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] messageDigest = md.digest(data.getBytes());
+            StringBuilder hexString = new StringBuilder();
+
+            for(int i = 0; i < messageDigest.length; ++i) {
+                hexString.append(String.format("%02x", messageDigest[i]));
+            }
+
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            new SMException("MD5 calculation failed", e);
+            return null;
+        }
     }
 }
