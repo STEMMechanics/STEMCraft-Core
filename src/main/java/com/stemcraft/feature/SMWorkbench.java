@@ -1,24 +1,9 @@
 package com.stemcraft.feature;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.inventory.meta.BookMeta;
-import com.stemcraft.core.SMCommon;
-import com.stemcraft.core.SMDatabase;
+import com.stemcraft.core.SMBridge;
 import com.stemcraft.core.SMFeature;
-import com.stemcraft.core.SMMessenger;
 import com.stemcraft.core.command.SMCommand;
-import com.stemcraft.core.tabcomplete.SMTabComplete;
 
 /**
  * Allows the player to open workbenches on command
@@ -54,7 +39,7 @@ public class SMWorkbench extends SMFeature {
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
 
-                targetPlayer.openAnvil(null, true);
+                SMBridge.openAnvil(targetPlayer, null, true);
             })
             .register();
 
@@ -68,7 +53,7 @@ public class SMWorkbench extends SMFeature {
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
 
-                targetPlayer.openCartographyTable(null, true);
+                SMBridge.openCartographyTable(targetPlayer, null, true);
             })
             .register();
 
@@ -82,7 +67,7 @@ public class SMWorkbench extends SMFeature {
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
 
-                targetPlayer.openGrindstone(null, true);
+                SMBridge.openGrindstone(targetPlayer, null, true);
             })
             .register();
 
@@ -96,7 +81,7 @@ public class SMWorkbench extends SMFeature {
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
 
-                targetPlayer.openLoom(null, true);
+                SMBridge.openLoom(targetPlayer, null, true);
             })
             .register();
 
@@ -110,7 +95,7 @@ public class SMWorkbench extends SMFeature {
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
 
-                targetPlayer.openSmithingTable(null, true);
+                SMBridge.openSmithingTable(targetPlayer, null, true);
             })
             .register();
 
@@ -124,7 +109,7 @@ public class SMWorkbench extends SMFeature {
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
 
-                targetPlayer.openStonecutter(null, true);
+                SMBridge.openStonecutter(targetPlayer, null, true);
             })
             .register();
 
