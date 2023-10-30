@@ -20,10 +20,12 @@ public class SMWorkbench extends SMFeature {
             .permission("stemcraft.command.workbench")
             .action(ctx -> {
                 ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
-                ctx.checkPermission(ctx.args.length == 0, "stemcraft.command.workbench.other");
 
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
+
+                ctx.checkPermission(ctx.fromConsole() || targetPlayer.getUniqueId().equals(ctx.player.getUniqueId()),
+                    "stemcraft.command.workbench.other");
 
                 targetPlayer.openWorkbench(null, true);
             })
@@ -34,10 +36,12 @@ public class SMWorkbench extends SMFeature {
             .permission("stemcraft.command.anvil")
             .action(ctx -> {
                 ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
-                ctx.checkPermission(ctx.args.length == 0, "stemcraft.command.anvil.other");
 
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
+
+                ctx.checkPermission(ctx.fromConsole() || targetPlayer.getUniqueId().equals(ctx.player.getUniqueId()),
+                    "stemcraft.command.anvil.other");
 
                 SMBridge.openAnvil(targetPlayer, null, true);
             })
@@ -48,10 +52,12 @@ public class SMWorkbench extends SMFeature {
             .permission("stemcraft.command.cartographytable")
             .action(ctx -> {
                 ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
-                ctx.checkPermission(ctx.args.length == 0, "stemcraft.command.cartographytable.other");
 
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
+
+                ctx.checkPermission(ctx.fromConsole() || targetPlayer.getUniqueId().equals(ctx.player.getUniqueId()),
+                    "stemcraft.command.cartographytable.other");
 
                 SMBridge.openCartographyTable(targetPlayer, null, true);
             })
@@ -62,10 +68,12 @@ public class SMWorkbench extends SMFeature {
             .permission("stemcraft.command.grindstone")
             .action(ctx -> {
                 ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
-                ctx.checkPermission(ctx.args.length == 0, "stemcraft.command.grindstone.other");
 
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
+
+                ctx.checkPermission(ctx.fromConsole() || targetPlayer.getUniqueId().equals(ctx.player.getUniqueId()),
+                    "stemcraft.command.grindstone.other");
 
                 SMBridge.openGrindstone(targetPlayer, null, true);
             })
@@ -76,10 +84,12 @@ public class SMWorkbench extends SMFeature {
             .permission("stemcraft.command.loom")
             .action(ctx -> {
                 ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
-                ctx.checkPermission(ctx.args.length == 0, "stemcraft.command.loom.other");
 
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
+
+                ctx.checkPermission(ctx.fromConsole() || targetPlayer.getUniqueId().equals(ctx.player.getUniqueId()),
+                    "stemcraft.command.loom.other");
 
                 SMBridge.openLoom(targetPlayer, null, true);
             })
@@ -90,10 +100,12 @@ public class SMWorkbench extends SMFeature {
             .permission("stemcraft.command.smithingtable")
             .action(ctx -> {
                 ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
-                ctx.checkPermission(ctx.args.length == 0, "stemcraft.command.smithingtable.other");
 
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
+
+                ctx.checkPermission(ctx.fromConsole() || targetPlayer.getUniqueId().equals(ctx.player.getUniqueId()),
+                    "stemcraft.command.smithingtable.other");
 
                 SMBridge.openSmithingTable(targetPlayer, null, true);
             })
@@ -104,10 +116,12 @@ public class SMWorkbench extends SMFeature {
             .permission("stemcraft.command.stonecutter")
             .action(ctx -> {
                 ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
-                ctx.checkPermission(ctx.args.length == 0, "stemcraft.command.stonecutter.other");
 
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
+
+                ctx.checkPermission(ctx.fromConsole() || targetPlayer.getUniqueId().equals(ctx.player.getUniqueId()),
+                    "stemcraft.command.stonecutter.other");
 
                 SMBridge.openStonecutter(targetPlayer, null, true);
             })
