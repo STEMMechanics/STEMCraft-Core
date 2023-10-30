@@ -4,11 +4,14 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Server;
 import org.bukkit.command.CommandMap;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
 import com.stemcraft.STEMCraft;
 import com.stemcraft.core.exception.SMBridgeException;
 import lombok.NonNull;
@@ -192,5 +195,92 @@ public final class SMBridge {
         }
 
         return Enchantment.getByName(name.toUpperCase());
+    }
+
+    /**
+     * Opens a specific type of inventory for the player, or falls back to a default inventory if the specific inventory
+     * opening method is not available.
+     *
+     * @param player The player for whom the inventory should be opened.
+     * @param type The type of inventory to open.
+     * @param methodName The name of the method to invoke for opening the inventory.
+     * @param location The location for the inventory (if applicable).
+     * @param force A boolean indicating whether to force the opening of the inventory (if applicable).
+     */
+    private static void openInventory(Player player, InventoryType type, String methodName, Location location,
+        Boolean force) {
+        try {
+            Class<?> playerClass = org.bukkit.entity.Player.class;
+            Method method = playerClass.getMethod(methodName, org.bukkit.Location.class, boolean.class);
+            method.invoke(player, location, force);
+        } catch (Exception e) {
+            player.openInventory(Bukkit.createInventory(player, type));
+        }
+    }
+
+    /**
+     * Opens an Anvil inventory for the player.
+     *
+     * @param player The player for whom the inventory should be opened.
+     * @param location The location for the inventory (if applicable).
+     * @param force A boolean indicating whether to force the opening of the inventory (if applicable).
+     */
+    public static void openAnvil(Player player, Location location, Boolean force) {
+        openInventory(player, InventoryType.ANVIL, "openAnvil", location, force);
+    }
+
+    /**
+     * Opens a Cartography Table inventory for the player.
+     *
+     * @param player The player for whom the inventory should be opened.
+     * @param location The location for the inventory (if applicable).
+     * @param force A boolean indicating whether to force the opening of the inventory (if applicable).
+     */
+    public static void openCartographyTable(Player player, Location location, Boolean force) {
+        openInventory(player, InventoryType.CARTOGRAPHY, "openCartographyTable", location, force);
+    }
+
+    /**
+     * Opens a Grindstone inventory for the player.
+     *
+     * @param player The player for whom the inventory should be opened.
+     * @param location The location for the inventory (if applicable).
+     * @param force A boolean indicating whether to force the opening of the inventory (if applicable).
+     */
+    public static void openGrindstone(Player player, Location location, Boolean force) {
+        openInventory(player, InventoryType.GRINDSTONE, "openGrindstone", location, force);
+    }
+
+    /**
+     * Opens a Loom inventory for the player.
+     *
+     * @param player The player for whom the inventory should be opened.
+     * @param location The location for the inventory (if applicable).
+     * @param force A boolean indicating whether to force the opening of the inventory (if applicable).
+     */
+    public static void openLoom(Player player, Location location, Boolean force) {
+        openInventory(player, InventoryType.LOOM, "openLoom", location, force);
+    }
+
+    /**
+     * Opens a Smithing table inventory for the player.
+     *
+     * @param player The player for whom the inventory should be opened.
+     * @param location The location for the inventory (if applicable).
+     * @param force A boolean indicating whether to force the opening of the inventory (if applicable).
+     */
+    public static void openSmithingTable(Player player, Location location, Boolean force) {
+        openInventory(player, InventoryType.SMITHING, "openSmithingTable", location, force);
+    }
+
+    /**
+     * Opens a Stonecutter inventory for the player.
+     *
+     * @param player The player for whom the inventory should be opened.
+     * @param location The location for the inventory (if applicable).
+     * @param force A boolean indicating whether to force the opening of the inventory (if applicable).
+     */
+    public static void openStonecutter(Player player, Location location, Boolean force) {
+        openInventory(player, InventoryType.STONECUTTER, "openStonecutter", location, force);
     }
 }
