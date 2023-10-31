@@ -13,17 +13,18 @@ public class SMConfig {
      * Constructor
      */
     public SMConfig() {
-        if(!configFiles.containsKey("config.yml")) {
+        if (!configFiles.containsKey("config.yml")) {
             load("config.yml");
         }
     }
 
     /**
      * Get main configuration file
+     * 
      * @return
      */
     public static SMConfigFile main() {
-        if(!configFiles.containsKey("config.yml")) {
+        if (!configFiles.containsKey("config.yml")) {
             load("config.yml");
         }
 
@@ -33,6 +34,7 @@ public class SMConfig {
 
     /**
      * Check if specific configuration file loaded
+     * 
      * @param path
      * @return
      */
@@ -42,6 +44,7 @@ public class SMConfig {
 
     /**
      * Load a specific configuration file
+     * 
      * @param path
      */
     public static void load(String path) {
@@ -50,14 +53,15 @@ public class SMConfig {
 
     /**
      * Load a specific configuration file
+     * 
      * @param path
      */
     public static void load(String path, Boolean reload) {
-        if(!configLoaded(path)) {
+        if (!configLoaded(path)) {
             configFiles.put(path, new SMConfigFile(path));
-        } else if(reload) {
+        } else if (reload) {
             SMConfigFile config = configFiles.getOrDefault(path, null);
-            if(config != null) {
+            if (config != null) {
                 config.reload();
             }
         }
@@ -65,6 +69,7 @@ public class SMConfig {
 
     /**
      * Get a specific configration file
+     * 
      * @param path
      * @return
      */
@@ -73,11 +78,26 @@ public class SMConfig {
     }
 
     /**
+     * Get a specific configration file
+     * 
+     * @param path
+     * @return
+     */
+    public static SMConfigFile getOrLoadConfig(String path) {
+        if (!configFiles.containsKey(path)) {
+            load(path);
+        }
+
+        return configFiles.get(path);
+    }
+
+    /**
      * Reload all config files
+     * 
      * @return
      */
     public static void reloadAll() {
-        for(SMConfigFile file : configFiles.values()) {
+        for (SMConfigFile file : configFiles.values()) {
             file.reload();
         }
     }
