@@ -13,8 +13,7 @@ import java.util.stream.Collectors;
 public class SMValue extends SMFeature {
     private static SMConfigFile valueConfig = null;
     private static Map<String, Float> denominationsMap = null;
-    private static final int MAX_DENOMINATION_QTY = 64;
-    private static final int MAX_PURCHASE_QTY = 64;
+    private static final int MAX_STACK_SIZE = 64;
 
     /**
      * Called when the feature is requested to be enabled.
@@ -162,14 +161,14 @@ public class SMValue extends SMFeature {
         Result bestResult = new Result();
         float closestDifference = Float.MAX_VALUE;
 
-        for (int purchaseQty = 1; purchaseQty <= MAX_PURCHASE_QTY; purchaseQty++) {
+        for (int purchaseQty = 1; purchaseQty <= MAX_STACK_SIZE; purchaseQty++) {
             float adjustedTargetValue = targetValue * purchaseQty;
 
             for (String item : sortedItems) {
                 float itemValue = denominationsMap.get(item);
                 int itemQty = (int) (adjustedTargetValue / itemValue);
 
-                if (itemQty <= MAX_DENOMINATION_QTY) {
+                if (itemQty <= MAX_STACK_SIZE) {
                     float totalValue = itemQty * itemValue;
                     float difference = adjustedTargetValue - totalValue;
 
