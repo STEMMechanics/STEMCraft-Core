@@ -25,6 +25,7 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 
 ### 1.1
 
+-   Added values feature for item pricing
 -   Added workbench commands /anvil, /cartographytable, /grindstone, /loom, /smithingtable, /stonecutter
 -   Restores remaining player night vision duration when disabling command
 -   Added a simple persistent saving feature for other features to utilize
