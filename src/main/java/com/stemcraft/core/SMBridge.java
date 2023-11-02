@@ -29,8 +29,7 @@ public final class SMBridge {
     /**
      * The functional interface for the ItemStack Provider.
      */
-    @FunctionalInterface
-    interface StringParserProvider {
+    public @FunctionalInterface interface StringParserProvider {
         String provide(String id, String string, Player player);
     }
 
@@ -42,8 +41,7 @@ public final class SMBridge {
     /**
      * The functional interface for the ItemStack Provider.
      */
-    @FunctionalInterface
-    interface ItemStackProvider {
+    public @FunctionalInterface interface ItemStackProvider {
         ItemStack provide(String id, String name, Integer quantity);
     }
 
