@@ -32,7 +32,11 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 -   Added the /enchant command that add or removes enchantments from player items
 -   Added the /tptop command that teleports a player upwards to the next safe location
 
-### 1.0.1
+### 1.0.2
+
+-   Added ability to link world inventories for nether/the end.
+
+  ### 1.0.1
 
 -   Internal code refactoring
 -   Fix shift click crafting tool stats
