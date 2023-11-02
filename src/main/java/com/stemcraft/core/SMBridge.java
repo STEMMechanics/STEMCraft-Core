@@ -17,7 +17,7 @@ import com.stemcraft.core.exception.SMBridgeException;
 import lombok.NonNull;
 
 /**
- * STEMCraft cross-version compatibility class.
+ * STEMCraft cross-version, plugin adapter compatibility class.
  * 
  * Look up for many methods enabling the plugin to be compatible with later versions of the server.
  */
