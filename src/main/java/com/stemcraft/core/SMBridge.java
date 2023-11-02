@@ -53,6 +53,11 @@ public final class SMBridge {
     private static Map<String, ItemStackProvider> itemstackProviders = new HashMap<>();
 
     /**
+     * A map of itemstack providers.
+     */
+    private static Map<String, ItemStackProvider> itemstackGlobalProviders = new HashMap<>();
+
+    /**
      * Return the server's command map
      * 
      * @return
@@ -354,6 +359,16 @@ public final class SMBridge {
     }
 
     /**
+     * Registers a new ItemStack global provider.
+     * 
+     * @param id The unique identifier for this provider.
+     * @param provider The provider function to be registered.
+     */
+    public static void registerItemStackGlobalProvider(String id, ItemStackProvider provider) {
+        itemstackGlobalProviders.put(id, provider);
+    }
+
+    /**
      * Attempts to create a new ItemStack using registered providers.
      * 
      * @param name The material name.
@@ -378,26 +393,40 @@ public final class SMBridge {
             id = parts[0];
             name = parts[1];
 
+            if (id.equalsIgnoreCase("minecraft")) {
+                return newMinecraftItemStack(name, quantity);
+            }
+
             ItemStackProvider provider = itemstackProviders.get(id);
             if (provider != null) {
                 return provider.provide(id, name, quantity);
             }
 
-            if (id.equalsIgnoreCase("minecraft")) {
-                return newMinecraftItemStack(name, quantity);
+            for (ItemStackProvider globalProvider : itemstackGlobalProviders.values()) {
+                ItemStack result = globalProvider.provide(null, name, quantity);
+                if (result != null) {
+                    return result;
+                }
             }
 
             return null;
-        }
-
-        for (ItemStackProvider provider : itemstackProviders.values()) {
-            ItemStack result = provider.provide(null, name, quantity);
-            if (result != null) {
-                return result;
+        } else {
+            for (ItemStackProvider provider : itemstackProviders.values()) {
+                ItemStack result = provider.provide(null, name, quantity);
+                if (result != null) {
+                    return result;
+                }
             }
-        }
 
-        return newMinecraftItemStack(name, quantity);
+            for (ItemStackProvider globalProvider : itemstackGlobalProviders.values()) {
+                ItemStack result = globalProvider.provide(null, name, quantity);
+                if (result != null) {
+                    return result;
+                }
+            }
+
+            return newMinecraftItemStack(name, quantity);
+        }
     }
 
     /**
