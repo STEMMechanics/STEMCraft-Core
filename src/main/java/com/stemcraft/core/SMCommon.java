@@ -634,4 +634,19 @@ public class SMCommon {
         float roundedFraction = Math.round(fractionalComponent / gcd) * gcd;
         return wholeNumber + roundedFraction;
     }
+
+    /**
+     * Compare the 2 players to see if they are the same.
+     * 
+     * @param p1 First player to compare.
+     * @param p2 Second player to compare.
+     * @return If the 2 players are the same.
+     */
+    public static Boolean isSamePlayer(Player p1, Player p2) {
+        if (p1 != null && p2 != null) {
+            return p1.getUniqueId().equals(p2.getUniqueId());
+        }
+
+        return false;
+    }
 }
