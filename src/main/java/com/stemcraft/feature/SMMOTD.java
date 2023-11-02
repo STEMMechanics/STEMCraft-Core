@@ -35,14 +35,14 @@ public class SMMOTD extends SMFeature {
     protected Boolean onEnable() {
         motdTitle = SMConfig.main().getString("motd.title", "");
         motdText = SMConfig.main().getString("motd.text", "");
-        if(SMConfig.main().getBoolean("motd.show-version", true)) {
-            motdTextVersion = "&8v" + STEMCraft.getVersion() + " &r";
+        if (SMConfig.main().getBoolean("motd.show-version", true)) {
+            motdTextVersion = "&8v" + STEMCraft.getDisplayVersion() + " &r";
         }
 
         SMEvent.register(ServerListPingEvent.class, ctx -> {
             String motdString = "";
 
-            if(motdTextOverride != "") {
+            if (motdTextOverride != "") {
                 motdString = motdTextOverride;
             } else {
                 motdString = motdText;
@@ -56,6 +56,7 @@ public class SMMOTD extends SMFeature {
 
     /**
      * Get the current MOTD override
+     * 
      * @return
      */
     public static String getMOTDOverride() {
@@ -64,6 +65,7 @@ public class SMMOTD extends SMFeature {
 
     /**
      * Set the MOTD override
+     * 
      * @param motd
      */
     public static void setMOTDOverride(String motd) {
