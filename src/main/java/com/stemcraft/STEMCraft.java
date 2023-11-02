@@ -55,13 +55,18 @@ public class STEMCraft extends JavaPlugin implements Listener {
     private static HashMap<String, SMTask> runOnceMapDelay = new HashMap<>();
 
     /**
+     * The display version. Can be set in config. Defaults to plugin version.
+     */
+    private static String displayVersion = null;
+
+    /**
      * On Bukkit Plugin load
      */
     @Override
     public void onLoad() {
         // Set plugin instance
         STEMCraft.plugin = this;
-        
+
         // Set messenger prefixes
         SMMessenger.setInfoPrefix(SMConfig.main().getString("message.prefix.info"));
         SMMessenger.setSuccessPrefix(SMConfig.main().getString("message.prefix.success"));
@@ -94,7 +99,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         // Can we be enabled?
-        if(this.allowEnable == false) {
+        if (this.allowEnable == false) {
             getLogger().severe("STEMCraft was not enabled because a dependency was missing");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
@@ -110,7 +115,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
         }
 
         // Connect to Database
-        if(!SMDatabase.isConnected()) {
+        if (!SMDatabase.isConnected()) {
             SMDatabase.connect();
         }
 
@@ -134,14 +139,14 @@ public class STEMCraft extends JavaPlugin implements Listener {
             .tabComplete("info")
             .tabComplete("reload")
             .action(ctx -> {
-                if(ctx.args.length == 0) {
+                if (ctx.args.length == 0) {
                     ctx.returnInvalidArgs();
                 } else {
-                    if("info".equalsIgnoreCase(ctx.args[0])) {
+                    if ("info".equalsIgnoreCase(ctx.args[0])) {
                         ctx.returnInfo("STEMCraft " + STEMCraft.getVersion());
-                    } else if("reload".equalsIgnoreCase(ctx.args[0])) {
+                    } else if ("reload".equalsIgnoreCase(ctx.args[0])) {
                         ctx.checkPermission("stemcraft.reload");
-                        
+
                         onDisable();
                         SMConfig.reloadAll();
                         onLoad();
@@ -153,7 +158,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
                     }
                 }
             }).register();
-        }
+    }
 
     /**
      * On Bukkit Plugin Disable
@@ -162,9 +167,9 @@ public class STEMCraft extends JavaPlugin implements Listener {
     public void onDisable() {
         // Disable features
         features.forEach((name, instance) -> {
-            if(instance.isEnabled()) {
+            if (instance.isEnabled()) {
                 instance.disable();
-                if(!instance.isEnabled()) {
+                if (!instance.isEnabled()) {
                     getLogger().info("Feature " + name + " disabled");
                 } else {
                     getLogger().info("Feature " + name + " could not be disabled");
@@ -173,13 +178,14 @@ public class STEMCraft extends JavaPlugin implements Listener {
         });
 
         // Disconnect from Database
-        if(SMDatabase.isConnected()) {
+        if (SMDatabase.isConnected()) {
             SMDatabase.disconnect();
         }
     }
 
     /**
      * When receiving the Plugin Disable Event
+     * 
      * @param event
      */
     @EventHandler
@@ -191,6 +197,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     /**
      * Get the plugin instance.
+     * 
      * @return
      */
     public static STEMCraft getPlugin() {
@@ -207,6 +214,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     /**
      * Iterate plugin files using the callback
+     * 
      * @param callback
      */
     public static void iteratePluginFiles(String path, JarFileProcessor callback) {
@@ -216,9 +224,9 @@ public class STEMCraft extends JavaPlugin implements Listener {
                 try (JarInputStream jarInputStream = new JarInputStream(new FileInputStream(pluginFile))) {
                     JarEntry jarEntry;
                     while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
-                        if(path != null && path != "") {
+                        if (path != null && path != "") {
                             String className = jarEntry.getName();
-                            if(!className.startsWith(path)) {
+                            if (!className.startsWith(path)) {
                                 continue;
                             }
                         }
@@ -234,6 +242,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     /**
      * Get the plugin version.
+     * 
      * @return
      */
     public static String getVersion() {
@@ -241,12 +250,29 @@ public class STEMCraft extends JavaPlugin implements Listener {
     }
 
     /**
+     * Get the plugin display version. Can be set in config.
+     * 
+     * @return The display version of the plugin.
+     */
+    public static String getDisplayVersion() {
+        if (displayVersion == null) {
+            displayVersion = SMConfig.main().getString("display-version");
+            if (displayVersion == null) {
+                displayVersion = getVersion();
+            }
+        }
+
+        return displayVersion;
+    }
+
+    /**
      * Return if a specific feature is enabled.
+     * 
      * @param name
      * @return
      */
     public static Boolean featureEnabled(String name) {
-        if(features.containsKey(name)) {
+        if (features.containsKey(name)) {
             return features.get(name).isEnabled();
         }
 
@@ -255,18 +281,19 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     /**
      * Return the instance of a specific feature.
+     * 
      * @param name
      * @return
      */
     public static <T extends SMFeature> T getFeature(String name, Class<T> featureClass) {
         if (features.containsKey(name)) {
             SMFeature foundFeature = features.get(name);
-    
+
             if (featureClass.isInstance(foundFeature)) {
                 return featureClass.cast(foundFeature);
             }
         }
-    
+
         return null;
     }
 
@@ -276,23 +303,22 @@ public class STEMCraft extends JavaPlugin implements Listener {
     private static void loadFeatures() {
         iteratePluginFiles("com/stemcraft/feature/", jar -> {
             String className = jar.getName();
-    
+
             if (className.endsWith(".class")) {
                 try {
                     Class<?> classItem = Class.forName(
-                        className.substring(0, className.length() - 6).replaceAll("/", ".")
-                    );
-    
+                        className.substring(0, className.length() - 6).replaceAll("/", "."));
+
                     if (SMFeature.class.isAssignableFrom(classItem)) {
                         @SuppressWarnings("unchecked")
                         Class<? extends SMFeature> smFeatureClass = (Class<? extends SMFeature>) classItem;
                         Constructor<?> constructor = smFeatureClass.getDeclaredConstructor();
                         SMFeature featureInstance = (SMFeature) constructor.newInstance();
                         String featureName = featureInstance.getName();
-    
+
                         if (featureName.length() > 0 && !features.containsKey(featureName)) {
                             if (featureInstance.onLoad()) {
-                                features.put(featureName, featureInstance);  // Store the instance, not the class
+                                features.put(featureName, featureInstance); // Store the instance, not the class
                             }
                         }
                     }
@@ -306,25 +332,26 @@ public class STEMCraft extends JavaPlugin implements Listener {
     private static Boolean enableFeature(String name) {
         Logger logger = STEMCraft.getPlugin().getLogger();
 
-        if(SMConfig.main().getBoolean("features." + name, true)) {
+        if (SMConfig.main().getBoolean("features." + name, true)) {
             SMFeature instance = features.getOrDefault(name, null);
-            if(instance != null) {
-                if(!instance.isEnabled()) {
+            if (instance != null) {
+                if (!instance.isEnabled()) {
                     // check required features are enabled
-                    for(String required : instance.getRequireFeatures()) {
-                        if(!enableFeature(required)) {
-                            logger.info("Feature " + name + " not enabled as it requires " + required + " to be enabled");
+                    for (String required : instance.getRequireFeatures()) {
+                        if (!enableFeature(required)) {
+                            logger
+                                .info("Feature " + name + " not enabled as it requires " + required + " to be enabled");
                             return false;
                         }
                     }
 
                     // perform any load befores
-                    for(String loadAfter : instance.getLoadAfterFeatures()) {
+                    for (String loadAfter : instance.getLoadAfterFeatures()) {
                         enableFeature(loadAfter);
                     }
 
                     instance.enable();
-                    if(instance.isEnabled()) {
+                    if (instance.isEnabled()) {
                         logger.info("Feature " + name + " enabled");
                         return true;
                     }
@@ -343,10 +370,11 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     /**
      * Send a info message to the console.
+     * 
      * @param message
      */
     public static void info(String message) {
-        if(Bukkit.getConsoleSender() != null) {
+        if (Bukkit.getConsoleSender() != null) {
             Bukkit.getConsoleSender().sendMessage("[" + getNamed() + "] " + SMCommon.colorize(message));
         } else {
             Bukkit.getLogger().info(SMCommon.stripColors(message));
@@ -355,10 +383,11 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     /**
      * Send a warn message to the console.
+     * 
      * @param message
      */
     public static void warning(String message) {
-        if(Bukkit.getConsoleSender() != null) {
+        if (Bukkit.getConsoleSender() != null) {
             Bukkit.getConsoleSender().sendMessage(SMCommon.colorize(message));
         } else {
             Bukkit.getLogger().warning(SMCommon.stripColors(message));
@@ -367,10 +396,11 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     /**
      * Send a severe message to the console.
+     * 
      * @param message
      */
     public static void severe(String message) {
-        if(Bukkit.getConsoleSender() != null) {
+        if (Bukkit.getConsoleSender() != null) {
             Bukkit.getConsoleSender().sendMessage(ChatColor.COLOR_CHAR + "c" + SMCommon.colorize(message));
         } else {
             Bukkit.getLogger().severe(SMCommon.stripColors(message));
@@ -378,11 +408,11 @@ public class STEMCraft extends JavaPlugin implements Listener {
     }
 
     public static void error(@NonNull Throwable throwable, final String... messages) {
-		if (throwable instanceof InvocationTargetException && throwable.getCause() != null)
-			throwable = throwable.getCause();
+        if (throwable instanceof InvocationTargetException && throwable.getCause() != null)
+            throwable = throwable.getCause();
 
         SMDebugger.printError(throwable, messages);
-	}
+    }
 
 
     public static SMTask runLater(final Runnable runnable) {
@@ -390,124 +420,133 @@ public class STEMCraft extends JavaPlugin implements Listener {
     }
 
     public static SMTask runLater(final int delayTicks, final Runnable runnable) {
-        if(runIfDisabled(runnable)) {
+        if (runIfDisabled(runnable)) {
             return null;
         }
 
         try {
-            final SMTask task = SMTask.fromBukkit(Bukkit.getScheduler().runTaskLater(STEMCraft.getPlugin(), runnable, delayTicks));
+            final SMTask task =
+                SMTask.fromBukkit(Bukkit.getScheduler().runTaskLater(STEMCraft.getPlugin(), runnable, delayTicks));
             return task;
         } catch (final NoSuchMethodError err) {
-            return SMTask.fromBukkit(Bukkit.getScheduler().scheduleSyncDelayedTask(STEMCraft.getPlugin(), runnable, delayTicks), false);
+            return SMTask.fromBukkit(
+                Bukkit.getScheduler().scheduleSyncDelayedTask(STEMCraft.getPlugin(), runnable, delayTicks), false);
         }
     }
 
     public static SMTask runAsync(final Runnable runnable) {
-		return runLaterAsync(0, runnable);
-	}
+        return runLaterAsync(0, runnable);
+    }
 
     @SuppressWarnings("deprecation")
-	public static SMTask runLaterAsync(final int delayTicks, final Runnable runnable) {
-        if(runIfDisabled(runnable)) {
+    public static SMTask runLaterAsync(final int delayTicks, final Runnable runnable) {
+        if (runIfDisabled(runnable)) {
             return null;
         }
 
         try {
-			final SMTask task = SMTask.fromBukkit(Bukkit.getScheduler().runTaskLaterAsynchronously(STEMCraft.getPlugin(), runnable, delayTicks));
+            final SMTask task = SMTask.fromBukkit(
+                Bukkit.getScheduler().runTaskLaterAsynchronously(STEMCraft.getPlugin(), runnable, delayTicks));
 
-			return task;
+            return task;
 
-		} catch (final NoSuchMethodError err) {
-			return SMTask.fromBukkit(Bukkit.getScheduler().scheduleAsyncDelayedTask(STEMCraft.getPlugin(), runnable, delayTicks), true);
-		}
-	}
+        } catch (final NoSuchMethodError err) {
+            return SMTask.fromBukkit(
+                Bukkit.getScheduler().scheduleAsyncDelayedTask(STEMCraft.getPlugin(), runnable, delayTicks), true);
+        }
+    }
 
     public static SMTask runTimer(final int repeatTicks, final Runnable runnable) {
-		return runTimer(0, repeatTicks, runnable);
-	}
+        return runTimer(0, repeatTicks, runnable);
+    }
 
-	/**
-	 * Runs the given task after the given delay with a fixed delay between repetitions, even if the plugin is disabled
-	 * for some reason.
-	 *
-	 * @param delayTicks  the delay (in ticks) to wait before running the task.
-	 * @param repeatTicks the delay (in ticks) between repetitions of the task.
-	 * @param runnable    the task to be run.
-	 * @return the {@link SimpleTask} representing the scheduled task, or {@code null}.
-	 */
-	public static SMTask runTimer(final int delayTicks, final int repeatTicks, final Runnable runnable) {
-		if (runIfDisabled(runnable))
-			return null;
+    /**
+     * Runs the given task after the given delay with a fixed delay between repetitions, even if the plugin is disabled
+     * for some reason.
+     *
+     * @param delayTicks the delay (in ticks) to wait before running the task.
+     * @param repeatTicks the delay (in ticks) between repetitions of the task.
+     * @param runnable the task to be run.
+     * @return the {@link SimpleTask} representing the scheduled task, or {@code null}.
+     */
+    public static SMTask runTimer(final int delayTicks, final int repeatTicks, final Runnable runnable) {
+        if (runIfDisabled(runnable))
+            return null;
 
-		try {
-			final SMTask task = SMTask.fromBukkit(Bukkit.getScheduler().runTaskTimer(STEMCraft.getPlugin(), runnable, delayTicks, repeatTicks));
+        try {
+            final SMTask task = SMTask.fromBukkit(
+                Bukkit.getScheduler().runTaskTimer(STEMCraft.getPlugin(), runnable, delayTicks, repeatTicks));
 
-			return task;
+            return task;
 
-		} catch (final NoSuchMethodError err) {
-			return SMTask.fromBukkit(Bukkit.getScheduler().scheduleSyncRepeatingTask(STEMCraft.getPlugin(), runnable, delayTicks, repeatTicks), false);
-		}
-	}
+        } catch (final NoSuchMethodError err) {
+            return SMTask.fromBukkit(Bukkit.getScheduler().scheduleSyncRepeatingTask(STEMCraft.getPlugin(), runnable,
+                delayTicks, repeatTicks), false);
+        }
+    }
 
-	/**
-	 * Runs the given task asynchronously on the next tick with a fixed delay between repetitions, even if the plugin is
-	 * disabled for some reason.
-	 *
-	 * @param repeatTicks the delay (in ticks) between repetitions of the task.
-	 * @param task        the task to be run.
-	 * @return the {@link SimpleTask} representing the scheduled task, or {@code null}.
-	 */
-	public static SMTask runTimerAsync(final int repeatTicks, final Runnable task) {
-		return runTimerAsync(0, repeatTicks, task);
-	}
+    /**
+     * Runs the given task asynchronously on the next tick with a fixed delay between repetitions, even if the plugin is
+     * disabled for some reason.
+     *
+     * @param repeatTicks the delay (in ticks) between repetitions of the task.
+     * @param task the task to be run.
+     * @return the {@link SimpleTask} representing the scheduled task, or {@code null}.
+     */
+    public static SMTask runTimerAsync(final int repeatTicks, final Runnable task) {
+        return runTimerAsync(0, repeatTicks, task);
+    }
 
-	/**
-	 * Runs the given task after the given delay with a fixed delay between repetitions, even if the plugin is disabled
-	 * for some reason.
-	 *
-	 * @param delayTicks  the delay (in ticks) to wait before running the task.
-	 * @param repeatTicks the delay (in ticks) between repetitions of the task.
-	 * @param runnable    the task to be run.
-	 * @return the {@link SimpleTask} representing the scheduled task, or {@code null}.
-	 */
+    /**
+     * Runs the given task after the given delay with a fixed delay between repetitions, even if the plugin is disabled
+     * for some reason.
+     *
+     * @param delayTicks the delay (in ticks) to wait before running the task.
+     * @param repeatTicks the delay (in ticks) between repetitions of the task.
+     * @param runnable the task to be run.
+     * @return the {@link SimpleTask} representing the scheduled task, or {@code null}.
+     */
     @SuppressWarnings("deprecation")
-	public static SMTask runTimerAsync(final int delayTicks, final int repeatTicks, final Runnable runnable) {
-		if (runIfDisabled(runnable))
-			return null;
+    public static SMTask runTimerAsync(final int delayTicks, final int repeatTicks, final Runnable runnable) {
+        if (runIfDisabled(runnable))
+            return null;
 
-		try {
-			final SMTask task = SMTask.fromBukkit(Bukkit.getScheduler().runTaskTimerAsynchronously(STEMCraft.getPlugin(), runnable, delayTicks, repeatTicks));
+        try {
+            final SMTask task = SMTask.fromBukkit(Bukkit.getScheduler()
+                .runTaskTimerAsynchronously(STEMCraft.getPlugin(), runnable, delayTicks, repeatTicks));
 
-			return task;
-		} catch (final NoSuchMethodError err) {
-			return SMTask.fromBukkit(Bukkit.getScheduler().scheduleAsyncRepeatingTask(STEMCraft.getPlugin(), runnable, delayTicks, repeatTicks), true);
-		}
-	}
+            return task;
+        } catch (final NoSuchMethodError err) {
+            return SMTask.fromBukkit(Bukkit.getScheduler().scheduleAsyncRepeatingTask(STEMCraft.getPlugin(), runnable,
+                delayTicks, repeatTicks), true);
+        }
+    }
 
-	/**
-	 * Runs the specified task if the plugin is disabled.
-	 * <p>
-	 * In case the plugin is disabled, this method will return {@code true} and the task will be run. Otherwise, we
-	 * return {@code false} and the task is run correctly in Bukkit's scheduler.
-	 * <p>
-	 * This is a fail-safe for critical save-on-exit operations in case the plugin malfunctions or is improperly
-	 * reloaded using a plugin manager such as PlugMan.
-	 *
-	 * @param runnable the task to be run.
-	 * @return {@code true} if the task was run, or {@code false} if the plugin is enabled.
-	 */
-	private static boolean runIfDisabled(final Runnable runnable) {
-		if (!STEMCraft.getPlugin().isEnabled()) {
-			runnable.run();
+    /**
+     * Runs the specified task if the plugin is disabled.
+     * <p>
+     * In case the plugin is disabled, this method will return {@code true} and the task will be run. Otherwise, we
+     * return {@code false} and the task is run correctly in Bukkit's scheduler.
+     * <p>
+     * This is a fail-safe for critical save-on-exit operations in case the plugin malfunctions or is improperly
+     * reloaded using a plugin manager such as PlugMan.
+     *
+     * @param runnable the task to be run.
+     * @return {@code true} if the task was run, or {@code false} if the plugin is enabled.
+     */
+    private static boolean runIfDisabled(final Runnable runnable) {
+        if (!STEMCraft.getPlugin().isEnabled()) {
+            runnable.run();
 
-			return true;
-		}
+            return true;
+        }
 
-		return false;
-	}
+        return false;
+    }
 
     /**
      * Run a callback, cancelling any other requests with the same id within the blockingTime.
+     * 
      * @param id
      * @param blockingTime
      * @param callback
@@ -522,14 +561,15 @@ public class STEMCraft extends JavaPlugin implements Listener {
     }
 
     /**
-     * Run a callback once after a delay. Calls with the same id will cancel within the delay
-     * will cancel the original callback.
+     * Run a callback once after a delay. Calls with the same id will cancel within the delay will cancel the original
+     * callback.
+     * 
      * @param id
      * @param delayTime
      * @param callback
      */
     public static void runOnceDelay(final String id, final long delayTime, final SMCallback callback) {
-        if(runOnceMapDelay.containsKey(id)) {
+        if (runOnceMapDelay.containsKey(id)) {
             runOnceMapDelay.get(id).cancel();
         }
 
@@ -547,6 +587,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     /**
      * Get the plugin name
+     * 
      * @return
      */
     public static String getNamed() {
