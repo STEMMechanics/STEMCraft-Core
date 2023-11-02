@@ -23,6 +23,10 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 
 ## Changes
 
+### 1.0.2
+
+-   Added ability to link world inventories for nether/the end.
+
 ### 1.0.1
 
 -   Internal code refactoring

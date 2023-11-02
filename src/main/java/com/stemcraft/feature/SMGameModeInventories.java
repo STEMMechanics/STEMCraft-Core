@@ -155,6 +155,8 @@ public class SMGameModeInventories extends SMFeature {
         String armourContents = "";
         String enderChestContents = "";
 
+        world = getInventoryWorld(world);
+
         // Load player state
         try {
             PreparedStatement statement = SMDatabase.prepareStatement(
@@ -228,6 +230,8 @@ public class SMGameModeInventories extends SMFeature {
         String enderChestContents = SMJson.toJson(player.getEnderChest().getContents(), ItemStack[].class);
         String location = SMJson.toJson(player.getLocation(), Location.class);
 
+        world = getInventoryWorld(world);
+
         // Save player state
         try {
             PreparedStatement statement = SMDatabase.prepareStatement(
@@ -289,5 +293,15 @@ public class SMGameModeInventories extends SMFeature {
             e.printStackTrace();
             SMMessenger.errorLocale(player, "GMI_FAILED");
         }
+    }
+
+    /**
+     * Returns the world name containing the current world inventory.
+     * 
+     * @param name
+     * @return
+     */
+    private static String getInventoryWorld(String name) {
+        return SMConfig.main().getString("gamemode-inventories.linked-worlds." + name, name);
     }
 }
