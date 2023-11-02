@@ -27,13 +27,12 @@ public class SMPersistent {
      * Initalize the meta engine.
      */
     private static void initalize() {
-        if(!initalized) {
-            if(SMDatabase.connect()) {
+        if (!initalized) {
+            if (SMDatabase.connect()) {
                 SMDatabase.runMigration("231027093900_UpdatePersistentTable", () -> {
                     PreparedStatement statement = SMDatabase.prepareStatement(
-                    "SELECT name FROM sqlite_master WHERE type='table' AND name='meta'"
-                    );
-            
+                        "SELECT name FROM sqlite_master WHERE type='table' AND name='meta'");
+
                     ResultSet resultSet = statement.executeQuery();
 
                     if (resultSet.next()) {
@@ -43,7 +42,8 @@ public class SMPersistent {
                         SMDatabase.prepareStatement(
                             "CREATE TABLE IF NOT EXISTS persistent (" +
                                 "name TEXT UNIQUE NOT NULL, " +
-                                "data BLOB)").executeUpdate();
+                                "data BLOB)")
+                            .executeUpdate();
                     }
                 });
 
@@ -57,8 +57,8 @@ public class SMPersistent {
     /**
      * Get persistent value as Boolean.
      *
-     * @param section      The section object or string.
-     * @param key          The key for the persistent value.
+     * @param section The section object or string.
+     * @param key The key for the persistent value.
      * @param defaultValue The default value to return if the key does not exist.
      * @return The persistent value as a Boolean.
      */
@@ -70,8 +70,8 @@ public class SMPersistent {
     /**
      * Get persistent value as Integer.
      *
-     * @param section      The section object or string.
-     * @param key          The key for the persistent value.
+     * @param section The section object or string.
+     * @param key The key for the persistent value.
      * @param defaultValue The default value to return if the key does not exist.
      * @return The persistent value as an Integer.
      */
@@ -83,8 +83,8 @@ public class SMPersistent {
     /**
      * Get persistent value as Float.
      *
-     * @param section      The section object or string.
-     * @param key          The key for the persistent value.
+     * @param section The section object or string.
+     * @param key The key for the persistent value.
      * @param defaultValue The default value to return if the key does not exist.
      * @return The persistent value as a Float.
      */
@@ -96,8 +96,8 @@ public class SMPersistent {
     /**
      * Get persistent value as Double.
      *
-     * @param section      The section object or string.
-     * @param key          The key for the persistent value.
+     * @param section The section object or string.
+     * @param key The key for the persistent value.
      * @param defaultValue The default value to return if the key does not exist.
      * @return The persistent value as a Double.
      */
@@ -109,30 +109,30 @@ public class SMPersistent {
     /**
      * Get persistent value as Object.
      *
-     * @param section  The section object or string.
-     * @param key      The key for the persistent value.
-     * @param classOf  The class type of the value.
+     * @param section The section object or string.
+     * @param key The key for the persistent value.
+     * @param classOf The class type of the value.
      * @return The persistent value as an Object of type T.
      */
     public static <T> T getObject(Object section, String key, Class<T> classOf) {
         String value = getString(section, key, "");
-        
-        if(!value.isEmpty()) {
+
+        if (!value.isEmpty()) {
             try {
                 return SMJson.fromJson(classOf, value);
-            } catch(Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        
+
         return null;
     }
 
     /**
      * Get persistent value as String.
      *
-     * @param section      The section object or string.
-     * @param key          The key for the persistent value.
+     * @param section The section object or string.
+     * @param key The key for the persistent value.
      * @param defaultValue The default value to return if the key does not exist.
      * @return The persistent value as a String.
      */
@@ -148,7 +148,7 @@ public class SMPersistent {
             try {
                 initalize();
                 PreparedStatement statement = SMDatabase.prepareStatement(
-                        "SELECT data FROM meta WHERE name = ? LIMIT 1");
+                    "SELECT data FROM persistent WHERE name = ? LIMIT 1");
                 statement.setString(1, sectionNameKey);
                 ResultSet resultSet = statement.executeQuery();
 
@@ -165,24 +165,24 @@ public class SMPersistent {
             }
         }
 
-        if(found) {
+        if (found) {
             try {
                 return value;
-            } catch(Exception ex) {
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
-        
+
         dataCache.put(sectionNameKey, defaultValue);
         return defaultValue;
     }
 
-     /**
+    /**
      * Set the persistent value.
      *
      * @param section The section object or string.
-     * @param key     The key for the persistent value.
-     * @param value   The value to set.
+     * @param key The key for the persistent value.
+     * @param value The value to set.
      */
     public static void set(Object section, String key, Object value) {
         set(section, key, value);
@@ -192,8 +192,8 @@ public class SMPersistent {
      * Set the persistent value with specified class type.
      *
      * @param section The section object or string.
-     * @param key     The key for the persistent value.
-     * @param value   The value to set.
+     * @param key The key for the persistent value.
+     * @param value The value to set.
      * @param classOf The class type of the value.
      */
     public static void set(Object section, String key, Object value, Class<?> classOf) {
@@ -201,8 +201,8 @@ public class SMPersistent {
 
         try {
             String valueString = "";
-            
-            if(classOf == null) {
+
+            if (classOf == null) {
                 valueString = SMJson.toJson(value);
             } else {
                 valueString = SMJson.toJson(value, classOf);
@@ -210,12 +210,12 @@ public class SMPersistent {
 
             initalize();
             PreparedStatement statement = SMDatabase.prepareStatement(
-                    "DELETE FROM meta WHERE name = ?");
+                "DELETE FROM persistent WHERE name = ?");
             statement.setString(1, sectionNameKey);
             statement.executeUpdate();
 
             statement = SMDatabase.prepareStatement(
-                    "INSERT INTO meta (name, data) VALUES (?, ?)");
+                "INSERT INTO persistent (name, data) VALUES (?, ?)");
             statement.setString(1, sectionNameKey);
             statement.setString(2, valueString);
             statement.executeUpdate();
@@ -232,7 +232,7 @@ public class SMPersistent {
      * Clear a specific persistent item.
      *
      * @param section The section object or string.
-     * @param key     The key for the persistent value to clear.
+     * @param key The key for the persistent value to clear.
      */
     public static void clear(Object section, String key) {
         String sectionNameKey = getObjectName(section) + "-" + key;
@@ -240,7 +240,7 @@ public class SMPersistent {
         try {
             initalize();
             PreparedStatement statement = SMDatabase.prepareStatement(
-                    "DELETE FROM meta WHERE name = ?");
+                "DELETE FROM persistent WHERE name = ?");
             statement.setString(1, sectionNameKey);
             statement.executeUpdate();
 
@@ -256,12 +256,12 @@ public class SMPersistent {
      * Check if a specific persistent exists.
      *
      * @param section The section object or string.
-     * @param key     The key for the persistent value.
+     * @param key The key for the persistent value.
      * @return True if the persistent value exists, otherwise false.
      */
     public static Boolean exists(Object section, String key) {
         String sectionNameKey = getObjectName(section) + "-" + key;
-        
+
         if (dataCache.containsKey(sectionNameKey)) {
             return true;
         }
@@ -269,7 +269,7 @@ public class SMPersistent {
         try {
             initalize();
             PreparedStatement statement = SMDatabase.prepareStatement(
-                    "SELECT COUNT(*) FROM meta WHERE name = ?");
+                "SELECT COUNT(*) FROM persistent WHERE name = ?");
             statement.setString(1, sectionNameKey);
             ResultSet resultSet = statement.executeQuery();
 
@@ -303,7 +303,7 @@ public class SMPersistent {
         try {
             initalize();
             PreparedStatement statement = SMDatabase.prepareStatement(
-                "SELECT `name` FROM meta WHERE name LIKE ?");
+                "SELECT `name` FROM persistent WHERE name LIKE ?");
             statement.setString(1, sectionName + "-%");
             ResultSet resultSet = statement.executeQuery();
             int sectionNameLength = sectionName.length() + 1;
