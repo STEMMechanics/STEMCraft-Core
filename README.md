@@ -25,6 +25,8 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 
 ### 1.1
 
+-   Added `display-version` config option to override MOTD version
+-   Added /toolreset command to clear toolstats data on item
 -   Added values feature for item pricing
 -   Added workbench commands /anvil, /cartographytable, /grindstone, /loom, /smithingtable, /stonecutter
 -   Restores remaining player night vision duration when disabling command
@@ -36,7 +38,7 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 
 -   Added ability to link world inventories for nether/the end.
 
-  ### 1.0.1
+### 1.0.1
 
 -   Internal code refactoring
 -   Fix shift click crafting tool stats
