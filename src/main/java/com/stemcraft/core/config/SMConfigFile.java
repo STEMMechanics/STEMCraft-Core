@@ -2,13 +2,17 @@ package com.stemcraft.core.config;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.yaml.snakeyaml.Yaml;
 import com.stemcraft.STEMCraft;
+import com.stemcraft.core.SMCommon;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
@@ -25,6 +29,11 @@ public class SMConfigFile {
      */
     private YamlDocument file = null;
 
+    /*
+     * YAML default config file
+     */
+    private YamlDocument defaults = null;
+
     /**
      * Constructor
      * 
@@ -32,18 +41,31 @@ public class SMConfigFile {
      */
     public SMConfigFile(String path) {
         try {
-            InputStream defaultData = STEMCraft.getPlugin().getResource(path);
-            if (defaultData == null) {
-                defaultData = new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8));
+            File filePath = new File(STEMCraft.getPlugin().getDataFolder(), path);
+            if (!filePath.exists()) {
+                InputStream defaultData = STEMCraft.getPlugin().getResource(path);
+                if (defaultData != null) {
+                    // Ensure the parent directory exists
+                    filePath.getParentFile().mkdirs();
+
+                    // Write the defaultData to the filePath
+                    try {
+                        Files.copy(defaultData, filePath.toPath());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
 
             file = YamlDocument.create(
-                new File(STEMCraft.getPlugin().getDataFolder(), path),
-                defaultData,
+                filePath,
+                new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8)),
                 GeneralSettings.builder().setKeyFormat(KeyFormat.OBJECT).build(),
                 LoaderSettings.DEFAULT,
                 DumperSettings.DEFAULT,
                 UpdaterSettings.DEFAULT);
+
+            defaults = YamlDocument.create(STEMCraft.getPlugin().getResource(path));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -71,33 +93,6 @@ public class SMConfigFile {
                 file.reload();
             } catch (Exception ex) {
                 ex.printStackTrace();
-            }
-        }
-    }
-
-    /**
-     * Set default key value in config.
-     * 
-     * @param key
-     * @param value
-     */
-    public void setDefault(String key, Object value) {
-        setDefault(key, value, "");
-    }
-
-    /**
-     * Set default key value in config.
-     * 
-     * @param key
-     * @param value
-     * @param comment
-     */
-    public void setDefault(String key, Object value, String comment) {
-        if (file != null && !file.contains(key)) {
-            file.set(key, value);
-
-            if (comment != null && comment != "") {
-                file.getBlock(key).addComment(comment);
             }
         }
     }
@@ -159,21 +154,35 @@ public class SMConfigFile {
     }
 
     /**
-     * Get boolean value of key.
+     * Get boolean value of key. If does not exist, returns the default or null.
      * 
-     * @param key
-     * @return
+     * @param key The key to retrieve the value.
+     * @return The key value, default or null.
      */
     public Boolean getBoolean(String key) {
-        return getBoolean(key, false);
+        return getBoolean(key, getDefaultBoolean(key));
     }
 
     /**
-     * Get boolean value of key.
+     * Get boolean of the default value of a key.
      * 
-     * @param key
-     * @param defValue
-     * @return
+     * @param key The key to retrieve the default value.
+     * @return The key value or null.
+     */
+    public Boolean getDefaultBoolean(String key) {
+        if (defaults != null) {
+            return defaults.getBoolean(key);
+        }
+
+        return null;
+    }
+
+    /**
+     * Get boolean value of key. If does not exist, returns defValue or null.
+     * 
+     * @param key The key to retrieve the value.
+     * @param defValue The default value to return if not existant.
+     * @return The key value or defValue.
      */
     public Boolean getBoolean(String key, Boolean defValue) {
         if (file != null) {
@@ -184,21 +193,35 @@ public class SMConfigFile {
     }
 
     /**
-     * Get integer value of key.
+     * Get integer value of key. If does not exist, returns the default or null.
      * 
-     * @param key
-     * @return
+     * @param key The key to retrieve the value.
+     * @return The key value, default or null.
      */
     public Integer getInt(String key) {
-        return getInt(key, 0);
+        return getInt(key, getDefaultInt(key));
     }
 
     /**
-     * Get integer value of key.
+     * Get integer of the default value of a key.
      * 
-     * @param key
-     * @param defValue
-     * @return
+     * @param key The key to retrieve the default value.
+     * @return The key value or null.
+     */
+    public Integer getDefaultInt(String key) {
+        if (defaults != null) {
+            return defaults.getInt(key);
+        }
+
+        return null;
+    }
+
+    /**
+     * Get integer value of key. If does not exist, returns defValue or null.
+     * 
+     * @param key The key to retrieve the value.
+     * @param defValue The default value to return if not existant.
+     * @return The key value or defValue.
      */
     public Integer getInt(String key, Integer defValue) {
         if (file != null) {
@@ -209,35 +232,74 @@ public class SMConfigFile {
     }
 
     /**
-     * Get integer list value of key.
+     * Get integer list value of key. If does not exist, returns the default or null.
      * 
-     * @param key
-     * @return
+     * @param key The key to retrieve the value.
+     * @return The key value, default or null.
      */
     public List<Integer> getIntList(String key) {
-        if (file != null) {
-            return file.getIntList(key);
+        return file.getIntList(key, getDefaultIntList(key));
+    }
+
+    /**
+     * Get integer list of the default value of a key.
+     * 
+     * @param key The key to retrieve the default value.
+     * @return The key value or null.
+     */
+    public List<Integer> getDefaultIntList(String key) {
+        if (defaults != null) {
+            return defaults.getIntList(key);
         }
 
-        return new ArrayList<>();
+        return null;
     }
 
     /**
-     * Get double value of key.
+     * Get integer list value of key. If does not exist, returns defValue or null.
      * 
-     * @param key
-     * @return
+     * @param key The key to retrieve the value.
+     * @param defValue The default value to return if not existant.
+     * @return The key value or defValue.
+     */
+    public List<Integer> getIntList(String key, List<Integer> defValue) {
+        if (file != null) {
+            return file.getIntList(key, defValue);
+        }
+
+        return defValue;
+    }
+
+    /**
+     * Get double value of key. If does not exist, returns the default or null.
+     * 
+     * @param key The key to retrieve the value.
+     * @return The key value, default or null.
      */
     public Double getDouble(String key) {
-        return getDouble(key, 0d);
+        return getDouble(key, getDefaultDouble(key));
     }
 
     /**
-     * Get double value of key.
+     * Get double of the default value of a key.
      * 
-     * @param key
-     * @param defValue
-     * @return
+     * @param key The key to retrieve the default value.
+     * @return The key value or null.
+     */
+    public Double getDefaultDouble(String key) {
+        if (defaults != null) {
+            return defaults.getDouble(key);
+        }
+
+        return null;
+    }
+
+    /**
+     * Get double value of key. If does not exist, returns defValue or null.
+     * 
+     * @param key The key to retrieve the value.
+     * @param defValue The default value to return if not existant.
+     * @return The key value or defValue.
      */
     public Double getDouble(String key, Double defValue) {
         if (file != null) {
@@ -248,35 +310,74 @@ public class SMConfigFile {
     }
 
     /**
-     * Get double list value of key.
+     * Get double list value of key. If does not exist, returns the default or null.
      * 
-     * @param key
-     * @return
+     * @param key The key to retrieve the value.
+     * @return The key value, default or null.
      */
     public List<Double> getDoubleList(String key) {
-        if (file != null) {
-            return file.getDoubleList(key);
+        return file.getDoubleList(key, getDefaultDoubleList(key));
+    }
+
+    /**
+     * Get double list of the default value of a key.
+     * 
+     * @param key The key to retrieve the default value.
+     * @return The key value or null.
+     */
+    public List<Double> getDefaultDoubleList(String key) {
+        if (defaults != null) {
+            return defaults.getDoubleList(key);
         }
 
-        return new ArrayList<>();
+        return null;
     }
 
     /**
-     * Get float value of key.
+     * Get double list value of key. If does not exist, returns defValue or null.
      * 
-     * @param key
-     * @return
+     * @param key The key to retrieve the value.
+     * @param defValue The default value to return if not existant.
+     * @return The key value or defValue.
+     */
+    public List<Double> getDoubleList(String key, List<Double> defValue) {
+        if (file != null) {
+            return file.getDoubleList(key, defValue);
+        }
+
+        return defValue;
+    }
+
+    /**
+     * Get float value of key. If does not exist, returns the default or null.
+     * 
+     * @param key The key to retrieve the value.
+     * @return The key value, default or null.
      */
     public Float getFloat(String key) {
-        return getFloat(key, 0f);
+        return getFloat(key, getDefaultFloat(key));
     }
 
     /**
-     * Get float value of key.
+     * Get float of the default value of a key.
      * 
-     * @param key
-     * @param defValue
-     * @return
+     * @param key The key to retrieve the default value.
+     * @return The key value or null.
+     */
+    public Float getDefaultFloat(String key) {
+        if (defaults != null) {
+            return defaults.getFloat(key);
+        }
+
+        return null;
+    }
+
+    /**
+     * Get boolean value of key. If does not exist, returns defValue or null.
+     * 
+     * @param key The key to retrieve the value.
+     * @param defValue The default value to return if not existant.
+     * @return The key value or defValue.
      */
     public Float getFloat(String key, Float defValue) {
         if (file != null) {
@@ -287,35 +388,74 @@ public class SMConfigFile {
     }
 
     /**
-     * Get float list value of key.
+     * Get float list value of key. If does not exist, returns the default or null.
      * 
-     * @param key
-     * @return
+     * @param key The key to retrieve the value.
+     * @return The key value, default or null.
      */
     public List<Float> getFloatList(String key) {
-        if (file != null) {
-            return file.getFloatList(key);
+        return file.getFloatList(key, getDefaultFloatList(key));
+    }
+
+    /**
+     * Get float list of the default value of a key.
+     * 
+     * @param key The key to retrieve the default value.
+     * @return The key value or null.
+     */
+    public List<Float> getDefaultFloatList(String key) {
+        if (defaults != null) {
+            return defaults.getFloatList(key);
         }
 
-        return new ArrayList<>();
+        return null;
     }
 
     /**
-     * Get string value of key.
+     * Get float list value of key. If does not exist, returns defValue or null.
      * 
-     * @param key
-     * @return
+     * @param key The key to retrieve the value.
+     * @param defValue The default value to return if not existant.
+     * @return The key value or defValue.
+     */
+    public List<Float> getFloatList(String key, List<Float> defValue) {
+        if (file != null) {
+            return file.getFloatList(key, defValue);
+        }
+
+        return defValue;
+    }
+
+    /**
+     * Get string value of key. If does not exist, returns the default or null.
+     * 
+     * @param key The key to retrieve the value.
+     * @return The key value, default or null.
      */
     public String getString(String key) {
-        return getString(key, "");
+        return getString(key, getDefaultString(key));
     }
 
     /**
-     * Get string value of key.
+     * Get string of the default value of a key.
      * 
-     * @param key
-     * @param defValue
-     * @return
+     * @param key The key to retrieve the default value.
+     * @return The key value or null.
+     */
+    public String getDefaultString(String key) {
+        if (defaults != null) {
+            return defaults.getString(key);
+        }
+
+        return null;
+    }
+
+    /**
+     * Get string value of key. If does not exist, returns defValue or null.
+     * 
+     * @param key The key to retrieve the value.
+     * @param defValue The default value to return if not existant.
+     * @return The key value or defValue.
      */
     public String getString(String key, String defValue) {
         if (file != null) {
@@ -326,34 +466,57 @@ public class SMConfigFile {
     }
 
     /**
-     * Get string list value of key.
+     * Get stringlist value of key. If does not exist, returns the default or null.
      * 
-     * @param key
-     * @return
+     * @param key The key to retrieve the value.
+     * @return The key value, default or null.
      */
     public List<String> getStringList(String key) {
-        if (file != null) {
-            return file.getStringList(key);
-        }
-
-        return new ArrayList<>();
+        return file.getStringList(key, getDefaultStringList(key));
     }
 
     /**
-     * Helper method to filter and convert values of the map to the specified type.
-     *
-     * @param <T> The type to convert to (Integer, Float, Double).
-     * @param map The input map with values to be filtered and converted.
-     * @param clazz The class of the type T.
-     * @return A filtered map with values of type T.
+     * Get string list of the default value of a key.
+     * 
+     * @param key The key to retrieve the default value.
+     * @return The key value or null.
      */
-    private <T> Map<String, T> filterAndConvertMap(Map<?, ?> map, Class<T> clazz) {
-        Map<String, T> resultMap = new HashMap<>();
+    public List<String> getDefaultStringList(String key) {
+        if (defaults != null) {
+            return defaults.getStringList(key);
+        }
 
-        for (Map.Entry<?, ?> entry : map.entrySet()) {
-            if (clazz.isInstance(entry.getValue())) {
-                resultMap.put(entry.getKey().toString(), clazz.cast(entry.getValue()));
-            }
+        return null;
+    }
+
+    /**
+     * Get string list value of key. If does not exist, returns defValue or null.
+     * 
+     * @param key The key to retrieve the value.
+     * @param defValue The default value to return if not existant.
+     * @return The key value or defValue.
+     */
+    public List<String> getStringList(String key, List<String> defValue) {
+        if (file != null) {
+            return file.getStringList(key, defValue);
+        }
+
+        return defValue;
+    }
+
+    /**
+     * Fetches a map from the file based on the given key and filters it to contain only String values.
+     *
+     * @param key The key to fetch the map from the file.
+     * @return A map with string keys and Integer values.
+     */
+    public Map<String, String> getStringMap(String key) {
+        Map<String, Object> valueMap =
+            file != null ? file.getSection(key).getStringRouteMappedValues(false) : new HashMap<>();
+        Map<String, String> resultMap = new HashMap<>();
+
+        for (Map.Entry<?, ?> entry : valueMap.entrySet()) {
+            resultMap.put(entry.getKey().toString(), entry.getValue().toString());
         }
 
         return resultMap;
@@ -366,11 +529,17 @@ public class SMConfigFile {
      * @return A map with string keys and Integer values.
      */
     public Map<String, Integer> getIntMap(String key) {
-        List<Map<?, ?>> mapList = file != null ? file.getMapList(key) : new ArrayList<>();
+        Map<String, Object> valueMap =
+            file != null ? file.getSection(key).getStringRouteMappedValues(false) : new HashMap<>();
         Map<String, Integer> resultMap = new HashMap<>();
 
-        for (Map<?, ?> map : mapList) {
-            resultMap.putAll(filterAndConvertMap(map, Integer.class));
+        for (Map.Entry<?, ?> entry : valueMap.entrySet()) {
+            try {
+                Integer value = Integer.parseInt(entry.getValue().toString());
+                resultMap.put(entry.getKey().toString(), value);
+            } catch (Exception e) {
+                /* empty */
+            }
         }
 
         return resultMap;
@@ -383,11 +552,17 @@ public class SMConfigFile {
      * @return A map with string keys and Float values.
      */
     public Map<String, Float> getFloatMap(String key) {
-        List<Map<?, ?>> mapList = file != null ? file.getMapList(key) : new ArrayList<>();
+        Map<String, Object> valueMap =
+            file != null ? file.getSection(key).getStringRouteMappedValues(false) : new HashMap<>();
         Map<String, Float> resultMap = new HashMap<>();
 
-        for (Map<?, ?> map : mapList) {
-            resultMap.putAll(filterAndConvertMap(map, Float.class));
+        for (Map.Entry<?, ?> entry : valueMap.entrySet()) {
+            try {
+                Float value = Float.parseFloat(entry.getValue().toString());
+                resultMap.put(entry.getKey().toString(), value);
+            } catch (Exception e) {
+                /* empty */
+            }
         }
 
         return resultMap;
@@ -400,13 +575,29 @@ public class SMConfigFile {
      * @return A map with string keys and Double values.
      */
     public Map<String, Double> getDoubleMap(String key) {
-        List<Map<?, ?>> mapList = file != null ? file.getMapList(key) : new ArrayList<>();
+        Map<String, Object> valueMap =
+            file != null ? file.getSection(key).getStringRouteMappedValues(false) : new HashMap<>();
         Map<String, Double> resultMap = new HashMap<>();
 
-        for (Map<?, ?> map : mapList) {
-            resultMap.putAll(filterAndConvertMap(map, Double.class));
+        for (Map.Entry<?, ?> entry : valueMap.entrySet()) {
+            try {
+                Double value = Double.parseDouble(entry.getValue().toString());
+                resultMap.put(entry.getKey().toString(), value);
+            } catch (Exception e) {
+                /* empty */
+            }
         }
 
         return resultMap;
+    }
+
+    /**
+     * Fetches a list of keys from a path.
+     *
+     * @param key The path to fetch keys.
+     * @return A list of string keys.
+     */
+    public List<String> getKeys(String key) {
+        return SMCommon.setToList(file.getSection(key).getKeys());
     }
 }
