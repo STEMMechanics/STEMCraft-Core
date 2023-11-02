@@ -121,6 +121,8 @@ TOOLSTATS-CREATED-AT: "&7Created on: &8{date}"
 TOOLSTATS-CREATED-BY: "&7Created by: &8{name}"
 TOOLSTATS-PLAYER-KILLS: "&7Player kills: &8{count}"
 TOOLSTATS-MOB-KILLS: "&7Mob kills: &8{count}"
+TOOLSTATS-RESET: "Tool stats reset on item in main hand"
+TOOLSTATS-RESET-FAIL: "Nothing in main hand or not an item that is tracked"
 
 ENCHANT_USAGE: "Usage: enchant <add|remove|removeall> <enchant> <level> [<player>]"
 ENCHANT_USAGE_ADD: "Usage: enchant add <enchant> <level> [<player>]"
