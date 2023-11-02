@@ -5,7 +5,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiFunction;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -28,9 +27,17 @@ import lombok.NonNull;
  */
 public final class SMBridge {
     /**
+     * The functional interface for the ItemStack Provider.
+     */
+    @FunctionalInterface
+    interface StringParserProvider {
+        String provide(String id, String string, Player player);
+    }
+
+    /**
      * A map of string parser providers.
      */
-    private static Map<String, BiFunction<String, String, String>> parserProviders = new HashMap<>();
+    private static Map<String, StringParserProvider> parserProviders = new HashMap<>();
 
     /**
      * The functional interface for the ItemStack Provider.
@@ -313,7 +320,7 @@ public final class SMBridge {
      * @param id The unique identifier for the provider.
      * @param provider The provider function to be registered.
      */
-    public static void registerParserProvider(String id, BiFunction<String, String, String> provider) {
+    public static void registerParserProvider(String id, StringParserProvider provider) {
         parserProviders.put(id, provider);
     }
 
@@ -321,15 +328,16 @@ public final class SMBridge {
      * Parses the provided string using all registered providers.
      * 
      * @param input The string to be parsed.
+     * @param player The player or null the input belongs to.
      * @return The parsed string.
      */
-    public static String parse(String input) {
+    public static String parse(String input, Player player) {
         String result = input;
 
-        for (Map.Entry<String, BiFunction<String, String, String>> entry : parserProviders.entrySet()) {
+        for (Map.Entry<String, StringParserProvider> entry : parserProviders.entrySet()) {
             String id = entry.getKey();
-            BiFunction<String, String, String> provider = entry.getValue();
-            result = provider.apply(id, result);
+            StringParserProvider provider = entry.getValue();
+            result = provider.provide(id, result, player);
         }
 
         return result;
