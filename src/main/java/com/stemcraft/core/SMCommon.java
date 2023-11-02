@@ -32,21 +32,23 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SMCommon {
-    
+
     /*
      * Regex for finding color codes
      */
-    private static final Pattern COLOR_PATTERN = Pattern.compile("((&|" + COLOR_CHAR + ")[0-9a-fk-or])|(" + COLOR_CHAR + "x(" + COLOR_CHAR + "[0-9a-fA-F]){6})|((?<!\\\\)(\\{|&|)#((?:[0-9a-fA-F]{3}){2})(}|))");
+    private static final Pattern COLOR_PATTERN = Pattern.compile("((&|" + COLOR_CHAR + ")[0-9a-fk-or])|(" + COLOR_CHAR
+        + "x(" + COLOR_CHAR + "[0-9a-fA-F]){6})|((?<!\\\\)(\\{|&|)#((?:[0-9a-fA-F]{3}){2})(}|))");
 
     /** Pattern matching "nicer" legacy hex chat color codes - &#rrggbb */
     private static final Pattern HEX_COLOR_PATTERN = Pattern.compile("&#([0-9a-fA-F]{6})");
-    
+
     private static DecimalFormat DECIMAL_FORMAT = null;
     private static DecimalFormat COMMA_FORMAT = null;
     private static SimpleDateFormat DATE_FORMAT = null;
 
     /**
      * Strip color codes from string.
+     * 
      * @param message
      * @return
      */
@@ -66,6 +68,7 @@ public class SMCommon {
 
     /**
      * Colourize a string.
+     * 
      * @param message
      * @return
      */
@@ -88,6 +91,7 @@ public class SMCommon {
 
     /**
      * Colourize a string array.
+     * 
      * @param messages
      * @return
      */
@@ -102,6 +106,7 @@ public class SMCommon {
 
     /**
      * Colourize a string array.
+     * 
      * @param messages
      * @return
      */
@@ -116,12 +121,14 @@ public class SMCommon {
 
     /**
      * Retrieve a player by name or UUID.
+     * 
      * @param nameOrUUID
      * @return
      */
     public static Player findPlayer(String nameOrUUID) {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (player.getUniqueId().toString().equalsIgnoreCase(nameOrUUID) || player.getDisplayName().equalsIgnoreCase(nameOrUUID)) {
+            if (player.getUniqueId().toString().equalsIgnoreCase(nameOrUUID)
+                || player.getDisplayName().equalsIgnoreCase(nameOrUUID)) {
                 return player;
             }
         }
@@ -130,6 +137,7 @@ public class SMCommon {
 
     /**
      * Is the specified location safe for a player to spawn
+     * 
      * @param location
      * @return
      */
@@ -137,16 +145,16 @@ public class SMCommon {
         Block block = location.getBlock();
         Block aboveBlock = block.getRelative(BlockFace.UP);
         Block belowBlock = block.getRelative(BlockFace.DOWN);
-        
+
         // Check if the block and the block above are air blocks
         if (block.getType() == Material.AIR && aboveBlock.getType() == Material.AIR && belowBlock.getType().isSolid()) {
             // // Check if the block and the block above are not water or lava blocks
             // if (block.getType() != Material.WATER && block.getType() != Material.LAVA &&
-            //         aboveBlock.getType() != Material.WATER && aboveBlock.getType() != Material.LAVA) {
-            //     // Check if the block and the block above are not solid blocks (excluding certain transparent blocks)
-            //     if (!block.getType().isSolid() && !aboveBlock.getType().isSolid()) {
-                    return true;
-            //     }
+            // aboveBlock.getType() != Material.WATER && aboveBlock.getType() != Material.LAVA) {
+            // // Check if the block and the block above are not solid blocks (excluding certain transparent blocks)
+            // if (!block.getType().isSolid() && !aboveBlock.getType().isSolid()) {
+            return true;
+            // }
             // }
         }
 
@@ -155,6 +163,7 @@ public class SMCommon {
 
     /**
      * Find the first safe location within the range from the specified location.
+     * 
      * @param location
      * @param range
      * @return
@@ -162,9 +171,10 @@ public class SMCommon {
     public static Location findSafeLocation(Location location, int range) {
         return findSafeLocation(location, range, false);
     }
-    
+
     /**
      * Find the first or random safe location within the range from the specified location.
+     * 
      * @param location
      * @param range
      * @param random
@@ -183,7 +193,7 @@ public class SMCommon {
                 for (int k = -range; k <= range; k++) {
                     Location checkLocation = new Location(world, x + i, y + j, z + k);
                     if (isSafeLocation(checkLocation)) {
-                        if(!random) {
+                        if (!random) {
                             return checkLocation;
                         }
 
@@ -203,8 +213,8 @@ public class SMCommon {
     }
 
     /**
-     * Equivalent to {@link String#replace(CharSequence, CharSequence)}, but uses a
-     * {@link Supplier} for the replacement.
+     * Equivalent to {@link String#replace(CharSequence, CharSequence)}, but uses a {@link Supplier} for the
+     * replacement.
      *
      * @param pattern the pattern for the replacement target
      * @param input the input string
@@ -221,66 +231,68 @@ public class SMCommon {
 
     /**
      * Add items to a List<String>
+     * 
      * @param list
      * @param messages
      */
     public static void append(List<String> list, String... messages) {
-		list.addAll(Arrays.asList(messages));
-	}
+        list.addAll(Arrays.asList(messages));
+    }
 
     /**
-	 * Returns the value if it is not {@code null}. Otherwise, the default value is returned.
-	 * If the value is a {@link String}, the default value is returned if the value is empty.
-	 *
-	 * @param value        the value to be checked.
-	 * @param defaultValue the default value to be returned if the actual value is {@code null}.
-	 * @param <T>          the type of the value and default value.
-	 * @return the value if it is not {@code null}, otherwise the default value.
-	 */
-	public static <T> T getOrDefault(final T value, final T defaultValue) {
-		if (value instanceof String && "".equals(value)) {
-			return defaultValue;
+     * Returns the value if it is not {@code null}. Otherwise, the default value is returned. If the value is a
+     * {@link String}, the default value is returned if the value is empty.
+     *
+     * @param value the value to be checked.
+     * @param defaultValue the default value to be returned if the actual value is {@code null}.
+     * @param <T> the type of the value and default value.
+     * @return the value if it is not {@code null}, otherwise the default value.
+     */
+    public static <T> T getOrDefault(final T value, final T defaultValue) {
+        if (value instanceof String && "".equals(value)) {
+            return defaultValue;
         }
 
-		return value != null ? value : defaultValue;
-	}
+        return value != null ? value : defaultValue;
+    }
 
     public static String capitalize(String str) {
         return capitalize(str, false);
     }
 
     public static String capitalize(String str, Boolean ignoreColors) {
-		if (str != null && str.length() != 0) {
-			final int strLen = str.length();
-			final StringBuffer buffer = new StringBuffer(strLen);
-			boolean capitalizeNext = true;
+        if (str != null && str.length() != 0) {
+            final int strLen = str.length();
+            final StringBuffer buffer = new StringBuffer(strLen);
+            boolean capitalizeNext = true;
 
-			for (int i = 0; i < strLen; ++i) {
-				final char ch = str.charAt(i);
+            for (int i = 0; i < strLen; ++i) {
+                final char ch = str.charAt(i);
 
-				if (Character.isWhitespace(ch)) {
-					buffer.append(ch);
+                if (Character.isWhitespace(ch)) {
+                    buffer.append(ch);
 
-					capitalizeNext = true;
-                } else if (ch == '&' && ignoreColors && i + 1 < strLen && "0123456789abcdefklmnor".indexOf(str.charAt(i + 1)) != -1) {
+                    capitalizeNext = true;
+                } else if (ch == '&' && ignoreColors && i + 1 < strLen
+                    && "0123456789abcdefklmnor".indexOf(str.charAt(i + 1)) != -1) {
                     buffer.append(ch).append(str.charAt(i + 1));
                     i++;
 
                 } else if (capitalizeNext) {
-					buffer.append(Character.toTitleCase(ch));
+                    buffer.append(Character.toTitleCase(ch));
 
-					capitalizeNext = false;
-				} else {
-					buffer.append(ch);
+                    capitalizeNext = false;
+                } else {
+                    buffer.append(ch);
                 }
-			}
+            }
 
-			return buffer.toString();
-		}
+            return buffer.toString();
+        }
 
-		return str;
+        return str;
     }
-    
+
     public static String beautify(String str) {
         return str.toLowerCase().replace("_", " ");
     }
@@ -290,21 +302,21 @@ public class SMCommon {
     }
 
     public static String beautifyCapitalize(@NonNull Enum<?> enumeration) {
-		return beautifyCapitalize(enumeration.toString().toLowerCase());
+        return beautifyCapitalize(enumeration.toString().toLowerCase());
     }
 
     public static HashMap<String, Object> mapOfArray(final Object... array) {
         HashMap<String, Object> map = new HashMap<>();
 
-        if(array != null) {
+        if (array != null) {
             for (int i = 0; i < array.length; i += 2) {
                 String key = array[i].toString();
                 Object value = null;
-                
+
                 if (i + 1 < array.length) {
                     value = array[i + 1];
                 }
-                
+
                 map.put(key, value);
             }
         }
@@ -320,7 +332,7 @@ public class SMCommon {
     public static ItemStack repairItem(ItemStack item) {
         ItemMeta itemMeta = item.getItemMeta();
         if (itemMeta instanceof Damageable) {
-            Damageable damageable = (Damageable)itemMeta;
+            Damageable damageable = (Damageable) itemMeta;
             damageable.setDamage(0);
             item.setItemMeta(itemMeta);
         }
@@ -330,6 +342,7 @@ public class SMCommon {
 
     /**
      * Teleport a player after 1 tick. This avoids the moved too quickly issue
+     * 
      * @param player
      * @param location
      */
@@ -341,6 +354,7 @@ public class SMCommon {
 
     /**
      * Teleport a player to the nearest safe location
+     * 
      * @param player
      * @param location
      */
@@ -353,7 +367,7 @@ public class SMCommon {
     public static String getKeyByValue(Map<String, String> map, String value) {
         return getKeyByValue(map, value, null);
     }
-    
+
     public static String getKeyByValue(Map<String, String> map, String value, String defaultValue) {
         for (Map.Entry<String, String> entry : map.entrySet()) {
             if (entry.getValue().equals(value)) {
@@ -368,90 +382,90 @@ public class SMCommon {
     }
 
     /**
-	 * Joins multiple arrays into one array.
-	 *
-	 * @param arrays the arrays to be joined.
-	 * @param <T>    the type of elements in the arrays.
-	 * @return an array containing all the elements from the input arrays.
-	 */
-	@SafeVarargs
-	public static <T> Object[] joinArrays(final T[]... arrays) {
-		final List<T> all = new ArrayList<>();
+     * Joins multiple arrays into one array.
+     *
+     * @param arrays the arrays to be joined.
+     * @param <T> the type of elements in the arrays.
+     * @return an array containing all the elements from the input arrays.
+     */
+    @SafeVarargs
+    public static <T> Object[] joinArrays(final T[]... arrays) {
+        final List<T> all = new ArrayList<>();
 
-		for (final T[] array : arrays)
-			all.addAll(Arrays.asList(array));
+        for (final T[] array : arrays)
+            all.addAll(Arrays.asList(array));
 
-		return all.toArray();
-	}
-
-	/**
-	 * Joins multiple {@link Iterable lists} into one {@link List}.
-	 *
-	 * @param lists the {@link Iterable lists} to be joined.
-	 * @param <T>   the type of elements in the lists.
-	 * @return a {@link List} containing all the elements from the input {@link Iterable lists}.
-	 */
-	@SafeVarargs
-	public static <T> List<T> joinLists(final Iterable<T>... lists) {
-		final List<T> all = new ArrayList<>();
-
-		for (final Iterable<T> array : lists)
-			for (final T element : array)
-				all.add(element);
-
-		return all;
-	}
+        return all.toArray();
+    }
 
     /**
-	 * Joins elements from the input array, separated by ", ". We invoke {@link T#toString()} for each element given it
-	 * is not {@code null}, or return an empty {@link String} if it is.
-	 *
-	 * @param array the input array.
-	 * @param <T>   the type of elements in the array.
-	 * @return a {@link String} containing the joined elements of the array.
-	 */
-	public static <T> String join(final T[] array) {
-		return array == null ? "null" : join(Arrays.asList(array));
-	}
+     * Joins multiple {@link Iterable lists} into one {@link List}.
+     *
+     * @param lists the {@link Iterable lists} to be joined.
+     * @param <T> the type of elements in the lists.
+     * @return a {@link List} containing all the elements from the input {@link Iterable lists}.
+     */
+    @SafeVarargs
+    public static <T> List<T> joinLists(final Iterable<T>... lists) {
+        final List<T> all = new ArrayList<>();
 
-	/**
-	 * Joins elements from the input {@link Iterable array}, separated by ", ". We invoke {@link T#toString()} for each
-	 * element given it is not {@code null}, or return an empty {@link String} if it is.
-	 *
-	 * @param array the input {@link Iterable array}.
-	 * @param <T>   the type of elements in the array.
-	 * @return a {@link String} containing the joined elements of the iterable.
-	 */
-	public static <T> String join(final Iterable<T> array) {
-		return array == null ? "null" : join(array, ", ");
-	}
+        for (final Iterable<T> array : lists)
+            for (final T element : array)
+                all.add(element);
 
-	/**
-	 * Joins elements from the input array, separated by the specified delimiter. We invoke {@link T#toString()} for
-	 * each element given it is not null, or return an empty {@link String} if it is.
-	 *
-	 * @param array     the input array.
-	 * @param delimiter the delimiter used to separate the joined elements.
-	 * @param <T>       the type of elements in the array.
-	 * @return a {@link String} containing the joined elements of the array with the specified delimiter.
-	 */
-	public static <T> String join(final T[] array, final String delimiter) {
-		return join(array, delimiter);
-	}
+        return all;
+    }
 
-	/**
-	 * Joins elements from the input {@link Iterable array}, separated by the specified delimiter. We invoke
-	 * {@link T#toString()} for each element given it is not null, or return an empty {@link String} if it is.
-	 *
-	 * @param array     the input {@link Iterable array}.
-	 * @param delimiter the delimiter used to separate the joined elements.
-	 * @param <T>       the type of elements in the array.
-	 * @return a {@link String} containing the joined elements of the {@link Iterable array} with the specified
-	 * delimiter.
-	 */
-	public static <T> String join(final Iterable<T> array, final String delimiter) {
-		return join(array, delimiter);
-	}
+    /**
+     * Joins elements from the input array, separated by ", ". We invoke {@link T#toString()} for each element given it
+     * is not {@code null}, or return an empty {@link String} if it is.
+     *
+     * @param array the input array.
+     * @param <T> the type of elements in the array.
+     * @return a {@link String} containing the joined elements of the array.
+     */
+    public static <T> String join(final T[] array) {
+        return array == null ? "null" : join(Arrays.asList(array));
+    }
+
+    /**
+     * Joins elements from the input {@link Iterable array}, separated by ", ". We invoke {@link T#toString()} for each
+     * element given it is not {@code null}, or return an empty {@link String} if it is.
+     *
+     * @param array the input {@link Iterable array}.
+     * @param <T> the type of elements in the array.
+     * @return a {@link String} containing the joined elements of the iterable.
+     */
+    public static <T> String join(final Iterable<T> array) {
+        return array == null ? "null" : join(array, ", ");
+    }
+
+    /**
+     * Joins elements from the input array, separated by the specified delimiter. We invoke {@link T#toString()} for
+     * each element given it is not null, or return an empty {@link String} if it is.
+     *
+     * @param array the input array.
+     * @param delimiter the delimiter used to separate the joined elements.
+     * @param <T> the type of elements in the array.
+     * @return a {@link String} containing the joined elements of the array with the specified delimiter.
+     */
+    public static <T> String join(final T[] array, final String delimiter) {
+        return join(array, delimiter);
+    }
+
+    /**
+     * Joins elements from the input {@link Iterable array}, separated by the specified delimiter. We invoke
+     * {@link T#toString()} for each element given it is not null, or return an empty {@link String} if it is.
+     *
+     * @param array the input {@link Iterable array}.
+     * @param delimiter the delimiter used to separate the joined elements.
+     * @param <T> the type of elements in the array.
+     * @return a {@link String} containing the joined elements of the {@link Iterable array} with the specified
+     *         delimiter.
+     */
+    public static <T> String join(final Iterable<T> array, final String delimiter) {
+        return join(array, delimiter);
+    }
 
     /**
      * Is player holding a tool with silk touch?
@@ -472,7 +486,7 @@ public class SMCommon {
     }
 
     private static void initalizeFormatting() {
-        if(COMMA_FORMAT == null || DECIMAL_FORMAT == null || DATE_FORMAT == null) {
+        if (COMMA_FORMAT == null || DECIMAL_FORMAT == null || DATE_FORMAT == null) {
             String defaultDateFormat = "dd/M/yyyy";
             String defaultDecimalSeparator = ".";
             String defaultCommaSeparator = ",";
@@ -480,7 +494,8 @@ public class SMCommon {
             String defaultDecimalFormat = "#,###.00";
 
             String dateFormat = SMConfig.main().getString("date-format", defaultDateFormat);
-            String decimalSeparator = SMConfig.main().getString("number-formats.decimal-separator", defaultDecimalSeparator);
+            String decimalSeparator =
+                SMConfig.main().getString("number-formats.decimal-separator", defaultDecimalSeparator);
             String commaSeparator = SMConfig.main().getString("number-formats.comma-separator", defaultCommaSeparator);
             String commaFormat = SMConfig.main().getString("number-formats.comma-format", defaultCommaFormat);
             String decimalFormat = SMConfig.main().getString("number-formats.decimal-format", defaultDecimalFormat);
@@ -488,7 +503,7 @@ public class SMCommon {
             DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.getDefault());
             formatSymbols.setDecimalSeparator(decimalSeparator.charAt(0));
             formatSymbols.setGroupingSeparator(commaSeparator.charAt(0));
-        
+
             try {
                 DATE_FORMAT = new SimpleDateFormat(dateFormat, Locale.getDefault());
             } catch (NullPointerException | IllegalArgumentException exception) {
@@ -508,7 +523,8 @@ public class SMCommon {
             try {
                 DECIMAL_FORMAT = new DecimalFormat(decimalFormat, formatSymbols);
             } catch (NullPointerException | IllegalArgumentException exception) {
-                STEMCraft.warning("number-formats.decimal-format is NOT a valid format! Using default #,###.00 instead.");
+                STEMCraft
+                    .warning("number-formats.decimal-format is NOT a valid format! Using default #,###.00 instead.");
                 exception.printStackTrace();
                 DECIMAL_FORMAT = new DecimalFormat(defaultDecimalFormat, formatSymbols);
             }
@@ -554,6 +570,7 @@ public class SMCommon {
 
     /**
      * Show the player a full screen greeting
+     * 
      * @param player
      * @param title
      * @param subtitle
@@ -564,6 +581,7 @@ public class SMCommon {
 
     /**
      * Show the player a full screen greeting
+     * 
      * @param player
      * @param title
      * @param subtitle
@@ -571,7 +589,49 @@ public class SMCommon {
      * @param showTime
      * @param fadeOutTime
      */
-    public static void showGreeting(Player player, String title, String subtitle, int fadeInTime, int showTime, int fadeOutTime) {
+    public static void showGreeting(Player player, String title, String subtitle, int fadeInTime, int showTime,
+        int fadeOutTime) {
         player.sendTitle(SMCommon.colorize(title), SMCommon.colorize(subtitle), fadeInTime, showTime, fadeOutTime);
+    }
+
+    /**
+     * Compute the (Greatest Common Divisor) GCD of two numbers.
+     * 
+     * @param a First number.
+     * @param b Second number.
+     * @return GCD of the two numbers.
+     */
+    public static float gcd(float a, float b) {
+        if (b == 0)
+            return a;
+        return gcd(b, a % b);
+    }
+
+    /**
+     * Compute the GCD of fractional parts of denominations.
+     * 
+     * @return GCD of the fractional parts.
+     */
+    public static float computeGCDOfFractions(HashMap<String, Float> items) {
+        float result = 0;
+        for (float value : items.values()) {
+            float fractionalPart = value - (int) value;
+            result = gcd(result, fractionalPart);
+        }
+        return result;
+    }
+
+    /**
+     * Round the fractional component of a value.
+     * 
+     * @param value The value to be rounded.
+     * @param gcd The GCD to use for rounding.
+     * @return Rounded value.
+     */
+    public static float roundFractionalComponent(float value, float gcd) {
+        int wholeNumber = (int) value;
+        float fractionalComponent = value - wholeNumber;
+        float roundedFraction = Math.round(fractionalComponent / gcd) * gcd;
+        return wholeNumber + roundedFraction;
     }
 }

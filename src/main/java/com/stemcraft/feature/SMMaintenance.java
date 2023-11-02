@@ -6,7 +6,7 @@ import org.bukkit.event.player.PlayerLoginEvent.Result;
 import com.stemcraft.STEMCraft;
 import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.SMLocale;
-import com.stemcraft.core.SMMeta;
+import com.stemcraft.core.SMPersistent;
 import com.stemcraft.core.command.SMCommand;
 import com.stemcraft.core.event.SMEvent;
 
@@ -22,7 +22,7 @@ public class SMMaintenance extends SMFeature {
     protected Boolean onEnable() {
         if(STEMCraft.featureEnabled("SMMOTD")) {
             motdFeatureEnabled = true;
-            if(SMMeta.getBool("maintenance", false)) {
+            if(SMPersistent.getBool(this, "maintenance", false)) {
                 SMMOTD.setMOTDOverride(SMLocale.get("MAINTENANCE_MOTD"));
             }
         }
@@ -30,7 +30,7 @@ public class SMMaintenance extends SMFeature {
         SMEvent.register(PlayerLoginEvent.class, ctx -> {
             Player player = ctx.event.getPlayer();
 
-            if (SMMeta.getBool("maintenance", false) && !player.hasPermission(permission)) {
+            if (SMPersistent.getBool(this, "maintenance", false) && !player.hasPermission(permission)) {
                 // Maintenance mode is enabled and player does not have the permission
                 ctx.event.setKickMessage(SMLocale.get(player, "MAINTENANCE_KICK"));
                 ctx.event.setResult(Result.KICK_OTHER);
@@ -48,7 +48,7 @@ public class SMMaintenance extends SMFeature {
                     ctx.checkInArrayLocale(modes, mode, "MAINTENANCE_USAGE");
 
                     if("enable".equals(mode)) {
-                        SMMeta.set("maintenance", true);
+                        SMPersistent.set(this, "maintenance", true);
 
                         STEMCraft.getPlugin().getServer().getOnlinePlayers().forEach(player -> {
                             if (!player.hasPermission(this.permission)) {
@@ -60,7 +60,7 @@ public class SMMaintenance extends SMFeature {
                             SMMOTD.setMOTDOverride(SMLocale.get("MAINTENANCE_MOTD"));
                         }
                     } else {
-                        SMMeta.set("maintenance", false);
+                        SMPersistent.set(this, "maintenance", false);
 
                         if(motdFeatureEnabled) {
                             SMMOTD.clearMOTDOverride();
@@ -68,7 +68,7 @@ public class SMMaintenance extends SMFeature {
                     }
                 }
 
-                String modeString = SMMeta.getBool("maintenance", false) ? "enabled" : "disabled";
+                String modeString = SMPersistent.getBool(this, "maintenance", false) ? "enabled" : "disabled";
                 ctx.returnInfoLocale("MAINTENANCE_SET_TO", "mode", modeString);
             })
             .register();
