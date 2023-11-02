@@ -3,15 +3,20 @@ package com.stemcraft.core;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiFunction;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.command.CommandMap;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.ItemStack;
 import com.stemcraft.STEMCraft;
 import com.stemcraft.core.exception.SMBridgeException;
 import lombok.NonNull;
@@ -22,6 +27,24 @@ import lombok.NonNull;
  * Look up for many methods enabling the plugin to be compatible with later versions of the server.
  */
 public final class SMBridge {
+    /**
+     * A map of string parser providers.
+     */
+    private static Map<String, BiFunction<String, String, String>> parserProviders = new HashMap<>();
+
+    /**
+     * The functional interface for the ItemStack Provider.
+     */
+    @FunctionalInterface
+    interface ItemStackProvider {
+        ItemStack provide(String id, String name, Integer quantity);
+    }
+
+    /**
+     * A map of itemstack providers.
+     */
+    private static Map<String, ItemStackProvider> itemstackProviders = new HashMap<>();
+
     /**
      * Return the server's command map
      * 
@@ -282,5 +305,106 @@ public final class SMBridge {
      */
     public static void openStonecutter(Player player, Location location, Boolean force) {
         openInventory(player, InventoryType.STONECUTTER, "openStonecutter", location, force);
+    }
+
+    /**
+     * Registers a string parse provider with the specified ID.
+     * 
+     * @param id The unique identifier for the provider.
+     * @param provider The provider function to be registered.
+     */
+    public static void registerParserProvider(String id, BiFunction<String, String, String> provider) {
+        parserProviders.put(id, provider);
+    }
+
+    /**
+     * Parses the provided string using all registered providers.
+     * 
+     * @param input The string to be parsed.
+     * @return The parsed string.
+     */
+    public static String parse(String input) {
+        String result = input;
+
+        for (Map.Entry<String, BiFunction<String, String, String>> entry : parserProviders.entrySet()) {
+            String id = entry.getKey();
+            BiFunction<String, String, String> provider = entry.getValue();
+            result = provider.apply(id, result);
+        }
+
+        return result;
+    }
+
+    /**
+     * Registers a new ItemStack provider.
+     * 
+     * @param id The unique identifier for this provider.
+     * @param provider The provider function to be registered.
+     */
+    public static void registerItemStackProvider(String id, ItemStackProvider provider) {
+        itemstackProviders.put(id, provider);
+    }
+
+    /**
+     * Attempts to create a new ItemStack using registered providers.
+     * 
+     * @param name The material name.
+     * @return The created ItemStack or null if none of the providers could create it.
+     */
+    public static ItemStack newItemStack(String name) {
+        return newItemStack(name, 1);
+    }
+
+    /**
+     * Attempts to create a new ItemStack using registered providers.
+     * 
+     * @param name The material name.
+     * @param quantity The quantity of the item.
+     * @return The created ItemStack or null if none of the providers could create it.
+     */
+    public static ItemStack newItemStack(String name, Integer quantity) {
+        String id = "";
+
+        if (name.contains(":")) {
+            String[] parts = name.split(":", 2);
+            id = parts[0];
+            name = parts[1];
+
+            ItemStackProvider provider = itemstackProviders.get(id);
+            if (provider != null) {
+                return provider.provide(id, name, quantity);
+            }
+
+            if (id.equalsIgnoreCase("minecraft")) {
+                return newMinecraftItemStack(name, quantity);
+            }
+
+            return null;
+        }
+
+        for (ItemStackProvider provider : itemstackProviders.values()) {
+            ItemStack result = provider.provide(null, name, quantity);
+            if (result != null) {
+                return result;
+            }
+        }
+
+        return newMinecraftItemStack(name, quantity);
+    }
+
+    /**
+     * Return a Minecraft/Vanilla item stack based on a string.
+     * 
+     * @param name The item name.
+     * @param quantity The quantity required.
+     * @return The item stack or null of failed.
+     */
+    private static ItemStack newMinecraftItemStack(String name, Integer quantity) {
+        Material material = Material.matchMaterial(name);
+        if (material != null) {
+            return new ItemStack(material);
+        } else {
+            return null; // Return null or throw an exception if the material is not recognized.
+        }
     }
 }
