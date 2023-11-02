@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -648,5 +649,20 @@ public class SMCommon {
         }
 
         return false;
+    }
+
+    /**
+     * Covert a set object to a list object.
+     * 
+     * @param set The set object to convert.
+     * @return The converted list object.
+     */
+    public static List<String> setToList(Set<Object> set) {
+        List<String> stringList = new ArrayList<>();
+        for (Object obj : set) {
+            stringList.add(String.valueOf(obj));
+        }
+
+        return stringList;
     }
 }
