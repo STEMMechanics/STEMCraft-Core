@@ -25,6 +25,7 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 
 ### 1.1
 
+-   Tab completion shows options that contain the text instead of starts with
 -   Added `display-version` config option to override MOTD version
 -   Added /toolreset command to clear toolstats data on item
 -   Added values feature for item pricing
