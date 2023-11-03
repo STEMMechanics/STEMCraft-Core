@@ -1,5 +1,8 @@
 package com.stemcraft.feature;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -68,6 +71,17 @@ public class SMItemsAdder extends SMFeature {
                 return getMaterialName(ctx.itemStack);
             } else if ("displayname".equals(option)) {
                 return getMaterialDisplayName(ctx.itemStack);
+            } else if ("list".equals(option)) {
+                List<String> items = new ArrayList<>();
+
+                Set<String> namespaces = CustomStack.getNamespacedIdsInRegistry();
+                for (String item : namespaces) {
+                    if (!item.startsWith("_")) {
+                        items.add(item);
+                    }
+                }
+
+                return items;
             }
 
             return null;
