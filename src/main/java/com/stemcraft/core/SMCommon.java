@@ -10,6 +10,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -658,7 +659,7 @@ public class SMCommon {
      * @param set The set object to convert.
      * @return The converted list object.
      */
-    public static List<String> setToList(Set<Object> set) {
+    public static List<String> setToList(Set<?> set) {
         List<String> stringList = new ArrayList<>();
         for (Object obj : set) {
             stringList.add(String.valueOf(obj));
@@ -686,5 +687,64 @@ public class SMCommon {
      */
     public static String pluralize(String string, int count) {
         return English.plural(string, count);
+    }
+
+    /**
+     * Get the total amount of an item in an inventory.
+     * 
+     * @param inventory The inventory to search.
+     * @param material The material name to count.
+     * @return The total amount of material items in the inventory.
+     */
+    public static Integer totalItemType(Inventory inventory, String material) {
+        Integer count = 0;
+        for (ItemStack itemStack : inventory.getContents()) {
+            if (itemStack != null && SMBridge.getMaterialName(itemStack).equals(material)) {
+                count += itemStack.getAmount();
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Return the previous item in a String list.
+     * 
+     * @param list The list itself.
+     * @param currentItem The item after the item to return.
+     * @return The item before currentItem or null.
+     */
+    public static String getPrevListItem(List<String> list, String currentItem) {
+        // Find the index of the current item
+        int index = list.indexOf(currentItem);
+
+        // Check if the current item is in the list and not at the end
+        if (index >= 1 && index < list.size() - 1) {
+            // Return the next item in the list
+            return list.get(index - 1);
+        }
+
+        // Return null if the current item is at the end of the list or not found
+        return null;
+    }
+
+    /**
+     * Return the next item in a String list.
+     * 
+     * @param list The list itself.
+     * @param currentItem The item before the item to return.
+     * @return The item after currentItem or null.
+     */
+    public static String getNextListItem(List<String> list, String currentItem) {
+        // Find the index of the current item
+        int index = list.indexOf(currentItem);
+
+        // Check if the current item is in the list and not at the end
+        if (index >= 0 && index < list.size() - 1) {
+            // Return the next item in the list
+            return list.get(index + 1);
+        }
+
+        // Return null if the current item is at the end of the list or not found
+        return null;
     }
 }
