@@ -574,7 +574,7 @@ public final class SMBridge {
     public static ItemStack newMinecraftItemStack(String name, Integer quantity) {
         Material material = Material.matchMaterial(name);
         if (material != null) {
-            return new ItemStack(material);
+            return new ItemStack(material, quantity);
         } else {
             return null; // Return null or throw an exception if the material is not recognized.
         }
