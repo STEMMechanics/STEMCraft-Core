@@ -2,6 +2,7 @@ package com.stemcraft.feature;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.bukkit.Material;
@@ -33,7 +34,7 @@ public class SMValue extends SMFeature {
         // Sorting the denominationsMap based on value
         denominationsMap = denominationsMap.entrySet().stream()
             .sorted(Map.Entry.<String, Float>comparingByValue().reversed())
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, HashMap::new));
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
 
         new SMCommand("value")
             .permission("stemcraft.command.value")
@@ -295,5 +296,14 @@ public class SMValue extends SMFeature {
         }
 
         return bestResult;
+    }
+
+    /**
+     * Return a list of denomination material names.
+     * 
+     * @return A list of material names.
+     */
+    public static List<String> getDenominations() {
+        return SMCommon.setToList(denominationsMap.keySet());
     }
 }
