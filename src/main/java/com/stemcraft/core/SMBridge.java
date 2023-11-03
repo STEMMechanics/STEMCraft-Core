@@ -484,7 +484,7 @@ public final class SMBridge {
             }
         }
 
-        return "minecraft:" + itemStack.getType().name();
+        return "minecraft:" + itemStack.getType().name().toLowerCase();
     }
 
     /**
@@ -494,6 +494,10 @@ public final class SMBridge {
      * @return The material display name or null.
      */
     public static String getMaterialDisplayName(ItemStack itemStack) {
+        if (itemStack == null) {
+            return "unknown";
+        }
+
         // Check Providers
         for (ItemStackProvider provider : itemstackProviders.values()) {
             String result =
@@ -547,14 +551,14 @@ public final class SMBridge {
 
         for (ItemStackProvider globalProvider : itemstackGlobalProviders.values()) {
             List<String> result =
-                (List<String>) globalProvider.provide("name", new ItemStackProviderContext(""));
+                (List<String>) globalProvider.provide("list", new ItemStackProviderContext(""));
             if (result != null) {
                 materials.addAll(result);
             }
         }
 
         for (Material material : Material.values()) {
-            materials.add("minecraft:" + material.name());
+            materials.add("minecraft:" + material.name().toLowerCase());
         }
 
         return materials;
@@ -567,7 +571,7 @@ public final class SMBridge {
      * @param quantity The quantity required.
      * @return The item stack or null of failed.
      */
-    private static ItemStack newMinecraftItemStack(String name, Integer quantity) {
+    public static ItemStack newMinecraftItemStack(String name, Integer quantity) {
         Material material = Material.matchMaterial(name);
         if (material != null) {
             return new ItemStack(material);
