@@ -1,5 +1,6 @@
 package com.stemcraft.core;
 
+import org.atteo.evo.inflector.English;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -652,7 +653,7 @@ public class SMCommon {
     }
 
     /**
-     * Covert a set object to a list object.
+     * Convert a set object to a list object.
      * 
      * @param set The set object to convert.
      * @return The converted list object.
@@ -664,5 +665,26 @@ public class SMCommon {
         }
 
         return stringList;
+    }
+
+    /**
+     * Pluralize a string
+     * 
+     * @param string The string to pluralize.
+     * @return The pluralized result.
+     */
+    public static String pluralize(String string) {
+        return English.plural(string);
+    }
+
+    /**
+     * Pluralize a string
+     * 
+     * @param string The string to pluralize.
+     * @param count The number of items in the plural.
+     * @return The pluralized result.
+     */
+    public static String pluralize(String string, int count) {
+        return English.plural(string, count);
     }
 }
