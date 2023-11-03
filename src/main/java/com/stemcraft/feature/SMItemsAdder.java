@@ -117,7 +117,11 @@ public class SMItemsAdder extends SMFeature {
      */
     public static String getMaterialName(ItemStack item) {
         CustomStack customStack = CustomStack.byItemStack(item);
-        return customStack.getNamespace();
+        if (customStack != null) {
+            return customStack.getNamespace();
+        }
+
+        return null;
     }
 
     /**
@@ -128,7 +132,11 @@ public class SMItemsAdder extends SMFeature {
      */
     public static String getMaterialDisplayName(ItemStack item) {
         CustomStack customStack = CustomStack.byItemStack(item);
-        return customStack.getDisplayName();
+        if (customStack != null) {
+            return customStack.getDisplayName();
+        }
+
+        return null;
     }
 
     /**
