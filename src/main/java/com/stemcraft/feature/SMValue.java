@@ -7,6 +7,7 @@ import java.util.Map;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import com.stemcraft.core.SMBridge;
+import com.stemcraft.core.SMCommon;
 import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.command.SMCommand;
 import com.stemcraft.core.config.SMConfig;
@@ -38,23 +39,31 @@ public class SMValue extends SMFeature {
             .permission("stemcraft.command.value")
             .tabComplete("{material}")
             .action(ctx -> {
-                ItemStack item = SMBridge.newItemStack(ctx.args[0]);
+                String rawName = String.join(" ", ctx.args).toLowerCase();
+                ItemStack item = SMBridge.newItemStack(rawName);
                 if (item == null) {
-                    ctx.returnErrorLocale("VALUE_ITEM_NOT_FOUND");
+                    rawName = rawName.replace(" ", "_");
+                    item = SMBridge.newItemStack(rawName);
+                    if (item == null) {
+                        ctx.returnErrorLocale("VALUE_ITEM_NOT_FOUND");
+                    }
                 }
 
-                Float value = getValue(ctx.args[0]);
-                if (value <= 0f) {
+                String itemName = SMBridge.getMaterialName(item);
+                Float itemValue = getValue(itemName);
+                if (itemValue <= 0f) {
                     ctx.returnErrorLocale("VALUE_ITEM_NO_VALUE");
                 }
 
-                Result result = calculateDenominations(value);
+                Result result = calculateDenominations(itemValue, itemName);
                 if (result.quantity == 0 || result.denominations.size() == 0) {
                     ctx.returnErrorLocale("VALUE_ITEM_NO_VALUE");
                 }
 
                 String valueString =
-                    result.quantity + " " + SMBridge.getMaterialDisplayName(SMBridge.newItemStack(ctx.args[0]))
+                    result.quantity + " "
+                        + SMCommon.pluralize(SMBridge.getMaterialDisplayName(SMBridge.newItemStack(itemName)),
+                            result.quantity)
                         + " is worth ";
 
                 int index = 0;
@@ -64,7 +73,7 @@ public class SMValue extends SMFeature {
                     int amount = result.denominations.get(materialName);
                     String displayName = SMBridge.getMaterialDisplayName(SMBridge.newItemStack(materialName));
 
-                    valueString += amount + " " + displayName;
+                    valueString += amount + " " + SMCommon.pluralize(displayName, amount);
 
                     if (index < size - 2) {
                         valueString += ", ";
@@ -99,17 +108,35 @@ public class SMValue extends SMFeature {
      * @return The value of the item.
      */
     public static Float getValue(String item) {
-        String path = "values";
+        Float value = getValue(item, "values");
+        if (value != null) {
+            return value;
+        }
 
+        value = getValue(item, "denominations");
+        if (value != null) {
+            return value;
+        }
+
+        return 0f;
+    }
+
+    private static Float getValue(String item, String path) {
+        item = item.toLowerCase();
         if (valueConfig.contains(path + "." + item)) {
             return valueConfig.getFloat(path + "." + item);
         } else if (!item.contains(":")) {
             if (valueConfig.contains(path + ".minecraft:" + item)) {
                 return valueConfig.getFloat(path + ".minecraft:" + item);
             }
+        } else if (item.startsWith("minecraft:")) {
+            String minecraftItem = item.substring(10);
+            if (valueConfig.contains(path + "." + minecraftItem)) {
+                return valueConfig.getFloat(path + "." + minecraftItem);
+            }
         }
 
-        return 0f;
+        return null;
     }
 
     /**
@@ -134,16 +161,31 @@ public class SMValue extends SMFeature {
     /**
      * Calculate the denominations for a given purchasing item value.
      * 
-     * @param purchasingItemValue The value of the purchasing item.
+     * @param value The value of the purchasing item.
      * @return The result with the denominations.
      */
-    public static Result calculateDenominations(float purchasingItemValue) {
+    public static Result calculateDenominations(float value) {
+        return calculateDenominations(value, null);
+    }
+
+    /**
+     * Calculate the denominations for a given purchasing item value.
+     * 
+     * @param value The value of the purchasing item.
+     * @param ignore The denomination name that should be ignored or null.
+     * @return The result with the denominations.
+     */
+    public static Result calculateDenominations(float value, String ignore) {
         List<Map.Entry<String, Float>> sortedItems = new ArrayList<>(denominationsMap.entrySet());
+
+        if (ignore != null) {
+            sortedItems.removeIf(entry -> entry.getKey().equals(ignore));
+        }
 
         sortedItems.sort(Map.Entry.<String, Float>comparingByValue());
 
         int purchasingItemQty = 1;
-        float targetValue = purchasingItemQty * purchasingItemValue;
+        float targetValue = purchasingItemQty * value;
         float bestDifference = Float.MAX_VALUE;
 
         sortedItems.sort(Map.Entry.<String, Float>comparingByValue().reversed());
@@ -176,7 +218,7 @@ public class SMValue extends SMFeature {
 
             if (bestDifference != 0.0f) {
                 purchasingItemQty++;
-                targetValue = purchasingItemQty * purchasingItemValue;
+                targetValue = purchasingItemQty * value;
             }
         }
 
