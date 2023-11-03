@@ -64,8 +64,10 @@ public class SMItemsAdder extends SMFeature {
         SMBridge.registerItemStackGlobalProvider("itemsadder", (option, ctx) -> {
             if ("get".equals(option)) {
                 return newItemStack(ctx.id + ":" + ctx.name, ctx.quantity);
-            } else if ("identify".equals(option)) {
+            } else if ("name".equals(option)) {
                 return getMaterialName(ctx.itemStack);
+            } else if ("displayname".equals(option)) {
+                return getMaterialDisplayName(ctx.itemStack);
             }
 
             return null;
@@ -116,6 +118,17 @@ public class SMItemsAdder extends SMFeature {
     public static String getMaterialName(ItemStack item) {
         CustomStack customStack = CustomStack.byItemStack(item);
         return customStack.getNamespace();
+    }
+
+    /**
+     * Get the material name from an ItemStack.
+     * 
+     * @param item The itemstack to identify.
+     * @return The material name or null.
+     */
+    public static String getMaterialDisplayName(ItemStack item) {
+        CustomStack customStack = CustomStack.byItemStack(item);
+        return customStack.getDisplayName();
     }
 
     /**

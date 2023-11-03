@@ -16,6 +16,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import com.stemcraft.STEMCraft;
 import com.stemcraft.core.exception.SMBridgeException;
 import lombok.NonNull;
@@ -463,7 +464,7 @@ public final class SMBridge {
     public static String getMaterialName(ItemStack itemStack) {
         for (ItemStackProvider provider : itemstackProviders.values()) {
             String result =
-                (String) provider.provide("identify", new ItemStackProviderContext("", itemStack));
+                (String) provider.provide("name", new ItemStackProviderContext("", itemStack));
             if (result != null) {
                 return result;
             }
@@ -471,13 +472,54 @@ public final class SMBridge {
 
         for (ItemStackProvider globalProvider : itemstackGlobalProviders.values()) {
             String result =
-                (String) globalProvider.provide("identify", new ItemStackProviderContext("", itemStack));
+                (String) globalProvider.provide("name", new ItemStackProviderContext("", itemStack));
             if (result != null) {
                 return result;
             }
         }
 
         return "minecraft:" + itemStack.getType().name();
+    }
+
+    /**
+     * Returns the Material Display Name.
+     * 
+     * @param name The itemstack to identify.
+     * @return The material display name or null.
+     */
+    public static String getMaterialDisplayName(ItemStack itemStack) {
+        // Check Providers
+        for (ItemStackProvider provider : itemstackProviders.values()) {
+            String result =
+                (String) provider.provide("displayname", new ItemStackProviderContext("", itemStack));
+            if (result != null) {
+                return result;
+            }
+        }
+
+        // Check Global Providers
+        for (ItemStackProvider globalProvider : itemstackGlobalProviders.values()) {
+            String result =
+                (String) globalProvider.provide("displayname", new ItemStackProviderContext("", itemStack));
+            if (result != null) {
+                return result;
+            }
+        }
+
+        // Check Item Meta
+        if (itemStack.hasItemMeta()) {
+            ItemMeta itemMeta = itemStack.getItemMeta();
+            if (itemMeta.hasDisplayName()) {
+                return itemMeta.getDisplayName();
+            }
+        }
+
+        // Generate Manually
+        String displayName = itemStack.getType().name();
+        displayName = displayName.replace("_", " ");
+        displayName = SMCommon.beautifyCapitalize(displayName);
+
+        return displayName;
     }
 
     /**
