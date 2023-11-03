@@ -1,6 +1,7 @@
 package com.stemcraft.core;
 
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import org.sqlite.SQLiteDataSource;
 import com.stemcraft.STEMCraft;
 import com.stemcraft.core.exception.SMException;
@@ -9,9 +10,11 @@ import com.stemcraft.core.interfaces.SMSQLConsumer;
 public class SMDatabase {
     private static Connection connection = null;
     private static final String DATABASE_NAME = "database.db";
+    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     /**
      * Return if connected to the database.
+     * 
      * @return
      */
     public static Boolean isConnected() {
@@ -22,15 +25,16 @@ public class SMDatabase {
      * Connect to the database (if not already connected).
      */
     public static Boolean connect() {
-        if(connection != null) {
+        if (connection != null) {
             return true;
         }
 
         try {
             SQLiteDataSource dataSource = new SQLiteDataSource();
-            dataSource.setUrl("jdbc:sqlite:" + STEMCraft.getPlugin().getDataFolder().getAbsolutePath() + "/" + SMDatabase.DATABASE_NAME);
+            dataSource.setUrl("jdbc:sqlite:" + STEMCraft.getPlugin().getDataFolder().getAbsolutePath() + "/"
+                + SMDatabase.DATABASE_NAME);
             connection = dataSource.getConnection();
-            
+
             initalize();
             return true;
         } catch (SQLException e) {
@@ -59,7 +63,8 @@ public class SMDatabase {
      */
     private static void initalize() {
         String tableName = "migration";
-        String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableName + " (id INTEGER PRIMARY KEY AUTOINCREMENT, migration TEXT)";
+        String createTableSQL =
+            "CREATE TABLE IF NOT EXISTS " + tableName + " (id INTEGER PRIMARY KEY AUTOINCREMENT, migration TEXT)";
 
         try (Statement statement = SMDatabase.connection.createStatement()) {
             statement.execute(createTableSQL);
@@ -70,11 +75,12 @@ public class SMDatabase {
 
     /**
      * Prepare a database statement.
+     * 
      * @param statement
      * @return
      */
     public static PreparedStatement prepareStatement(String statement) {
-        if(connection != null) {
+        if (connection != null) {
             try {
                 return connection.prepareStatement(statement);
             } catch (SQLException e) {
@@ -87,11 +93,12 @@ public class SMDatabase {
 
     /**
      * Run a database migration if it is not yet executed in the database.
+     * 
      * @param name
      * @param callback
      */
     public static void runMigration(String name, SMSQLConsumer callback) throws SMException {
-        if(!isConnected()) {
+        if (!isConnected()) {
             throw new SMException("Database is not connected");
         }
 
@@ -100,17 +107,17 @@ public class SMDatabase {
             statement.setString(1, name);
             ResultSet resultSet = statement.executeQuery();
 
-            if(!resultSet.next()) {
+            if (!resultSet.next()) {
                 resultSet.close();
                 statement.close();
 
                 STEMCraft.info("Running migration " + name);
                 try {
                     callback.accept();
-                } catch(SQLException e) {
+                } catch (SQLException e) {
                     e.printStackTrace();
                 }
-                
+
                 statement = connection.prepareStatement("INSERT INTO migration (migration) VALUES (?)");
                 statement.setString(1, name);
                 statement.executeUpdate();
@@ -123,5 +130,5 @@ public class SMDatabase {
         }
     }
 
-    
+
 }
