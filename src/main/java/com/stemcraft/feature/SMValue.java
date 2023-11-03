@@ -5,7 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+import com.stemcraft.core.SMBridge;
 import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.command.SMCommand;
 import com.stemcraft.core.config.SMConfig;
 import com.stemcraft.core.config.SMConfigFile;
 import java.util.stream.Collectors;
@@ -23,12 +26,58 @@ public class SMValue extends SMFeature {
     @Override
     protected Boolean onEnable() {
         valueConfig = SMConfig.getOrLoadConfig("values.yml");
+        denominationsMap = null;
         denominationsMap = valueConfig.getFloatMap("denominations");
 
         // Sorting the denominationsMap based on value
         denominationsMap = denominationsMap.entrySet().stream()
             .sorted(Map.Entry.<String, Float>comparingByValue().reversed())
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, HashMap::new));
+
+        new SMCommand("value")
+            .permission("stemcraft.command.value")
+            .tabComplete("{material}")
+            .action(ctx -> {
+                ItemStack item = SMBridge.newItemStack(ctx.args[0]);
+                if (item == null) {
+                    ctx.returnErrorLocale("VALUE_ITEM_NOT_FOUND");
+                }
+
+                Float value = getValue(ctx.args[0]);
+                if (value <= 0f) {
+                    ctx.returnErrorLocale("VALUE_ITEM_NO_VALUE");
+                }
+
+                Result result = calculateDenominations(value);
+                if (result.quantity == 0 || result.denominations.size() == 0) {
+                    ctx.returnErrorLocale("VALUE_ITEM_NO_VALUE");
+                }
+
+                String valueString =
+                    result.quantity + " " + SMBridge.getMaterialDisplayName(SMBridge.newItemStack(ctx.args[0]))
+                        + " is worth ";
+
+                int index = 0;
+                int size = result.denominations.size();
+
+                for (String materialName : result.denominations.keySet()) {
+                    int amount = result.denominations.get(materialName);
+                    String displayName = SMBridge.getMaterialDisplayName(SMBridge.newItemStack(materialName));
+
+                    valueString += amount + " " + displayName;
+
+                    if (index < size - 2) {
+                        valueString += ", ";
+                    } else if (index == size - 2) {
+                        valueString += " and ";
+                    }
+
+                    index++;
+                }
+
+                ctx.returnInfo(valueString);
+            })
+            .register();
 
         return true;
     }
@@ -68,24 +117,17 @@ public class SMValue extends SMFeature {
      */
     public static class Result {
         public HashMap<String, Integer> denominations;
-        public int purchasingItemQuantity;
-        public float finalValue;
+        public int quantity;
 
         public Result() {
-            this.purchasingItemQuantity = 0;
+            this.quantity = 0;
             this.denominations = new HashMap<>();
         }
 
         // Constructor
-        public Result(int purchasingItemQuantity, HashMap<String, Integer> denominations) {
-            this.purchasingItemQuantity = purchasingItemQuantity;
+        public Result(int quantity, HashMap<String, Integer> denominations) {
+            this.quantity = quantity;
             this.denominations = denominations;
-        }
-
-        @Override
-        public String toString() {
-            return "Purchasing Item Quantity: " + purchasingItemQuantity + ", Denominations: " + denominations
-                + ", Final Value: $" + finalValue;
         }
     }
 
@@ -107,7 +149,6 @@ public class SMValue extends SMFeature {
         sortedItems.sort(Map.Entry.<String, Float>comparingByValue().reversed());
 
         HashMap<String, Integer> bestSolution = new HashMap<>();
-        float bestValue = 0.0f;
 
         while (bestDifference != 0.0f && purchasingItemQty < 64) {
             for (Map.Entry<String, Float> entry1 : sortedItems) {
@@ -122,7 +163,6 @@ public class SMValue extends SMFeature {
 
                             if (totalValue <= targetValue && Math.abs(totalValue - targetValue) < bestDifference) {
                                 bestDifference = Math.abs(totalValue - targetValue);
-                                bestValue = totalValue;
                                 bestSolution.clear();
                                 if (qty1 > 0)
                                     bestSolution.put(entry1.getKey(), qty1);
@@ -142,8 +182,7 @@ public class SMValue extends SMFeature {
 
         Result result = new Result();
         result.denominations = bestSolution;
-        result.purchasingItemQuantity = purchasingItemQty;
-        result.finalValue = bestValue;
+        result.quantity = purchasingItemQty;
         return result;
     }
 
@@ -173,7 +212,7 @@ public class SMValue extends SMFeature {
                     float difference = adjustedTargetValue - totalValue;
 
                     if (difference < closestDifference && difference >= 0) {
-                        bestResult.purchasingItemQuantity = purchaseQty;
+                        bestResult.quantity = purchaseQty;
                         bestResult.denominations.clear();
                         bestResult.denominations.put(item, itemQty);
 
