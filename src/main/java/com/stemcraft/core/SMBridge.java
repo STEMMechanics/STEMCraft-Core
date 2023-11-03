@@ -455,6 +455,32 @@ public final class SMBridge {
     }
 
     /**
+     * Attempts to identify the material of an ItemStack.
+     * 
+     * @param name The itemstack to identify.
+     * @return The material name or null.
+     */
+    public static String getMaterialName(ItemStack itemStack) {
+        for (ItemStackProvider provider : itemstackProviders.values()) {
+            String result =
+                (String) provider.provide("identify", new ItemStackProviderContext("", itemStack));
+            if (result != null) {
+                return result;
+            }
+        }
+
+        for (ItemStackProvider globalProvider : itemstackGlobalProviders.values()) {
+            String result =
+                (String) globalProvider.provide("identify", new ItemStackProviderContext("", itemStack));
+            if (result != null) {
+                return result;
+            }
+        }
+
+        return "minecraft:" + itemStack.getType().name();
+    }
+
+    /**
      * Return a Minecraft/Vanilla item stack based on a string.
      * 
      * @param name The item name.
