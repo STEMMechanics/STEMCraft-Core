@@ -38,11 +38,35 @@ public final class SMBridge {
      */
     private static Map<String, StringParserProvider> parserProviders = new HashMap<>();
 
+    public static class ItemStackProviderContext {
+        public String id = null;
+        public String name = null;
+        public Integer quantity = null;
+        public ItemStack itemStack = null;
+
+        ItemStackProviderContext(String id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        ItemStackProviderContext(String id, String name, Integer quantity) {
+            this.id = id;
+            this.name = name;
+            this.quantity = quantity;
+        }
+
+        ItemStackProviderContext(String id, ItemStack itemStack) {
+            this.id = id;
+            this.itemStack = itemStack;
+        }
+
+    }
+
     /**
      * The functional interface for the ItemStack Provider.
      */
     public @FunctionalInterface interface ItemStackProvider {
-        ItemStack provide(String id, String name, Integer quantity);
+        Object provide(String option, ItemStackProviderContext context);
     }
 
     /**
@@ -397,11 +421,12 @@ public final class SMBridge {
 
             ItemStackProvider provider = itemstackProviders.get(id);
             if (provider != null) {
-                return provider.provide(id, name, quantity);
+                return (ItemStack) provider.provide("get", new ItemStackProviderContext(id, name, quantity));
             }
 
             for (ItemStackProvider globalProvider : itemstackGlobalProviders.values()) {
-                ItemStack result = globalProvider.provide(null, name, quantity);
+                ItemStack result =
+                    (ItemStack) globalProvider.provide("get", new ItemStackProviderContext(id, name, quantity));
                 if (result != null) {
                     return result;
                 }
@@ -410,14 +435,16 @@ public final class SMBridge {
             return null;
         } else {
             for (ItemStackProvider provider : itemstackProviders.values()) {
-                ItemStack result = provider.provide(null, name, quantity);
+                ItemStack result =
+                    (ItemStack) provider.provide("get", new ItemStackProviderContext("", name, quantity));
                 if (result != null) {
                     return result;
                 }
             }
 
             for (ItemStackProvider globalProvider : itemstackGlobalProviders.values()) {
-                ItemStack result = globalProvider.provide(null, name, quantity);
+                ItemStack result =
+                    (ItemStack) globalProvider.provide("get", new ItemStackProviderContext("", name, quantity));
                 if (result != null) {
                     return result;
                 }
