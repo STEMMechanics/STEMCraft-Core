@@ -156,6 +156,17 @@ public class SMValue extends SMFeature {
             this.quantity = quantity;
             this.denominations = denominations;
         }
+
+        public List<ItemStack> toItemStacks() {
+            List<ItemStack> items = new ArrayList<>();
+
+            for (Map.Entry<String, Integer> entry : denominations.entrySet()) {
+                ItemStack itemStack = SMBridge.newItemStack(entry.getKey(), entry.getValue());
+                items.add(itemStack);
+            }
+
+            return items;
+        }
     }
 
     /**
@@ -235,9 +246,24 @@ public class SMValue extends SMFeature {
      * @return The result with the denomination.
      */
     public static Result calculateSingleDenomination(float targetValue) {
+        return calculateSingleDenomination(targetValue, null);
+    }
+
+    /**
+     * Calculate the single denomination for a given target value.
+     * 
+     * @param targetValue The target value to find the denomination for.
+     * @param ignore The denomination name that should be ignored or null.
+     * @return The result with the denomination.
+     */
+    public static Result calculateSingleDenomination(float targetValue, String ignore) {
         List<String> sortedItems = denominationsMap.keySet().stream()
             .sorted((k1, k2) -> Float.compare(denominationsMap.get(k2), denominationsMap.get(k1)))
             .collect(Collectors.toList());
+
+        if (ignore != null) {
+            sortedItems.remove(ignore);
+        }
 
         Result bestResult = new Result();
         float closestDifference = Float.MAX_VALUE;
