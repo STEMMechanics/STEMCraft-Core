@@ -3,7 +3,9 @@ package com.stemcraft.core;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Bukkit;
@@ -44,6 +46,10 @@ public final class SMBridge {
         public String name = null;
         public Integer quantity = null;
         public ItemStack itemStack = null;
+
+        ItemStackProviderContext(String id) {
+            this.id = id;
+        }
 
         ItemStackProviderContext(String id, String name) {
             this.id = id;
@@ -520,6 +526,38 @@ public final class SMBridge {
         displayName = SMCommon.beautifyCapitalize(displayName);
 
         return displayName;
+    }
+
+    /**
+     * Get a listing of all known materials.
+     * 
+     * @return A list of all the known materials.
+     */
+    @SuppressWarnings("unchecked")
+    public static List<String> getMaterialList() {
+        List<String> materials = new ArrayList<>();
+
+        for (ItemStackProvider provider : itemstackProviders.values()) {
+            List<String> result =
+                (List<String>) provider.provide("list", new ItemStackProviderContext(""));
+            if (result != null) {
+                materials.addAll(result);
+            }
+        }
+
+        for (ItemStackProvider globalProvider : itemstackGlobalProviders.values()) {
+            List<String> result =
+                (List<String>) globalProvider.provide("name", new ItemStackProviderContext(""));
+            if (result != null) {
+                materials.addAll(result);
+            }
+        }
+
+        for (Material material : Material.values()) {
+            materials.add("minecraft:" + material.name());
+        }
+
+        return materials;
     }
 
     /**

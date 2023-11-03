@@ -11,11 +11,13 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import com.stemcraft.core.SMBridge;
 import com.stemcraft.core.SMCommon;
 import com.stemcraft.core.SMDatabase;
 import com.stemcraft.core.SMDebugger;
@@ -128,6 +130,10 @@ public class STEMCraft extends JavaPlugin implements Listener {
             });
 
             return names;
+        });
+
+        SMTabComplete.register("material", () -> {
+            return SMBridge.getMaterialList();
         });
 
         // Enable features
