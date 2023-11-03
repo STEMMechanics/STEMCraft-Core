@@ -132,7 +132,7 @@ public class SMItemsAdder extends SMFeature {
     public static String getMaterialName(ItemStack item) {
         CustomStack customStack = CustomStack.byItemStack(item);
         if (customStack != null) {
-            return customStack.getNamespace();
+            return customStack.getNamespacedID();
         }
 
         return null;
