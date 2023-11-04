@@ -179,11 +179,23 @@ public class SMCommon {
      * Find the first or random safe location within the range from the specified location.
      * 
      * @param location
-     * @param range
-     * @param random
+     * @param rangeMax
+     * @param randomMax
      * @return
      */
-    public static Location findSafeLocation(Location location, int range, boolean random) {
+    public static Location findSafeLocation(Location location, int rangeMax, boolean random) {
+        return findSafeLocation(location, 0, rangeMax, random);
+    }
+
+    /**
+     * Find the first or random safe location within the range from the specified location.
+     * 
+     * @param location
+     * @param rangeMin
+     * @param randomMax
+     * @return
+     */
+    public static Location findSafeLocation(Location location, int rangeMin, int rangeMax, boolean random) {
         World world = location.getWorld();
         int x = location.getBlockX();
         int y = location.getBlockY();
@@ -191,9 +203,14 @@ public class SMCommon {
 
         List<Location> safeLocations = new ArrayList<>();
 
-        for (int i = -range; i <= range; i++) {
-            for (int j = -range; j <= range; j++) {
-                for (int k = -range; k <= range; k++) {
+        for (int i = -rangeMax; i <= rangeMax; i++) {
+            for (int j = -rangeMax; j <= rangeMax; j++) {
+                for (int k = -rangeMax; k <= rangeMax; k++) {
+                    // Skip iterations outside the minimum range
+                    if (Math.abs(i) < rangeMin && Math.abs(j) < rangeMin && Math.abs(k) < rangeMin) {
+                        continue;
+                    }
+
                     Location checkLocation = new Location(world, x + i, y + j, z + k);
                     if (isSafeLocation(checkLocation)) {
                         if (!random) {
@@ -746,5 +763,79 @@ public class SMCommon {
 
         // Return null if the current item is at the end of the list or not found
         return null;
+    }
+
+    /**
+     * Return a list of players within a distance from a location.
+     * 
+     * @param location The starting location.
+     * @param distance The distance up to to check for players.
+     * @return A player list.
+     */
+    public static List<Player> getPlayersNearLocation(Location location, int distance) {
+        List<Player> nearbyPlayers = new ArrayList<>();
+        for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+            // Using distanceSquared for performance, as it avoids the sqrt operation
+            if (location.distanceSquared(player.getLocation()) <= distance * distance) {
+                nearbyPlayers.add(player);
+            }
+        }
+        return nearbyPlayers;
+    }
+
+    /**
+     * Converts a YAW value to a compass direction.
+     * 
+     * @param yaw The yaw value to convert.
+     * @return The compass direction.
+     */
+    public static String getCompassDirection(float yaw) {
+        double rotation = (yaw - 90) % 360;
+        if (rotation < 0) {
+            rotation += 360.0;
+        }
+
+        if (0 <= rotation && rotation < 22.5 || 337.5 <= rotation && rotation < 360) {
+            return "W"; // West
+        } else if (22.5 <= rotation && rotation < 67.5) {
+            return "NW"; // Northwest
+        } else if (67.5 <= rotation && rotation < 112.5) {
+            return "N"; // North
+        } else if (112.5 <= rotation && rotation < 157.5) {
+            return "NE"; // Northeast
+        } else if (157.5 <= rotation && rotation < 202.5) {
+            return "E"; // East
+        } else if (202.5 <= rotation && rotation < 247.5) {
+            return "SE"; // Southeast
+        } else if (247.5 <= rotation && rotation < 292.5) {
+            return "S"; // South
+        } else if (292.5 <= rotation && rotation < 337.5) {
+            return "SW"; // Southwest
+        }
+        return ""; // This should never happen
+    }
+
+    /**
+     * Convert a world time to a real time.
+     * 
+     * @param world The world to convert.
+     * @return The converted time.
+     */
+    public static String convertWorldToRealTime(World world) {
+        long time = world.getTime();
+
+        // Adjust the time to start at 6:00 AM instead of midnight
+        long adjustedTime = (time + 6000) % 24000;
+
+        // Convert the adjusted time to hours and minutes
+        int hours = (int) (adjustedTime / 1000);
+        int minutes = (int) ((adjustedTime % 1000) / 16.6667);
+
+        // Convert to 12-hour time format with AM/PM
+        String am_pm = (hours < 6 || hours >= 18) ? "AM" : "PM";
+        hours = hours % 12;
+        hours = (hours == 0) ? 12 : hours; // Convert hour 0 to 12
+
+        return String.format("%d:%02d %s", hours, minutes, am_pm);
     }
 }
