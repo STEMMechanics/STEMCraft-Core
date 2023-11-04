@@ -204,27 +204,28 @@ public class SMCommon {
 
         List<Location> safeLocations = new ArrayList<>();
 
-        for (int i = -rangeMax; i <= rangeMax; i++) {
-            for (int j = -rangeMax; j <= rangeMax; j++) {
-                for (int k = -rangeMax; k <= rangeMax; k++) {
-                    // Skip iterations outside the minimum range
-                    if (Math.abs(i) < rangeMin && Math.abs(j) < rangeMin && Math.abs(k) < rangeMin) {
-                        continue;
-                    }
-
-                    Location checkLocation = new Location(world, x + i, y + j, z + k);
-                    if (isSafeLocation(checkLocation)) {
-                        if (!random) {
-                            return checkLocation;
+        for (int distance = rangeMin; distance <= rangeMax; distance++) {
+            for (int i = -distance; i <= distance; i++) {
+                for (int j = -distance; j <= distance; j++) {
+                    for (int k = -distance; k <= distance; k++) {
+                        // Skip iterations outside the shell of the current distance
+                        if (Math.abs(i) < distance && Math.abs(j) < distance && Math.abs(k) < distance) {
+                            continue;
                         }
 
-                        safeLocations.add(checkLocation);
+                        Location checkLocation = new Location(world, x + i, y + j, z + k);
+                        if (isSafeLocation(checkLocation)) {
+                            if (!random) {
+                                return checkLocation;
+                            }
+                            safeLocations.add(checkLocation);
+                        }
                     }
                 }
             }
         }
 
-        if (!safeLocations.isEmpty()) {
+        if (!safeLocations.isEmpty() && random) {
             Random randomLoc = new Random();
             int randomIndex = randomLoc.nextInt(safeLocations.size());
             return safeLocations.get(randomIndex);
