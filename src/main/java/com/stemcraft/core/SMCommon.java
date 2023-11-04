@@ -838,4 +838,46 @@ public class SMCommon {
 
         return String.format("%d:%02d %s", hours, minutes, am_pm);
     }
+
+    /**
+     * Convert seconds to a relative date string
+     * 
+     * @param totalSeconds
+     * @return
+     */
+    public static String convertSecondsToRelative(long totalSeconds) {
+        long days = totalSeconds / 86400;
+        totalSeconds %= 86400;
+        long hours = totalSeconds / 3600;
+        totalSeconds %= 3600;
+        long minutes = totalSeconds / 60;
+        totalSeconds %= 60;
+        long seconds = totalSeconds;
+
+        StringBuilder relativeTime = new StringBuilder();
+        if (days > 0) {
+            relativeTime.append(days).append(" day");
+            if (days > 1)
+                relativeTime.append("s");
+            relativeTime.append(", ");
+        }
+        if (hours > 0) {
+            relativeTime.append(hours).append(" hour");
+            if (hours > 1)
+                relativeTime.append("s");
+            relativeTime.append(", ");
+        }
+        if (minutes > 0) {
+            relativeTime.append(minutes).append(" minute");
+            if (minutes > 1)
+                relativeTime.append("s");
+            relativeTime.append(", ");
+        }
+        relativeTime.append(seconds).append(" second");
+        if (seconds != 1)
+            relativeTime.append("s");
+
+        return relativeTime.toString();
+    }
+
 }
