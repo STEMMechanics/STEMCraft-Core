@@ -258,6 +258,18 @@ public class SMValue extends SMFeature {
      * @return The result with the denomination.
      */
     public static Result calculateSingleDenomination(float targetValue, String ignore) {
+        return calculateSingleDenomination(targetValue, ignore, MAX_STACK_SIZE);
+    }
+
+    /**
+     * Calculate the single denomination for a given target value.
+     * 
+     * @param targetValue The target value to find the denomination for.
+     * @param ignore The denomination name that should be ignored or null.
+     * @return The result with the denomination.
+     */
+
+    public static Result calculateSingleDenomination(float targetValue, String ignore, Integer maxStack) {
         List<String> sortedItems = denominationsMap.keySet().stream()
             .sorted((k1, k2) -> Float.compare(denominationsMap.get(k2), denominationsMap.get(k1)))
             .collect(Collectors.toList());
@@ -269,7 +281,7 @@ public class SMValue extends SMFeature {
         Result bestResult = new Result();
         float closestDifference = Float.MAX_VALUE;
 
-        for (int purchaseQty = 1; purchaseQty <= MAX_STACK_SIZE; purchaseQty++) {
+        for (int purchaseQty = 1; purchaseQty <= maxStack; purchaseQty++) {
             float adjustedTargetValue = targetValue * purchaseQty;
 
             for (String item : sortedItems) {
