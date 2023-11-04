@@ -162,7 +162,7 @@ public class SMItemsAdder extends SMFeature {
      */
     public static String formatString(Player player, String string) {
         if (dependantReady) {
-            if (player != null) {
+            if (player == null) {
                 return FontImageWrapper.replaceFontImages(string);
             } else {
                 return FontImageWrapper.replaceFontImages(player, string);
