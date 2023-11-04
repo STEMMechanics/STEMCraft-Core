@@ -19,14 +19,12 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 import org.bukkit.entity.Villager.Profession;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.Merchant;
 import org.bukkit.inventory.MerchantInventory;
 import org.bukkit.inventory.MerchantRecipe;
-import org.bukkit.inventory.meta.BookMeta;
 import com.stemcraft.STEMCraft;
 import com.stemcraft.core.SMBridge;
 import com.stemcraft.core.SMCommon;
@@ -34,6 +32,7 @@ import com.stemcraft.core.SMDatabase;
 import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.SMJson;
 import com.stemcraft.core.command.SMCommand;
+import com.stemcraft.core.config.SMConfig;
 import com.stemcraft.core.event.SMEvent;
 import com.stemcraft.feature.SMValue.Result;
 
@@ -42,16 +41,17 @@ import com.stemcraft.feature.SMValue.Result;
  */
 public class SMTrader extends SMFeature {
     private static Villager trader = null;
+    private static String traderName = "";
+    private static List<String> traderWorlds = new ArrayList<>();
+
+    private static Integer SPAWN_CHECK_INTERVAL = 20 * 60 * 5;
+    private static Integer DESPAWN_DISTANCE = 128;
+    private static Double SPAWN_CHANCE = 0.20d;
 
     private static Integer DELAY_TRADE_BETWEEN_WORLDS = 60 * 60 * 4; // 4 hour delay for trade to show between worlds
     private static Double DELAY_TRADE_BY_BLOCKS = 0.6; // the time in secs to apply to the delay for each block away
     private static Integer LESS_THAN_SECONDS_TO_CALCULATE = 60 * 60 * 24; // If less then this amount of seconds have
                                                                           // passed, delay the trade
-
-    private static String TRADER_WORLD = "survival";
-    private static Integer UPDATE_INTERVAL = 20 * 60 * 5;
-    private static Double DESPAWN_DISTANCE = 64d;
-    private static Double SPAWN_CHANCE = 0.02d;
 
     /**
      * Called when the feature is requested to be enabled.
@@ -70,6 +70,15 @@ public class SMTrader extends SMFeature {
                     "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
                 .executeUpdate();
         });
+
+        traderName = SMConfig.main().getString("trader.name");
+        traderWorlds = SMConfig.main().getStringList("trader.worlds");
+        SPAWN_CHECK_INTERVAL = SMConfig.main().getInt("trader.spawn-update");
+        DESPAWN_DISTANCE = SMConfig.main().getInt("trader.despawn-distance");
+        SPAWN_CHANCE = SMConfig.main().getDouble("trader.spawn-chance");
+        DELAY_TRADE_BY_BLOCKS = SMConfig.main().getDouble("trader.trade-delay-per-block");
+        DELAY_TRADE_BETWEEN_WORLDS = SMConfig.main().getInt("trader.trade-delay-between-worlds");
+        LESS_THAN_SECONDS_TO_CALCULATE = SMConfig.main().getInt("trader.trade-delay-force-available");
 
         new SMCommand("trader")
             .permission("stemcraft.command.trader")
@@ -159,6 +168,10 @@ public class SMTrader extends SMFeature {
         SMEvent.register(InventoryCloseEvent.class, ctx -> {
             if (ctx.event.getInventory() instanceof MerchantInventory) {
                 MerchantInventory merchantInventory = (MerchantInventory) ctx.event.getInventory();
+                if (merchantInventory != trader) {
+                    return;
+                }
+
                 HumanEntity player = ctx.event.getPlayer();
                 Location location = player.getLocation();
 
@@ -183,37 +196,50 @@ public class SMTrader extends SMFeature {
             }
         });
 
+        STEMCraft.runTimer(SPAWN_CHECK_INTERVAL, () -> {
+            // check trader is still valid
+            if (trader != null && !trader.isValid()) {
+                trader.remove();
+                trader = null;
+            }
 
-        // STEMCraft.runTimer(UPDATE_INTERVAL, () -> {
-        // if (trader == null) {
-        // Random random = new Random();
+            if (trader != null) {
+                if (SMCommon.getPlayersNearLocation(trader.getLocation(), DESPAWN_DISTANCE).isEmpty()) {
+                    trader.remove();
+                    trader = null;
+                }
 
-        // double chance = random.nextDouble();
-        // if (chance < (SPAWN_CHANCE / 100)) {
-        // // player on surface
-        // // daytime
-        // }
-        // } else {
-        // Boolean visible = false;
+                return;
+            }
 
-        // for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-        // // Check if the player and the entity are in the same world
-        // if (player.getWorld().getName().equals(TRADER_WORLD)) {
-        // double distance = player.getLocation().distance(trader.getLocation());
+            Collection<? extends Player> playerList = Bukkit.getServer().getOnlinePlayers();
 
-        // if (distance <= DESPAWN_DISTANCE) {
-        // visible = true;
-        // break;
-        // }
-        // }
-        // }
+            if (playerList.isEmpty()) {
+                return;
+            }
 
-        // if (!visible) {
-        // trader.remove();
-        // trader = null;
-        // }
-        // }
-        // });
+            List<Player> filteredPlayers = new ArrayList<>();
+            for (Player player : playerList) {
+                if (traderWorlds.contains(player.getLocation().getWorld().getName())) {
+                    filteredPlayers.add(player);
+                }
+            }
+
+            if (filteredPlayers.isEmpty()) {
+                return;
+            }
+
+            Random random = new Random();
+            int randomIndex = random.nextInt(filteredPlayers.size());
+            Player randomPlayer = filteredPlayers.get(randomIndex);
+
+            double chance = random.nextDouble();
+            System.out.println(chance + " " + SPAWN_CHANCE);
+            if (chance < SPAWN_CHANCE) {
+                Location spawnLocation = SMCommon.findSafeLocation(randomPlayer.getLocation(), 16, 32, true);
+                spawnTrader(spawnLocation);
+            }
+        });
 
         return true;
     }
@@ -231,15 +257,19 @@ public class SMTrader extends SMFeature {
         removeTrader();
 
         trader = location.getWorld().spawn(location, Villager.class);
-        trader.setCustomName("Trader");
+        trader.setCustomName(SMBridge.parse(traderName));
         trader.setCustomNameVisible(true);
         trader.setRemoveWhenFarAway(true);
         trader.setProfession(Profession.LEATHERWORKER);
         trader.setVillagerLevel(5);
+
+        STEMCraft.info("Spawned trader at X:" + location.getBlockX() + " Y:" + location.getBlockY() + " Z:"
+            + location.getBlockZ() + " World:" + location.getWorld().getName());
     }
 
     private static void removeTrader() {
         if (trader != null) {
+            STEMCraft.info("Despawned trader");
             trader.remove();
             trader = null;
         }
@@ -282,7 +312,7 @@ public class SMTrader extends SMFeature {
         Float value = SMValue.getValue(itemName);
         if (value > 0f) {
             value *= 0.9f;
-            Result denominationResult = SMValue.calculateSingleDenomination(value, itemName);
+            Result denominationResult = SMValue.calculateSingleDenomination(value, itemName, item.getMaxStackSize());
             List<ItemStack> ingredients = denominationResult.toItemStacks();
             if (ingredients.size() > 0) {
                 ItemStack sellItem = SMBridge.newItemStack(itemName, denominationResult.quantity);

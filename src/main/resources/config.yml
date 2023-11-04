@@ -34,3 +34,30 @@ private-server:
 
 item-lore:
     - toolstats
+
+trader:
+    name: Trader
+    
+    # check for trader every x ticks
+    spawn-update: 6000
+
+    # chance a trader will be spawned
+    spawn-chance: 0.2
+
+    # despawn trader when all players are this far away
+    despawn-distance: 128
+    
+    # seconds per block a trade is available from its initial traded location
+    trade-delay-per-block: 0.6
+
+    # seconds before a trade is available across any dimensions/worlds
+    trade-delay-between-worlds: 14400
+
+    # seconds before a trade will always be available
+    trade-delay-force-available: 86400
+
+    # worlds a trader can be spawned
+    worlds:
+        - world
+        - world_nether
+        - world_the_end
