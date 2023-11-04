@@ -2,6 +2,7 @@ package com.stemcraft.core;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 import org.sqlite.SQLiteDataSource;
 import com.stemcraft.STEMCraft;
 import com.stemcraft.core.exception.SMException;
@@ -30,6 +31,7 @@ public class SMDatabase {
         }
 
         try {
+            DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
             SQLiteDataSource dataSource = new SQLiteDataSource();
             dataSource.setUrl("jdbc:sqlite:" + STEMCraft.getPlugin().getDataFolder().getAbsolutePath() + "/"
                 + SMDatabase.DATABASE_NAME);
