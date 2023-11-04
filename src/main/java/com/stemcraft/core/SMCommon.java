@@ -180,7 +180,7 @@ public class SMCommon {
      * 
      * @param location
      * @param rangeMax
-     * @param randomMax
+     * @param random
      * @return
      */
     public static Location findSafeLocation(Location location, int rangeMax, boolean random) {
@@ -192,7 +192,8 @@ public class SMCommon {
      * 
      * @param location
      * @param rangeMin
-     * @param randomMax
+     * @param rangeMax
+     * @param random
      * @return
      */
     public static Location findSafeLocation(Location location, int rangeMin, int rangeMax, boolean random) {
