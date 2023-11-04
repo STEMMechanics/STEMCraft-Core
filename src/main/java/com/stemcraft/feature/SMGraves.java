@@ -19,6 +19,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import com.stemcraft.STEMCraft;
 import com.stemcraft.core.SMCommon;
 import com.stemcraft.core.SMDatabase;
 import com.stemcraft.core.SMDependency;
@@ -115,6 +116,12 @@ public class SMGraves extends SMFeature {
                         return;
                     }
 
+                    Location graveLocation = SMCommon.findSafeLocation(player.getLocation(), 64);
+                    if (graveLocation == null) {
+                        STEMCraft.info("No suitable location was found near the player for a grave");
+                        return;
+                    }
+
                     String title = player.getName() + (player.getName().endsWith("s") ? "'" : "'s") + " Grave";
                     Inventory inventory = Bukkit.createInventory(null, 54, title);
                     ctx.event.getDrops().forEach((itemStack) -> {
@@ -123,11 +130,12 @@ public class SMGraves extends SMFeature {
 
                     try {
                         CustomFurniture grave =
-                            CustomFurniture.spawn("stemcraft:grave", player.getLocation().getBlock());
+                            CustomFurniture.spawn("stemcraft:grave", graveLocation.getBlock());
                         this.saveGrave(grave.getEntity().getUniqueId(), inventory.getContents(), title);
                         ctx.event.getDrops().clear();
                     } catch (Exception e) {
-                        /* empty - fallback to vanilla drops */
+                        /* fallback to vanilla drops */
+                        e.printStackTrace();
                     }
                 }
             });

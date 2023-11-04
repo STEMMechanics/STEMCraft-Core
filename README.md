@@ -25,6 +25,7 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 
 ### 1.1
 
+-   Graves will now spawn in the nearest safe location on land. If there is no suitable location, your items will just be dropped
 -   Coordination action and boss bar now available using `/coord` and `/coordbar`
 -   Trader villagers randomally spawn in survival worlds and keep a running tally of trades
 -   Tons of helper methods for coding features
