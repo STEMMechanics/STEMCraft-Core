@@ -6,7 +6,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
-import com.stemcraft.core.SMDebugger;
 import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.event.SMEvent;
 
@@ -18,16 +17,16 @@ public class SMDropPlayerHeads extends SMFeature {
     @Override
     protected Boolean onEnable() {
         SMEvent.register(PlayerDeathEvent.class, ctx -> {
-            if(ctx.event.getEventName().equalsIgnoreCase("playerdeathevent")) {
+            if (ctx.event.getEventName().equalsIgnoreCase("playerdeathevent")) {
                 Player player = ctx.event.getEntity();
                 Player killer = player.getKiller();
 
                 if (killer instanceof Player) {
-                    if(killer.getUniqueId().equals(player.getUniqueId())) {
+                    if (killer.getUniqueId().equals(player.getUniqueId())) {
                         return;
                     }
 
-                    if(killer.getGameMode() != GameMode.SURVIVAL) {
+                    if (killer.getGameMode() != GameMode.SURVIVAL) {
                         return;
                     }
 
