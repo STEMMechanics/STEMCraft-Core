@@ -38,9 +38,10 @@ public class SMGraves extends SMFeature {
     protected Boolean onEnable() {
         SMDatabase.runMigration("230804162200_CreateGravestoneTable", () -> {
             SMDatabase.prepareStatement(
-            "CREATE TABLE IF NOT EXISTS graves (" +
-                "id TEXT PRIMARY KEY," +
-                "data TEXT)").executeUpdate();
+                "CREATE TABLE IF NOT EXISTS graves (" +
+                    "id TEXT PRIMARY KEY," +
+                    "data TEXT)")
+                .executeUpdate();
         });
 
         SMDatabase.runMigration("231023201700_UpdateGravestoneTable", () -> {
@@ -49,25 +50,26 @@ public class SMGraves extends SMFeature {
                 "DROP TABLE graves").executeUpdate();
 
             SMDatabase.prepareStatement(
-            "CREATE TABLE IF NOT EXISTS graves (" +
-                "id TEXT PRIMARY KEY," +
-                "title TEXT," +
-                "contents TEXT)").executeUpdate();
+                "CREATE TABLE IF NOT EXISTS graves (" +
+                    "id TEXT PRIMARY KEY," +
+                    "title TEXT," +
+                    "contents TEXT)")
+                .executeUpdate();
         });
 
         SMDependency.onDependencyReady("itemsadder", () -> {
             SMEvent.register(FurnitureInteractEvent.class, ctx -> {
-                if(ctx.event.getNamespacedID().equalsIgnoreCase("stemcraft:grave")) {
+                if (ctx.event.getNamespacedID().equalsIgnoreCase("stemcraft:grave")) {
                     UUID id = ctx.event.getFurniture().getEntity().getUniqueId();
-                    
+
                     Inventory inventory = loadGrave(id);
-                    if(inventory == null) {
+                    if (inventory == null) {
                         String title = "Unknown Grave";
                         inventory = Bukkit.createInventory(null, 54, title);
                         this.saveGrave(id, inventory.getContents(), title);
                     }
 
-                    if(inventory != null) {
+                    if (inventory != null) {
                         ctx.event.getPlayer().openInventory(inventory);
                         this.trackedInventories.put(inventory, id);
                     }
@@ -75,7 +77,7 @@ public class SMGraves extends SMFeature {
             });
 
             SMEvent.register(FurnitureBreakEvent.class, ctx -> {
-                if(ctx.event.getNamespacedID().equalsIgnoreCase("stemcraft:grave")) {
+                if (ctx.event.getNamespacedID().equalsIgnoreCase("stemcraft:grave")) {
                     Entity grave = ctx.event.getFurniture().getEntity();
                     World world = grave.getWorld();
                     Location location = grave.getLocation();
@@ -85,7 +87,7 @@ public class SMGraves extends SMFeature {
                     ItemStack slab = new ItemStack(Material.MOSSY_STONE_BRICK_SLAB);
                     Inventory inventory = loadGrave(id);
 
-                    if(!SMCommon.playerHasSilkTouch(ctx.event.getPlayer())) {
+                    if (!SMCommon.playerHasSilkTouch(ctx.event.getPlayer())) {
                         spawnCancellations.add(location);
                         // break grave and drop stone brick parts
                         world.dropItemNaturally(location, wall);
@@ -93,9 +95,9 @@ public class SMGraves extends SMFeature {
                     }
 
                     // drop grave items
-                    if(inventory != null) {
-                        for(ItemStack item : inventory.getContents()) {
-                            if(item != null && item.getType() != Material.AIR) {
+                    if (inventory != null) {
+                        for (ItemStack item : inventory.getContents()) {
+                            if (item != null && item.getType() != Material.AIR) {
                                 world.dropItemNaturally(location, item);
                             }
                         }
@@ -106,10 +108,10 @@ public class SMGraves extends SMFeature {
             });
 
             SMEvent.register(PlayerDeathEvent.class, ctx -> {
-                if(ctx.event.getEventName().equalsIgnoreCase("playerdeathevent")) {
+                if (ctx.event.getEventName().equalsIgnoreCase("playerdeathevent")) {
                     Player player = ctx.event.getEntity();
 
-                    if(player.getGameMode() != GameMode.SURVIVAL) {
+                    if (player.getGameMode() != GameMode.SURVIVAL) {
                         return;
                     }
 
@@ -119,20 +121,24 @@ public class SMGraves extends SMFeature {
                         inventory.addItem(itemStack.clone());
                     });
 
-                    ctx.event.getDrops().clear();
-
-                    CustomFurniture grave = CustomFurniture.spawn("stemcraft:grave", player.getLocation().getBlock());
-                    this.saveGrave(grave.getEntity().getUniqueId(), inventory.getContents(), title);
+                    try {
+                        CustomFurniture grave =
+                            CustomFurniture.spawn("stemcraft:grave", player.getLocation().getBlock());
+                        this.saveGrave(grave.getEntity().getUniqueId(), inventory.getContents(), title);
+                        ctx.event.getDrops().clear();
+                    } catch (Exception e) {
+                        /* empty - fallback to vanilla drops */
+                    }
                 }
             });
 
             SMEvent.register(ItemSpawnEvent.class, ctx -> {
-                if(ctx.event.getEventName().equalsIgnoreCase("ItemSpawnEvent")) {
+                if (ctx.event.getEventName().equalsIgnoreCase("ItemSpawnEvent")) {
                     CustomStack customStack = CustomStack.byItemStack(ctx.event.getEntity().getItemStack());
-                    if(customStack != null) {
-                        if(customStack.getNamespacedID().equalsIgnoreCase("stemcraft:grave")) {
-                            for(Location location : spawnCancellations) {
-                                if(ctx.event.getLocation().distanceSquared(location) < 2) {
+                    if (customStack != null) {
+                        if (customStack.getNamespacedID().equalsIgnoreCase("stemcraft:grave")) {
+                            for (Location location : spawnCancellations) {
+                                if (ctx.event.getLocation().distanceSquared(location) < 2) {
                                     ctx.event.setCancelled(true);
                                     spawnCancellations.remove(location);
                                     break;
@@ -145,8 +151,8 @@ public class SMGraves extends SMFeature {
 
             SMEvent.register(InventoryCloseEvent.class, ctx -> {
                 Inventory inventory = ctx.event.getInventory();
-                
-                if(this.trackedInventories.containsKey(inventory)) {
+
+                if (this.trackedInventories.containsKey(inventory)) {
                     UUID id = this.trackedInventories.get(inventory);
 
                     this.trackedInventories.remove(inventory);
@@ -188,12 +194,12 @@ public class SMGraves extends SMFeature {
     private void saveGrave(UUID id, ItemStack[] items, String title) {
         try {
             PreparedStatement statement = SMDatabase.prepareStatement(
-                    "DELETE FROM graves WHERE id = ?");
+                "DELETE FROM graves WHERE id = ?");
             statement.setString(1, id.toString());
             statement.executeUpdate();
 
             statement = SMDatabase.prepareStatement(
-                    "INSERT INTO graves (id, title, contents) VALUES (?, ?, ?)");
+                "INSERT INTO graves (id, title, contents) VALUES (?, ?, ?)");
             statement.setString(1, id.toString());
             statement.setString(2, title);
             statement.setString(3, SMJson.toJson(items, ItemStack[].class));
@@ -208,7 +214,7 @@ public class SMGraves extends SMFeature {
     private void clearGrave(UUID id) {
         try {
             PreparedStatement statement = SMDatabase.prepareStatement(
-                    "DELETE FROM graves WHERE id = ?");
+                "DELETE FROM graves WHERE id = ?");
             statement.setString(1, id.toString());
             statement.executeUpdate();
             statement.close();
