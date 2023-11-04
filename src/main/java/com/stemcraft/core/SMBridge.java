@@ -362,6 +362,16 @@ public final class SMBridge {
      * Parses the provided string using all registered providers.
      * 
      * @param input The string to be parsed.
+     * @return The parsed string.
+     */
+    public static String parse(String input) {
+        return parse(input, null);
+    }
+
+    /**
+     * Parses the provided string using all registered providers.
+     * 
+     * @param input The string to be parsed.
      * @param player The player or null the input belongs to.
      * @return The parsed string.
      */
