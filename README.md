@@ -25,6 +25,9 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 
 ### 1.1
 
+-   Coordination action and boss bar now available using `/coord` and `/coordbar`
+-   Trader villagers randomally spawn in survival worlds and keep a running tally of trades
+-   Tons of helper methods for coding features
 -   Tab completion shows options that contain the text instead of starts with
 -   Added `display-version` config option to override MOTD version
 -   Added /toolreset command to clear toolstats data on item
