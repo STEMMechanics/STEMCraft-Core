@@ -135,6 +135,16 @@ public class STEMCraft extends JavaPlugin implements Listener {
             return SMBridge.getMaterialList();
         });
 
+        SMTabComplete.register("world", () -> {
+            List<String> names = new ArrayList<>();
+
+            Bukkit.getServer().getWorlds().forEach(world -> {
+                names.add(world.getName());
+            });
+
+            return names;
+        });
+
         // Enable features
         features.forEach((name, instance) -> {
             enableFeature(name);
