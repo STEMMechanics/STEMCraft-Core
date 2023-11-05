@@ -19,7 +19,12 @@ hub:
             - "teleport {hub-world} {player}"
 
 chat-format: "<{prefix}{name}{suffix}> {message}"
-remove-recipes: []
+
+recipes:
+    remove: []
+    stonecutter:
+        cobblestone:
+            gravel: 2
 
 gamemode-inventories:
     # keep this many inventories per player/gamemode/world
