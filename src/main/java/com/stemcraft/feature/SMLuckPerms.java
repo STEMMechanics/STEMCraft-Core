@@ -22,12 +22,13 @@ public class SMLuckPerms extends SMFeature {
 
     @Override
     public Boolean onLoad() {
-        if(!super.onLoad()) {
+        if (!super.onLoad()) {
             return false;
         }
 
-        if(Bukkit.getPluginManager().getPlugin(SMLuckPerms.dependantName) == null) {
-            STEMCraft.warning(SMLuckPerms.dependantName + " is not loaded. Features requiring this plugin won't be available");
+        if (Bukkit.getPluginManager().getPlugin(SMLuckPerms.dependantName) == null) {
+            STEMCraft.warning(
+                SMLuckPerms.dependantName + " is not loaded. Features requiring this plugin won't be available");
             return false;
         }
 
@@ -38,7 +39,7 @@ public class SMLuckPerms extends SMFeature {
     protected Boolean onEnable() {
         SMLuckPerms.luckPerms = LuckPermsProvider.get();
 
-        SMTabComplete.register("groups", () -> {
+        SMTabComplete.register("group", () -> {
             return SMLuckPerms.groups();
         });
 
@@ -47,12 +48,13 @@ public class SMLuckPerms extends SMFeature {
 
     /**
      * Get a list of groups in LuckPerms
+     * 
      * @return
      */
     public static List<String> groups() {
         List<String> groupList = new ArrayList<>();
 
-        if(luckPerms != null) {
+        if (luckPerms != null) {
             Set<Group> groups = luckPerms.getGroupManager().getLoadedGroups();
             for (Group group : groups) {
                 groupList.add(group.getName());
@@ -64,6 +66,7 @@ public class SMLuckPerms extends SMFeature {
 
     /**
      * Check that a group exists in LuckPerms
+     * 
      * @param group
      * @return
      */
@@ -73,12 +76,13 @@ public class SMLuckPerms extends SMFeature {
 
     /**
      * Check that a player exists in a LuckPerms group
+     * 
      * @param player
      * @param group
      * @return
      */
     public static Boolean playerInGroup(Player player, String group) {
-        if(luckPerms != null) {
+        if (luckPerms != null) {
             return player.hasPermission("group." + group);
         }
 
@@ -87,14 +91,15 @@ public class SMLuckPerms extends SMFeature {
 
     /**
      * Add a permission to a player
+     * 
      * @param player
      * @param permission
      * @return
      */
     public static void addPermission(Player player, String permission) {
-        if(luckPerms != null) {
+        if (luckPerms != null) {
             User user = luckPerms.getUserManager().getUser(player.getUniqueId());
-            if(user != null) {
+            if (user != null) {
                 Node node = PermissionNode.builder(permission).build();
                 user.data().add(node);
                 luckPerms.getUserManager().saveUser(user);
@@ -104,14 +109,15 @@ public class SMLuckPerms extends SMFeature {
 
     /**
      * Remove a permission from a player
+     * 
      * @param player
      * @param permission
      * @return
      */
     public static void removePermission(Player player, String permission) {
-        if(luckPerms != null) {
+        if (luckPerms != null) {
             User user = luckPerms.getUserManager().getUser(player.getUniqueId());
-            if(user != null) {
+            if (user != null) {
                 Node node = PermissionNode.builder(permission).build();
                 user.data().remove(node);
                 luckPerms.getUserManager().saveUser(user);
@@ -121,6 +127,7 @@ public class SMLuckPerms extends SMFeature {
 
     /**
      * Add a group to a player
+     * 
      * @param player
      * @param group
      * @return
@@ -138,6 +145,7 @@ public class SMLuckPerms extends SMFeature {
 
     /**
      * Remove a group from a player
+     * 
      * @param player
      * @param group
      * @return
