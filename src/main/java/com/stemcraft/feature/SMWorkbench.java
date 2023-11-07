@@ -19,7 +19,7 @@ public class SMWorkbench extends SMFeature {
             .tabComplete("{player}")
             .permission("stemcraft.command.workbench")
             .action(ctx -> {
-                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
+                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.size() < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
 
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
@@ -35,7 +35,7 @@ public class SMWorkbench extends SMFeature {
             .tabComplete("{player}")
             .permission("stemcraft.command.anvil")
             .action(ctx -> {
-                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
+                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.size() < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
 
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
@@ -51,7 +51,7 @@ public class SMWorkbench extends SMFeature {
             .tabComplete("{player}")
             .permission("stemcraft.command.cartographytable")
             .action(ctx -> {
-                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
+                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.size() < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
 
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
@@ -67,7 +67,7 @@ public class SMWorkbench extends SMFeature {
             .tabComplete("{player}")
             .permission("stemcraft.command.grindstone")
             .action(ctx -> {
-                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
+                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.size() < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
 
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
@@ -83,7 +83,7 @@ public class SMWorkbench extends SMFeature {
             .tabComplete("{player}")
             .permission("stemcraft.command.loom")
             .action(ctx -> {
-                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
+                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.size() < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
 
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
@@ -99,7 +99,7 @@ public class SMWorkbench extends SMFeature {
             .tabComplete("{player}")
             .permission("stemcraft.command.smithingtable")
             .action(ctx -> {
-                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
+                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.size() < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
 
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
@@ -115,7 +115,7 @@ public class SMWorkbench extends SMFeature {
             .tabComplete("{player}")
             .permission("stemcraft.command.stonecutter")
             .action(ctx -> {
-                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
+                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.size() < 1), "CMD_PLAYER_REQ_FROM_CONSOLE");
 
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");

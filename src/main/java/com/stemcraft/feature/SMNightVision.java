@@ -32,12 +32,12 @@ public class SMNightVision extends SMFeature {
                 String action = "toggle";
 
                 // get action (if exists)
-                if (ctx.args.length > 0) {
-                    action = ctx.args[0].toLowerCase();
+                if (ctx.args.size() > 0) {
+                    action = ctx.args.get(0).toLowerCase();
                 }
 
                 // Check player exists when issued from console
-                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length == 2), "CMD_PLAYER_REQ_FROM_CONSOLE");
+                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.size() == 2), "CMD_PLAYER_REQ_FROM_CONSOLE");
 
                 // Check target player exists
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");

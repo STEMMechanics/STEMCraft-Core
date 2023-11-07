@@ -151,7 +151,7 @@ public class SMToolStats extends SMFeature {
                     ctx.checkArgsLocale(1, "CMD_PLAYER_REQ_FROM_CONSOLE");
                 }
 
-                if (ctx.args.length > 1 || !SMCommon.isSamePlayer(ctx.player, targetPlayer)) {
+                if (ctx.args.size() > 1 || !SMCommon.isSamePlayer(ctx.player, targetPlayer)) {
                     ctx.checkPermission("stemcraft.command.toolreset.other");
                 }
 

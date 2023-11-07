@@ -20,25 +20,25 @@ public class SMRepair extends SMFeature {
                 Player targetPlayer = ctx.getArgAsPlayer(2, ctx.player);
                 Boolean all = false;
 
-                if(ctx.fromConsole()) {
+                if (ctx.fromConsole()) {
                     ctx.checkArgsLocale(2, "CMD_PLAYER_REQ_FROM_CONSOLE");
                 }
 
-                if(ctx.args.length > 0) {
-                    ctx.checkInArrayLocale(repairTypes, ctx.args[0], "REPAIR_USAGE");
-                    all = ctx.args[0].toLowerCase() == "all";
+                if (ctx.args.size() > 0) {
+                    ctx.checkInArrayLocale(repairTypes, ctx.args.get(0), "REPAIR_USAGE");
+                    all = ctx.args.get(0).toLowerCase() == "all";
                 }
 
-                if(ctx.args.length > 1) {
+                if (ctx.args.size() > 1) {
                     ctx.checkPermission("stemcraft.inventory.repair.other");
                 }
 
                 PlayerInventory inventory = targetPlayer.getInventory();
-                if(all) {
+                if (all) {
                     ItemStack[] items = inventory.getContents();
 
-                    for(ItemStack item : items) {
-                        if(item != null && SMCommon.itemIsRepairable(item) == true) {
+                    for (ItemStack item : items) {
+                        if (item != null && SMCommon.itemIsRepairable(item) == true) {
                             item = SMCommon.repairItem(item);
                         }
                     }
@@ -47,7 +47,7 @@ public class SMRepair extends SMFeature {
                 } else {
                     targetPlayer.updateInventory();
                     ItemStack item = inventory.getItemInMainHand();
-                    if(SMCommon.itemIsRepairable(item) == true) {
+                    if (SMCommon.itemIsRepairable(item) == true) {
                         item = SMCommon.repairItem(item);
                         inventory.setItemInMainHand(item);
                         ctx.returnInfoLocale("REPAIR_HAND_REPAIRED");
@@ -60,5 +60,5 @@ public class SMRepair extends SMFeature {
 
         return true;
     }
-    
+
 }

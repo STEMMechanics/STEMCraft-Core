@@ -6,7 +6,7 @@ import com.stemcraft.core.SMMessenger;
 import com.stemcraft.core.command.SMCommand;
 
 public class SMTeleportSpawn extends SMFeature {
-    
+
     /**
      * When feature is enabled
      */
@@ -20,10 +20,12 @@ public class SMTeleportSpawn extends SMFeature {
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
 
                 // Check player exists when issued from console
-                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length == 0), "CMD_PLAYER_REQ_FROM_CONSOLE");
+                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.size() == 0), "CMD_PLAYER_REQ_FROM_CONSOLE");
 
                 // Check player has permission to teleport others
-                ctx.checkBooleanLocale(targetPlayer == ctx.sender || ctx.hasPermission("stemcraft.teleport.spawn.other"), "CMD_NO_PERMISSION");
+                ctx.checkBooleanLocale(
+                    targetPlayer == ctx.sender || ctx.hasPermission("stemcraft.teleport.spawn.other"),
+                    "CMD_NO_PERMISSION");
 
                 // Check target player exists
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
@@ -32,7 +34,7 @@ public class SMTeleportSpawn extends SMFeature {
                 targetPlayer.teleport(targetPlayer.getWorld().getSpawnLocation());
 
                 // Notify players
-                if(targetPlayer == ctx.sender) {
+                if (targetPlayer == ctx.sender) {
                     ctx.returnInfoLocale("TPSPAWN");
                 } else {
                     SMMessenger.infoLocale(ctx.sender, "TPSPAWN_FOR", "player", targetPlayer.getName());

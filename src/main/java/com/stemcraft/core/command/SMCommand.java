@@ -49,7 +49,7 @@ public class SMCommand implements TabCompleter {
     /**
      * Command tab completion data
      */
-    private List<Object[]> tabCompletionList = new ArrayList<>();
+    private List<String[]> tabCompletionList = new ArrayList<>();
 
     /**
      * Constructor
@@ -82,21 +82,37 @@ public class SMCommand implements TabCompleter {
         return this;
     }
 
-    public SMCommand tabComplete(String[] completion) {
+    public SMCommand tabComplete(String... completion) {
         this.tabCompletionList.add(completion);
         return this;
     }
 
-    public SMCommand tabComplete(Object... completions) {
-        for (Object completion : completions) {
-            if (!(completion instanceof String) && !(completion instanceof String[])) {
-                // Unsupported type - you might want to throw an exception or log a warning
-                throw new IllegalArgumentException("Unsupported completion type: " + completion.getClass());
+    public SMCommand tabComplete(Object... completion) {
+        List<List<String>> lists = new ArrayList<>();
+        for (Object obj : completion) {
+            List<String> list = new ArrayList<>();
+            if (obj instanceof String) {
+                list.add((String) obj);
+            } else if (obj instanceof String[]) {
+                list.addAll(Arrays.asList((String[]) obj));
             }
+            lists.add(list);
         }
 
-        this.tabCompletionList.add(completions);
+        generateCombinationsRecursive(lists, new String[lists.size()], 0);
         return this;
+    }
+
+    public void generateCombinationsRecursive(List<List<String>> lists, String[] result, int depth) {
+        if (depth == lists.size()) {
+            tabComplete(Arrays.copyOf(result, result.length));
+            return;
+        }
+
+        for (String s : lists.get(depth)) {
+            result[depth] = s;
+            generateCombinationsRecursive(lists, result, depth + 1);
+        }
     }
 
     /**
@@ -165,191 +181,209 @@ public class SMCommand implements TabCompleter {
         return this;
     }
 
+    private static class TabCompleteValueOption {
+        String option = null;
+        String value = null;
+
+        TabCompleteValueOption(String option, String value) {
+            this.option = option;
+            this.value = value;
+        }
+    }
+
+    private class TabCompleteArgParser {
+        List<String> optionArgsAvailable = new ArrayList<>();
+        Map<String, List<String>> valueOptionArgsAvailable = new HashMap<>();
+        List<String> optionArgsUsed = new ArrayList<>();
+        List<String> valueOptionArgsUsed = new ArrayList<>();
+        Integer argIndex = 0;
+        String[] args;
+
+        public TabCompleteArgParser(String[] args) {
+            this.args = args;
+        }
+
+        public static String getStringAsOption(String arg) {
+            if (arg.startsWith("-")) {
+                return arg.toLowerCase();
+            }
+
+            return null;
+        }
+
+        public void addOption(String option) {
+            optionArgsAvailable.add(option);
+        }
+
+        public static TabCompleteValueOption getStringAsValueOption(String arg) {
+            if (arg.matches("^[a-zA-Z0-9-_]:.*")) {
+                String option = arg.substring(0, arg.indexOf(':')).toLowerCase();
+                String value = arg.substring(arg.indexOf(':') + 1);
+
+                return new TabCompleteValueOption(option, value);
+            }
+
+            return null;
+        }
+
+        public void addValueOption(TabCompleteValueOption option) {
+            valueOptionArgsAvailable.put(option.option, parseValue(option.value));
+        }
+
+        public static List<String> parseValue(String value) {
+            List<String> list = new ArrayList<>();
+
+            if (value.startsWith("{") && value.endsWith("}")) {
+                String placeholder = value.substring(1, value.length() - 1);
+                List<String> placeholderList = SMTabComplete.getCompletionList(placeholder);
+                list.addAll(placeholderList);
+            } else {
+                list.add(value);
+            }
+
+            return list;
+        }
+
+
+        public Boolean hasRemainingArgs() {
+            return argIndex < args.length - 1;
+        }
+
+        public void next() {
+            nextMatches(null);
+        }
+
+        public Boolean nextMatches(String tabCompletionItem) {
+            for (; argIndex < args.length; argIndex++) {
+                String arg = args[argIndex];
+
+                String option = getStringAsOption(arg);
+                if (option != null) {
+                    optionArgsUsed.add(option);
+                    optionArgsAvailable.remove(option);
+                    continue;
+                }
+
+                TabCompleteValueOption valueOption = getStringAsValueOption(arg);
+                if (valueOption != null) {
+                    valueOptionArgsUsed.add(valueOption.option);
+                    valueOptionArgsAvailable.remove(valueOption.option);
+                    continue;
+                }
+
+                if (tabCompletionItem == null) {
+                    argIndex++;
+                    return true;
+                }
+
+                List<String> values = parseValue(tabCompletionItem);
+                if (values.contains(arg)) {
+                    argIndex++;
+                    return true;
+                }
+
+                return false;
+            }
+
+            // To get here we are out of args to parse
+            return null;
+        }
+
+        public void processRemainingArgs() {
+            while (hasRemainingArgs()) {
+                next();
+            }
+        }
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
-        List<String> stringList = new ArrayList<>();
-        Map<String, List<String>> supplierList = new HashMap<>();
+        List<String> tabCompletionResults = new ArrayList<>();
+        List<String> optionArgsAvailable = new ArrayList<>();
+        Map<String, List<String>> valueOptionArgsAvailable = new HashMap<>();
+        String[] fullArgs = new String[args.length - 1];
 
+        System.arraycopy(args, 0, fullArgs, 0, args.length - 1);
+
+        // iterate each tab completion list
         tabCompletionList.forEach(list -> {
-            if (list.length > args.length - 1) {
-                Boolean ignoreList = false;
+            Boolean matches = true;
+            Integer listIndex = 0;
 
-                for (int i = 0; i < args.length - 1; i++) {
-                    String[] listToCheck = null;
+            // Copy the elements except the last one
+            TabCompleteArgParser argParser = new TabCompleteArgParser(fullArgs);
 
-                    if (list[i] instanceof String) {
-                        String listItem = list[i].toString();
+            // iterate each tab completion list item
+            for (listIndex = 0; listIndex < list.length; listIndex++) {
+                String listItem = list[listIndex];
 
-                        if (listItem.startsWith("{") && listItem.endsWith("}")) {
-                            String tabCompleteFunc = listItem.substring(1, listItem.length() - 1);
-                            List<String> tabCompleteFuncList = SMTabComplete.get(tabCompleteFunc);
-
-                            supplierList.put(tabCompleteFunc, tabCompleteFuncList);
-                            if (!tabCompleteFuncList.contains(args[i])) {
-                                ignoreList = true;
-                                break;
-                            }
-
-                        } else {
-                            // string does not match arg
-                            if (!args[i].equalsIgnoreCase(listItem)) {
-                                ignoreList = true;
-                                break;
-                            }
-                        }
-                    } else if (list[i] instanceof String[]) {
-                        listToCheck = (String[]) list[i];
-                    }
-
-                    if (listToCheck != null) {
-                        if (!Arrays.asList(listToCheck).contains(args[i])) {
-                            ignoreList = true;
-                            break;
-                        }
-                    }
+                // list item is an option
+                String option = TabCompleteArgParser.getStringAsOption(listItem);
+                if (option != null) {
+                    argParser.addOption(option);
+                    continue;
                 }
 
-                if (!ignoreList) {
-                    if (list[args.length - 1] instanceof String) {
-                        String listItem = (String) list[args.length - 1];
-                        if (listItem.startsWith("{") && listItem.endsWith("}")) {
-                            String tabCompleteFunc = listItem.substring(1, listItem.length() - 1);
-                            if (!supplierList.containsKey(tabCompleteFunc)) {
-                                List<String> tabCompleteFuncList = SMTabComplete.get(tabCompleteFunc);
-                                supplierList.put(tabCompleteFunc, tabCompleteFuncList);
-                            }
-
-                            stringList.addAll(supplierList.get(tabCompleteFunc));
-                        } else {
-                            stringList.add(listItem);
-                        }
-                    } else if (list[args.length - 1] instanceof String[]) {
-                        stringList.addAll(Arrays.asList((String[]) list[args.length - 1]));
-                    }
+                // list item is a value option
+                TabCompleteValueOption valueOption = TabCompleteArgParser.getStringAsValueOption(listItem);
+                if (valueOption != null) {
+                    argParser.addValueOption(valueOption);
+                    continue;
                 }
+
+                // list item is a string or placeholder
+                Boolean nextMatches = argParser.nextMatches(listItem);
+                if (nextMatches == null) {
+                    tabCompletionResults.addAll(TabCompleteArgParser.parseValue(listItem));
+                    break;
+                } else if (nextMatches == false) {
+                    matches = false;
+                    break;
+                }
+            }
+
+            if (matches) {
+                // parse remaining arg items
+                argParser.processRemainingArgs();
+
+                optionArgsAvailable.addAll(argParser.optionArgsAvailable);
+                valueOptionArgsAvailable.putAll(argParser.valueOptionArgsAvailable);
             }
         });
 
-        // remove non-matching items
+        // remove non-matching items from the results based on what the player has already entered
         if (args[args.length - 1].length() > 0) {
-            String startingWith = args[args.length - 1];
-            Iterator<String> iterator = stringList.iterator();
+            String arg = args[args.length - 1];
+
+            // if the player has only a dash in the arg, only show dash arguments
+            if (arg.equals("-")) {
+                return optionArgsAvailable;
+            }
+
+            // if the player has written the start of a option arg
+            if (arg.contains(":")) {
+                // if the option arg is available
+                String key = arg.substring(0, arg.indexOf(":"));
+                if (valueOptionArgsAvailable.containsKey(key)) {
+                    tabCompletionResults.clear();
+                    String prefix = key + ":";
+                    for (String item : valueOptionArgsAvailable.get(key)) {
+                        tabCompletionResults.add(prefix + item);
+                    }
+                }
+            }
+
+            // remove items in tabCompletionResults that do not contain the current arg text
+            Iterator<String> iterator = tabCompletionResults.iterator();
 
             while (iterator.hasNext()) {
                 String item = iterator.next();
-                // if (!item.startsWith(startingWith)) {
-                // iterator.remove();
-                // }
-                if (!item.contains(startingWith)) {
+                if (!item.contains(arg)) {
                     iterator.remove();
                 }
             }
         }
 
-        return stringList;
-
-        // String[] argsList = new String[args.length + 1];
-        // argsList[0] = cmd.getName();
-        // System.arraycopy(args, 0, argsList, 1, args.length);
-
-        // if (!(sender instanceof Player) || args.length == 0) {
-        // return null;
-        // }
-
-        // // Check if the current args match the elements in tabCompletion
-        // for (String[] completion : this.tabCompletionList) {
-        // if(completion.length < argsList.length) {
-        // continue;
-        // }
-
-        // boolean match = true;
-        // for (int i = 0; i < argsList.length - 1; i++) {
-        // if(completion[i].startsWith("%") && completion[i].endsWith("%")) {
-        // String key = completion[i].substring(1, completion[i].length() - 1);
-
-        // if (this.tabCompletionPlaceholders.containsKey(key)) {
-        // BiFunction<Server, String, List<String>> biFunction = tabCompletionPlaceholders.get(key);
-
-        // if(biFunction.apply(sender.getServer(), argsList[i]).isEmpty()) {
-        // match = false;
-        // break;
-        // }
-        // }
-        // } else if (!completion[i].equals(argsList[i])) {
-        // match = false;
-        // break;
-        // }
-        // }
-
-        // if (match) {
-        // String targetCompletion = completion[argsList.length - 1];
-
-        // if(targetCompletion.startsWith("%") && targetCompletion.endsWith("%")) {
-        // String key = targetCompletion.substring(1, targetCompletion.length() - 1);
-
-        // if (this.tabCompletionPlaceholders.containsKey(key)) {
-        // BiFunction<Server, String, List<String>> biFunction = tabCompletionPlaceholders.get(key);
-
-        // for(String valueItem : biFunction.apply(sender.getServer(), argsList[argsList.length - 1])) {
-        // tabCompleteList.add(valueItem);
-        // }
-        // }
-        // } else if(targetCompletion.startsWith(argsList[argsList.length - 1])) {
-        // tabCompleteList.add(targetCompletion);
-        // }
-        // }
-        // }
-
-        // return tabCompleteList;
+        return tabCompletionResults;
     }
-
-    // AFTER
-
-
-    // protected HashMap<String, BiFunction<Server, String, List<String>>> tabCompletionPlaceholders = new HashMap<>();
-    // protected HashMap<String, BiFunction<CommandSender, String[], Boolean>> stemcraftOptions = new HashMap<>();
-
-    // public void addTabCompletions(String[][] tabCompletions) {
-    // if(tabCompletions != null && tabCompletions.length > 0) {
-    // int newSize = this.tabCompletionList.length + tabCompletions.length;
-    // String[][] combinedArray = new String[newSize][];
-
-    // System.arraycopy(this.tabCompletionList, 0, combinedArray, 0, this.tabCompletionList.length);
-    // System.arraycopy(tabCompletions, 0, combinedArray, this.tabCompletionList.length, tabCompletions.length);
-    // this.tabCompletionList = combinedArray;
-    // }
-    // }
-
-
-
-    // public void registerTabPlaceholder(String placeholder, BiFunction<Server, String, List<String>> callback) {
-    // this.tabCompletionPlaceholders.put(placeholder, callback);
-    // }
-
-    // public void registerStemCraftOption(String option, BiFunction<CommandSender, String[], Boolean> callback) {
-    // this.registerStemCraftOption(option, callback, null);
-    // }
-
-    // public void registerStemCraftOption(String option, BiFunction<CommandSender, String[], Boolean> callback,
-    // String[][] tabCompletions) {
-    // this.stemcraftOptions.put(option, callback);
-    // if(tabCompletions != null) {
-    // this.addTabCompletions(tabCompletions);
-    // } else {
-    // this.addTabCompletions(new String[][] {{"stemcraft", option}});
-    // }
-    // }
-
-    // protected List<String> player(Server server, String match) {
-    // List<String> playerList = new ArrayList<>();
-
-    // for(Player player : server.getOnlinePlayers()) {
-    // String playerName = player.getName();
-    // if(playerName.startsWith(match)) {
-    // playerList.add(playerName);
-    // }
-    // }
-
-    // return playerList;
-    // }
 }

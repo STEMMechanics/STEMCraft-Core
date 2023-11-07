@@ -20,9 +20,9 @@ public class SMMaintenance extends SMFeature {
 
     @Override
     protected Boolean onEnable() {
-        if(STEMCraft.featureEnabled("SMMOTD")) {
+        if (STEMCraft.featureEnabled("SMMOTD")) {
             motdFeatureEnabled = true;
-            if(SMPersistent.getBool(this, "maintenance", false)) {
+            if (SMPersistent.getBool(this, "maintenance", false)) {
                 SMMOTD.setMOTDOverride(SMLocale.get("MAINTENANCE_MOTD"));
             }
         }
@@ -38,16 +38,16 @@ public class SMMaintenance extends SMFeature {
         });
 
         String[] modes = {"enable", "disable"};
-        
+
         new SMCommand("maintenance")
             .permission(permission)
             .tabComplete(modes)
             .action(ctx -> {
-                if(ctx.args.length > 0) {
-                    String mode = ctx.args[0].toLowerCase();
+                if (ctx.args.size() > 0) {
+                    String mode = ctx.args.get(0).toLowerCase();
                     ctx.checkInArrayLocale(modes, mode, "MAINTENANCE_USAGE");
 
-                    if("enable".equals(mode)) {
+                    if ("enable".equals(mode)) {
                         SMPersistent.set(this, "maintenance", true);
 
                         STEMCraft.getPlugin().getServer().getOnlinePlayers().forEach(player -> {
@@ -56,13 +56,13 @@ public class SMMaintenance extends SMFeature {
                             }
                         });
 
-                        if(motdFeatureEnabled) {
+                        if (motdFeatureEnabled) {
                             SMMOTD.setMOTDOverride(SMLocale.get("MAINTENANCE_MOTD"));
                         }
                     } else {
                         SMPersistent.set(this, "maintenance", false);
 
-                        if(motdFeatureEnabled) {
+                        if (motdFeatureEnabled) {
                             SMMOTD.clearMOTDOverride();
                         }
                     }

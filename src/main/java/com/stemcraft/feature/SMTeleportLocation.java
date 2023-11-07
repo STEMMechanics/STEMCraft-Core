@@ -37,7 +37,8 @@ public class SMTeleportLocation extends SMFeature {
                     "y REAL," +
                     "z REAL," +
                     "yaw REAL," +
-                    "pitch REAL)").executeUpdate();
+                    "pitch REAL)")
+                .executeUpdate();
         });
 
         SMTabComplete.register("tplocations", () -> {
@@ -51,12 +52,12 @@ public class SMTeleportLocation extends SMFeature {
             .action(ctx -> {
                 ctx.checkNotConsole();
                 ctx.checkArgsLocale(1, "TPLOC_USAGE");
-                String name = ctx.args[0].toLowerCase();
+                String name = ctx.args.get(0).toLowerCase();
 
-                if(!cacheList.containsKey(name)) {
-                    ctx.returnErrorLocale("TPLOC_NOT_EXIST", "name", ctx.args[0]);
+                if (!cacheList.containsKey(name)) {
+                    ctx.returnErrorLocale("TPLOC_NOT_EXIST", "name", ctx.args.get(0));
                 }
-                
+
                 SMCommon.delayedPlayerTeleport(ctx.player, cacheList.get(name));
             })
             .register();
@@ -73,7 +74,7 @@ public class SMTeleportLocation extends SMFeature {
                     if (countResultSet.next()) {
                         itemCount = countResultSet.getInt(1);
                     }
-                } catch(Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
@@ -87,12 +88,12 @@ public class SMTeleportLocation extends SMFeature {
 
                         try {
                             PreparedStatement statement = SMDatabase.prepareStatement(
-                                    "SELECT name, world, x, y, z FROM tp_locations LIMIT ?, ?");
+                                "SELECT name, world, x, y, z FROM tp_locations LIMIT ?, ?");
                             statement.setInt(1, start);
                             statement.setInt(2, max);
                             ResultSet resultSet = statement.executeQuery();
 
-                            while(resultSet.next()) {
+                            while (resultSet.next()) {
                                 String name = resultSet.getString("name");
                                 String worldName = resultSet.getString("world");
                                 double x = resultSet.getDouble("x");
@@ -101,22 +102,33 @@ public class SMTeleportLocation extends SMFeature {
 
                                 DecimalFormat df = new DecimalFormat("#");
 
-                                TextComponent tpName = new TextComponent(ChatColor.GOLD + name + " " + ChatColor.GRAY + df.format(x) + "," + df.format(y) + "," + df.format(z) + " " + worldName);
+                                TextComponent tpName = new TextComponent(ChatColor.GOLD + name + " " + ChatColor.GRAY
+                                    + df.format(x) + "," + df.format(y) + "," + df.format(z) + " " + worldName);
                                 tpName.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tploc " + name));
-                                tpName.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Teleport to X:" + df.format(x) + " Y:" + df.format(y) + " Z:" + df.format(z) + " " + worldName)));
+                                tpName.setHoverEvent(
+                                    new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Teleport to X:" + df.format(x)
+                                        + " Y:" + df.format(y) + " Z:" + df.format(z) + " " + worldName)));
 
                                 TextComponent update = new TextComponent(ChatColor.WHITE + "[Update]");
-                                update.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/addtploc " + name));
-                                update.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Update location to X:" + Double.parseDouble(df.format(ctx.player.getLocation().getX())) + " Y:" + Double.parseDouble(df.format(ctx.player.getLocation().getY())) + " Z:" + Double.parseDouble(df.format(ctx.player.getLocation().getZ())) + " " + ctx.player.getLocation().getWorld().getName())));
+                                update
+                                    .setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/addtploc " + name));
+                                update.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                    new Text("Update location to X:"
+                                        + Double.parseDouble(df.format(ctx.player.getLocation().getX())) + " Y:"
+                                        + Double.parseDouble(df.format(ctx.player.getLocation().getY())) + " Z:"
+                                        + Double.parseDouble(df.format(ctx.player.getLocation().getZ())) + " "
+                                        + ctx.player.getLocation().getWorld().getName())));
 
                                 TextComponent delTp = new TextComponent(ChatColor.RED + "[Del]");
                                 delTp.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/deltploc " + name));
-                                delTp.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Delete teleport location")));
+                                delTp.setHoverEvent(
+                                    new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Delete teleport location")));
 
-                                BaseComponent[] row = new BaseComponent[]{tpName, new TextComponent(" "), update, new TextComponent(" "), delTp};
+                                BaseComponent[] row = new BaseComponent[] {tpName, new TextComponent(" "), update,
+                                        new TextComponent(" "), delTp};
                                 rows.add(row);
                             }
-                        } catch(Exception e) {
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
 
@@ -132,7 +144,7 @@ public class SMTeleportLocation extends SMFeature {
                 ctx.checkNotConsole();
                 ctx.checkArgs(1, "TPLOC_USAGE");
 
-                String name = ctx.args[0];
+                String name = ctx.args.get(0);
                 Location location = ctx.player.getLocation();
 
                 String world = location.getWorld().getName();
@@ -144,7 +156,7 @@ public class SMTeleportLocation extends SMFeature {
 
                 try {
                     PreparedStatement selectStatement = SMDatabase.prepareStatement(
-                            "SELECT COUNT(*) FROM tp_locations WHERE name = ?");
+                        "SELECT COUNT(*) FROM tp_locations WHERE name = ?");
                     selectStatement.setString(1, name);
                     ResultSet selectResult = selectStatement.executeQuery();
                     selectResult.next();
@@ -155,7 +167,7 @@ public class SMTeleportLocation extends SMFeature {
                     if (rowCount > 0) {
                         // Update existing row
                         statement = SMDatabase.prepareStatement(
-                                "UPDATE tp_locations SET world = ?, x = ?, y = ?, z = ?, yaw = ?, pitch = ? WHERE name = ?");
+                            "UPDATE tp_locations SET world = ?, x = ?, y = ?, z = ?, yaw = ?, pitch = ? WHERE name = ?");
 
                         statement.setString(1, world);
                         statement.setDouble(2, x);
@@ -167,7 +179,7 @@ public class SMTeleportLocation extends SMFeature {
                     } else {
                         // Insert new row
                         statement = SMDatabase.prepareStatement(
-                                "INSERT INTO tp_locations (name, world, x, y, z, yaw, pitch) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                            "INSERT INTO tp_locations (name, world, x, y, z, yaw, pitch) VALUES (?, ?, ?, ?, ?, ?, ?)");
                         statement.setString(1, name);
                         statement.setString(2, world);
                         statement.setDouble(3, x);
@@ -198,7 +210,7 @@ public class SMTeleportLocation extends SMFeature {
             .action(ctx -> {
                 ctx.checkArgs(1, "TPLOC_DELETE_USAGE");
 
-                String name = ctx.args[0];
+                String name = ctx.args.get(0);
                 if (!this.cacheList.containsKey(name)) {
                     ctx.returnErrorLocale("TPLOC_NOT_EXIST", "name", name);
                 }
@@ -206,7 +218,7 @@ public class SMTeleportLocation extends SMFeature {
                 try {
                     PreparedStatement statement;
                     statement = SMDatabase.prepareStatement(
-                            "DELETE FROM tp_locations WHERE name = ?");
+                        "DELETE FROM tp_locations WHERE name = ?");
 
                     statement.setString(1, name);
 
@@ -235,7 +247,7 @@ public class SMTeleportLocation extends SMFeature {
             ResultSet resultSet = statement.executeQuery();
 
             this.cacheList.clear();
-            while(resultSet.next()) {
+            while (resultSet.next()) {
                 String name = resultSet.getString("name");
                 String worldName = resultSet.getString("world");
                 double x = resultSet.getDouble("x");
@@ -244,7 +256,8 @@ public class SMTeleportLocation extends SMFeature {
                 float yaw = resultSet.getFloat("yaw");
                 float pitch = resultSet.getFloat("pitch");
 
-                Location location = new Location(STEMCraft.getPlugin().getServer().getWorld(worldName), x, y, z, yaw, pitch);
+                Location location =
+                    new Location(STEMCraft.getPlugin().getServer().getWorld(worldName), x, y, z, yaw, pitch);
                 this.cacheList.put(name, location);
             }
         } catch (Exception e) {

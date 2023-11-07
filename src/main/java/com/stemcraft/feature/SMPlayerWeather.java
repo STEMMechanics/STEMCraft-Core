@@ -19,18 +19,18 @@ public class SMPlayerWeather extends SMFeature {
             .action(ctx -> {
                 Player targetPlayer = ctx.player;
                 String option = "lookup";
-                
+
                 HashMap<String, String> weatherTypes = new HashMap<>();
                 weatherTypes.put("clear", "CLEAR");
                 weatherTypes.put("rain", "DOWNFALL");
 
-                if(ctx.fromConsole() && ctx.args.length == 0) {
+                if (ctx.fromConsole() && ctx.args.size() == 0) {
                     ctx.returnErrorLocale("PWEATHER_USAGE");
                 }
 
-                if(ctx.args.length > 0) {
-                    ctx.checkInArrayLocale(options, ctx.args[0], "PWEATHER_USAGE");
-                    option = ctx.args[0].toLowerCase();
+                if (ctx.args.size() > 0) {
+                    ctx.checkInArrayLocale(options, ctx.args.get(0), "PWEATHER_USAGE");
+                    option = ctx.args.get(0).toLowerCase();
 
                     targetPlayer = ctx.getArgAsPlayer(2, ctx.player);
                 }
@@ -38,29 +38,30 @@ public class SMPlayerWeather extends SMFeature {
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
                 ctx.checkPermission(targetPlayer == ctx.sender, "stemcraft.pweather.other");
 
-                if("lookup".equals(option)) {
+                if ("lookup".equals(option)) {
                     String weatherValue = "server";
 
                     WeatherType playerWeather = targetPlayer.getPlayerWeather();
-                    if(playerWeather != null) {
-                        if(playerWeather == WeatherType.CLEAR) {
+                    if (playerWeather != null) {
+                        if (playerWeather == WeatherType.CLEAR) {
                             weatherValue = "clear";
-                        } else if(playerWeather == WeatherType.DOWNFALL) {
+                        } else if (playerWeather == WeatherType.DOWNFALL) {
                             weatherValue = "rain";
                         } else {
                             weatherValue = "unknown";
                         }
                     }
 
-                    if(targetPlayer == ctx.sender) {
+                    if (targetPlayer == ctx.sender) {
                         ctx.returnInfoLocale("PWEATHER_GET", "type", weatherValue);
                     } else {
-                        ctx.returnInfoLocale("PWEATHER_GET_FOR", "player", targetPlayer.getName(), "type", weatherValue);
+                        ctx.returnInfoLocale("PWEATHER_GET_FOR", "player", targetPlayer.getName(), "type",
+                            weatherValue);
                     }
-                } else if("reset".equals(option)) {
+                } else if ("reset".equals(option)) {
                     targetPlayer.resetPlayerWeather();
 
-                    if(targetPlayer == ctx.sender) {
+                    if (targetPlayer == ctx.sender) {
                         ctx.returnInfoLocale("PWEATHER_RESET");
                     } else {
                         SMMessenger.infoLocale(ctx.sender, "PWEATHER_RESET_FOR", "player", targetPlayer.getName());
@@ -74,11 +75,13 @@ public class SMPlayerWeather extends SMFeature {
 
                         targetPlayer.setPlayerWeather(weatherType);
 
-                        if(targetPlayer == ctx.sender) {
+                        if (targetPlayer == ctx.sender) {
                             ctx.returnInfoLocale("PWEATHER_SET", "type", option);
                         } else {
-                            SMMessenger.infoLocale(ctx.sender, "PWEATHER_SET_FOR", "player", targetPlayer.getName(), "type", option);
-                            SMMessenger.infoLocale(targetPlayer, "PWEATHER_SET_BY", "player", ctx.senderName(), "type", option);
+                            SMMessenger.infoLocale(ctx.sender, "PWEATHER_SET_FOR", "player", targetPlayer.getName(),
+                                "type", option);
+                            SMMessenger.infoLocale(targetPlayer, "PWEATHER_SET_BY", "player", ctx.senderName(), "type",
+                                option);
                         }
                     } catch (IllegalArgumentException e) {
                         /* Do nothing */

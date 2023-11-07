@@ -1,6 +1,10 @@
 package com.stemcraft.core.command;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -15,19 +19,41 @@ public class SMCommandContext {
     public String alias;
     public CommandSender sender;
     public Player player;
-    public String[] args;
+    public List<String> args;
+    public List<String> dashArgs;
+    public Map<String, String> optionArgs;
 
     public SMCommandContext(SMCommand command, CommandSender sender, String alias, String[] args) {
         this.command = command;
         this.sender = sender;
-        this.args = args;
         this.alias = alias.toLowerCase();
 
-        this.player = sender instanceof Player ? (Player)sender : null;
+        this.player = sender instanceof Player ? (Player) sender : null;
+
+        dashArgs = new ArrayList<>();
+        optionArgs = new HashMap<>();
+        this.args = new ArrayList<>(Arrays.asList(args)); // Convert args array to list
+
+        Iterator<String> iterator = this.args.iterator();
+        while (iterator.hasNext()) {
+            String arg = iterator.next();
+            if (arg.startsWith("-")) {
+                dashArgs.add(arg);
+                iterator.remove();
+            } else if (arg.matches("^[a-zA-Z0-9-_]:.*")) {
+                int index = arg.indexOf(":");
+                String option = arg.substring(0, index);
+                String value = arg.substring(index + 1);
+
+                optionArgs.putIfAbsent(option.toLowerCase(), value);
+                iterator.remove();
+            }
+        }
     }
 
     /**
      * Return if the sender has the specified permission.
+     * 
      * @param permission
      * @return
      */
@@ -37,6 +63,7 @@ public class SMCommandContext {
 
     /**
      * Return if command has been run from console.
+     * 
      * @return
      */
     public Boolean fromConsole() {
@@ -45,6 +72,7 @@ public class SMCommandContext {
 
     /**
      * Internal throw command exception with string and replacements
+     * 
      * @param msg
      * @param replacements
      */
@@ -52,14 +80,14 @@ public class SMCommandContext {
         if (replacements.length % 2 != 0) {
             throw new IllegalArgumentException("Odd number of replacements provided. Expecting key-value pairs.");
         }
-    
+
         Map<String, String> replacementMap = new HashMap<>();
         for (int i = 0; i < replacements.length; i += 2) {
             String key = replacements[i].toString();
             String value = (replacements[i + 1] != null) ? replacements[i + 1].toString() : null;
             replacementMap.put(key, value);
         }
-        
+
         replacementMap.put("label", command.getLabel());
         msg = SMReplacer.replaceVariables(msg, replacementMap);
 
@@ -70,83 +98,89 @@ public class SMCommandContext {
      * Throw an exception unless the sender is a player.
      */
     public void checkNotConsole() {
-        if(!(sender instanceof Player)) {
+        if (!(sender instanceof Player)) {
             throwCommandException(SMLocale.get(this.sender, "CMD_ONLY_PLAYERS"));
         }
     }
 
     /**
      * Throw an exception unless a boolean is true.
+     * 
      * @param b
      * @param onFail
      */
     public void checkBoolean(Boolean b, String onFail) {
-        if(!b) {
+        if (!b) {
             throwCommandException(onFail);
         }
     }
 
     /**
      * Throw an exception unless a boolean is true.
+     * 
      * @param b
      * @param onFail
      */
     public void checkBooleanLocale(Boolean b, String onFailId) {
-        if(!b) {
+        if (!b) {
             throwCommandException(SMLocale.get(sender, onFailId));
         }
     }
 
     /**
      * Throw an exception unless a object is not null.
+     * 
      * @param b
      * @param onFail
      */
     public void checkNotNullLocale(Object o, String onFailId) {
-        if(o == null) {
+        if (o == null) {
             throwCommandException(SMLocale.get(sender, onFailId));
         }
     }
 
     /**
      * Check the the argument size is equal to or larger than specified.
+     * 
      * @param size
      * @param onFail
      */
     public void checkArgs(Integer size, String onFail) {
-        if(this.args.length < size) {
+        if (this.args.size() < size) {
             throwCommandException(onFail);
         }
     }
 
     /**
      * Check the the argument size is equal to or larger than specified.
+     * 
      * @param size
      * @param onFail
      */
     public void checkArgsLocale(Integer size, String onFailId) {
-        if(this.args.length < size) {
+        if (this.args.size() < size) {
             throwCommandException(SMLocale.get(sender, onFailId));
         }
     }
 
     /**
      * Check the the argument size is equal to or larger than specified.
+     * 
      * @param array
      * @param value
      * @param onFail
      */
     public void checkInArrayLocale(String[] array, String value, String onFailId) {
         boolean valueFound = false;
-    
+
         for (String element : array) {
             if (element.equals(value)) {
                 valueFound = true;
                 break;
             }
         }
-        
-        if(!valueFound) {
+
+        if (!valueFound) {
             throwCommandException(SMLocale.get(sender, onFailId));
         }
     }
@@ -155,7 +189,7 @@ public class SMCommandContext {
      * Throw an exception unless the sender has the specified permission.
      */
     public void checkPermission(String permission) {
-        if(!sender.hasPermission(permission)) {
+        if (!sender.hasPermission(permission)) {
             throwCommandException(SMLocale.get(this.sender, "CMD_NO_PERMISSION"));
         }
     }
@@ -164,42 +198,45 @@ public class SMCommandContext {
      * Throw an exception unless the sender has the specified permission or condition is true.
      */
     public void checkPermission(Boolean condition, String permission) {
-        if(!condition && !sender.hasPermission(permission)) {
+        if (!condition && !sender.hasPermission(permission)) {
             throwCommandException(SMLocale.get(this.sender, "CMD_NO_PERMISSION"));
         }
     }
 
     /**
      * Get Command argument from index.
+     * 
      * @param idx
      * @return
      */
     public String getArg(int idx, String defValue) {
-        return idx > 0 && this.args.length >= idx ? this.args[idx - 1] : defValue;
+        return idx > 0 && this.args.size() >= idx ? this.args.get(idx - 1) : defValue;
     }
 
     /**
      * Get Command argument from index.
+     * 
      * @param idx
      * @return
      */
     public int getArgInt(int idx, int defValue) {
         try {
-            return idx > 0 && this.args.length >= idx ? Integer.parseInt(this.args[idx - 1]) : defValue;
-        } catch(Exception e) {
+            return idx > 0 && this.args.size() >= idx ? Integer.parseInt(this.args.get(idx - 1)) : defValue;
+        } catch (Exception e) {
             return defValue;
         }
     }
 
     /**
      * Get Player from argument index.
+     * 
      * @param idx
      * @param defValue
      * @return
      */
     public Player getArgAsPlayer(Integer idx, Player defValue) {
         String playerName = getArg(idx, "");
-        if(playerName != "") {
+        if (playerName != "") {
             return SMCommon.findPlayer(playerName);
         }
 
@@ -215,6 +252,7 @@ public class SMCommandContext {
 
     /**
      * Return with an info message.
+     * 
      * @param message
      */
     public final void returnInfo(String message) {
@@ -224,6 +262,7 @@ public class SMCommandContext {
 
     /**
      * Return with an info locale message.
+     * 
      * @param message
      */
     public final void returnInfoLocale(String id, String... replacements) {
@@ -233,6 +272,7 @@ public class SMCommandContext {
 
     /**
      * Return with an success message.
+     * 
      * @param message
      */
     public final void returnSuccess(String message) {
@@ -242,6 +282,7 @@ public class SMCommandContext {
 
     /**
      * Return with an success locale message.
+     * 
      * @param message
      */
     public final void returnSuccessLocale(String id, String... replacements) {
@@ -251,6 +292,7 @@ public class SMCommandContext {
 
     /**
      * Return with an warning message.
+     * 
      * @param message
      */
     public final void returnWarn(String message) {
@@ -260,6 +302,7 @@ public class SMCommandContext {
 
     /**
      * Return with an warning locale message.
+     * 
      * @param message
      */
     public final void returnWarnLocale(String id, String... replacements) {
@@ -269,6 +312,7 @@ public class SMCommandContext {
 
     /**
      * Return with an error message.
+     * 
      * @param message
      */
     public final void returnError(String message) {
@@ -278,6 +322,7 @@ public class SMCommandContext {
 
     /**
      * Return with an error locale message.
+     * 
      * @param message
      */
     public final void returnErrorLocale(String id, String... replacements) {
@@ -287,6 +332,7 @@ public class SMCommandContext {
 
     /**
      * Resolve a sender name as either console or player
+     * 
      * @param sender
      * @return
      */

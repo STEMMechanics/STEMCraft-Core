@@ -19,14 +19,14 @@ public class SMGameMode extends SMFeature {
                 Player targetPlayer = ctx.player;
                 String gamemodeStr = "Unknown";
 
-                if(ctx.args.length >= 1) {
-                    targetPlayer = SMCommon.findPlayer(ctx.args[1]);
+                if (ctx.args.size() >= 1) {
+                    targetPlayer = SMCommon.findPlayer(ctx.args.get(1));
                     if (targetPlayer == null) {
                         ctx.returnErrorLocale("CMD_PLAYER_NOT_FOUND");
                         return;
                     }
                 }
-                
+
                 if ("gma".equals(ctx.alias)) {
                     targetPlayer.setGameMode(GameMode.ADVENTURE);
                     gamemodeStr = "Adventure";
@@ -43,11 +43,13 @@ public class SMGameMode extends SMFeature {
                     ctx.returnErrorLocale("GAMEMODE_UNKNOWN");
                 }
 
-                if(targetPlayer == ctx.sender) {
+                if (targetPlayer == ctx.sender) {
                     SMMessenger.infoLocale(targetPlayer, "GAMEMODE_CHANGED", "gamemode", gamemodeStr);
                 } else {
-                    SMMessenger.infoLocale(ctx.sender, "GAMEMODE_CHANGED_FOR", "player", targetPlayer.getName(), "gamemode", gamemodeStr);
-                    SMMessenger.infoLocale(targetPlayer, "GAMEMODE_CHANGED_BY", "player", ctx.senderName(), "gamemode", gamemodeStr);
+                    SMMessenger.infoLocale(ctx.sender, "GAMEMODE_CHANGED_FOR", "player", targetPlayer.getName(),
+                        "gamemode", gamemodeStr);
+                    SMMessenger.infoLocale(targetPlayer, "GAMEMODE_CHANGED_BY", "player", ctx.senderName(), "gamemode",
+                        gamemodeStr);
                 }
 
             })
@@ -55,10 +57,10 @@ public class SMGameMode extends SMFeature {
 
 
         // String[][] tabCompletions = new String[][]{
-        //     {"gma", "%player%"},
-        //     {"gmc", "%player%"},
-        //     {"gms", "%player%"},
-        //     {"gmsp", "%player%"},
+        // {"gma", "%player%"},
+        // {"gmc", "%player%"},
+        // {"gms", "%player%"},
+        // {"gmsp", "%player%"},
         // };
 
         return true;

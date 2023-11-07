@@ -25,29 +25,29 @@ public class SMClearInventory extends SMFeature {
                 Player targetPlayer = ctx.getArgAsPlayer(1, ctx.player);
 
                 // Require player arg from console
-                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length == 0), "CMD_PLAYER_REQ_FROM_CONSOLE");
-                
+                ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.size() == 0), "CMD_PLAYER_REQ_FROM_CONSOLE");
+
                 // Check targetPlayer is not null
                 ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
-                
+
                 // Check sender has permission to target another player
                 ctx.checkBooleanLocale(
                     targetPlayer == ctx.player || ctx.hasPermission("stemcraft.inventory.clear.other"),
-                    "CMD_NO_PERMISSION"
-                );
+                    "CMD_NO_PERMISSION");
 
                 PlayerInventory inventory = targetPlayer.getInventory();
 
                 // Save inventory if GameModeInventories feature is enabled
-                if(STEMCraft.featureEnabled("GameModeInventories")) {
-                    SMGameModeInventories gmiInventories = STEMCraft.getFeature("SMGameModeInventories", SMGameModeInventories.class);
+                if (STEMCraft.featureEnabled("GameModeInventories")) {
+                    SMGameModeInventories gmiInventories =
+                        STEMCraft.getFeature("SMGameModeInventories", SMGameModeInventories.class);
                     gmiInventories.SaveInventory(targetPlayer, "Player cleared inventory");
                 }
 
                 inventory.clear();
                 inventory.setArmorContents(null);
 
-                if(targetPlayer == ctx.sender) {
+                if (targetPlayer == ctx.sender) {
                     ctx.returnInfoLocale("INV_CLEARED");
                 } else {
                     SMMessenger.infoLocale(ctx.sender, "INV_CLEARED_FOR", "player", targetPlayer.getName());

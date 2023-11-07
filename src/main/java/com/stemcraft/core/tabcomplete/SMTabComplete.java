@@ -12,8 +12,8 @@ public class SMTabComplete {
         tabCompletionPlaceholders.put(name, callback);
     }
 
-    public static List<String> get(String name) {
-        if(tabCompletionPlaceholders.containsKey(name)) {
+    public static List<String> getCompletionList(String name) {
+        if (tabCompletionPlaceholders.containsKey(name)) {
             return tabCompletionPlaceholders.get(name).get();
         }
 

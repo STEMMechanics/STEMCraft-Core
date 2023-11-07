@@ -154,12 +154,12 @@ public class STEMCraft extends JavaPlugin implements Listener {
             .tabComplete("info")
             .tabComplete("reload")
             .action(ctx -> {
-                if (ctx.args.length == 0) {
+                if (ctx.args.size() == 0) {
                     ctx.returnInvalidArgs();
                 } else {
-                    if ("info".equalsIgnoreCase(ctx.args[0])) {
+                    if ("info".equalsIgnoreCase(ctx.args.get(0))) {
                         ctx.returnInfo("STEMCraft " + STEMCraft.getVersion());
-                    } else if ("reload".equalsIgnoreCase(ctx.args[0])) {
+                    } else if ("reload".equalsIgnoreCase(ctx.args.get(0))) {
                         ctx.checkPermission("stemcraft.reload");
 
                         onDisable();

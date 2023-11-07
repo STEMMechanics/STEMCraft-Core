@@ -34,20 +34,23 @@ public class SMBooks extends SMFeature {
 
         SMDatabase.runMigration("230818073300_CreateBookTable", () -> {
             SMDatabase.prepareStatement(
-            "CREATE TABLE IF NOT EXISTS books (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "name TEXT NOT NULL UNIQUE," +
-                "content TEXT NOT NULL," +
-                "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP)").executeUpdate();
+                "CREATE TABLE IF NOT EXISTS books (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "name TEXT NOT NULL UNIQUE," +
+                    "content TEXT NOT NULL," +
+                    "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
+                .executeUpdate();
         });
 
         SMDatabase.runMigration("230818131500_UpdateBookTable", () -> {
             SMDatabase.prepareStatement(
-            "ALTER TABLE books " +
-                "ADD COLUMN author TEXT DEFAULT ''").executeUpdate();
+                "ALTER TABLE books " +
+                    "ADD COLUMN author TEXT DEFAULT ''")
+                .executeUpdate();
             SMDatabase.prepareStatement(
-            "ALTER TABLE books " +
-                "ADD COLUMN title TEXT DEFAULT ''").executeUpdate();
+                "ALTER TABLE books " +
+                    "ADD COLUMN title TEXT DEFAULT ''")
+                .executeUpdate();
         });
 
         this.buildCacheList();
@@ -68,10 +71,10 @@ public class SMBooks extends SMFeature {
                 // Check there are args
                 ctx.checkArgsLocale(1, "BOOK_USAGE");
 
-                String sub = ctx.args[0].toLowerCase();
+                String sub = ctx.args.get(0).toLowerCase();
 
                 // Sub command - new
-                if("new".equals(sub)) {
+                if ("new".equals(sub)) {
                     ctx.checkNotConsole();
                     ctx.checkPermission("stemcraft.book.edit");
 
@@ -90,25 +93,25 @@ public class SMBooks extends SMFeature {
                         ctx.returnInfoLocale("BOOK_GIVEN_NEW");
                     }
 
-                // Sub command - save
-                } else if("save".equals(sub)) {
+                    // Sub command - save
+                } else if ("save".equals(sub)) {
                     ctx.checkNotConsole();
                     ctx.checkPermission("stemcraft.book.edit");
                     ctx.checkArgsLocale(3, "BOOK_USAGE_SAVE");
 
                     // Player holding a writable book?
                     ItemStack item = ctx.player.getInventory().getItemInMainHand();
-                    if(item.getType().toString() != "BOOK_AND_QUILL" && item.getType().toString() != "WRITABLE_BOOK") {
+                    if (item.getType().toString() != "BOOK_AND_QUILL" && item.getType().toString() != "WRITABLE_BOOK") {
                         ctx.returnErrorLocale("BOOK_SAVE_NOT_WRITABLE");
                     }
 
-                    String author = ctx.args[1];
-                    String title  = String.join(" ", Arrays.copyOfRange(ctx.args, 2, ctx.args.length));
+                    String author = ctx.args.get(1);
+                    String title = String.join(" ", ctx.args.subList(2, ctx.args.size()));
                     String name = this.generateName(title);
                     BookMeta meta = (BookMeta) item.getItemMeta();
                     List<String> bookPages = meta.getPages();
                     List<String> newPages = new ArrayList<>(bookPages);
-                    
+
                     for (int i = 0; i < newPages.size(); i++) {
                         String originalPage = newPages.get(i);
 
@@ -128,7 +131,7 @@ public class SMBooks extends SMFeature {
 
                     try {
                         PreparedStatement selectStatement = SMDatabase.prepareStatement(
-                                "SELECT COUNT(*) FROM books WHERE name = ?");
+                            "SELECT COUNT(*) FROM books WHERE name = ?");
                         selectStatement.setString(1, name);
                         ResultSet selectResult = selectStatement.executeQuery();
                         selectResult.next();
@@ -139,7 +142,7 @@ public class SMBooks extends SMFeature {
                         if (rowCount > 0) {
                             // Update existing row
                             statement = SMDatabase.prepareStatement(
-                                    "UPDATE books SET author = ?, title = ?, content = ? WHERE name = ?");
+                                "UPDATE books SET author = ?, title = ?, content = ? WHERE name = ?");
 
                             statement.setString(1, author);
                             statement.setString(2, title);
@@ -148,7 +151,7 @@ public class SMBooks extends SMFeature {
                         } else {
                             // Insert new row
                             statement = SMDatabase.prepareStatement(
-                                    "INSERT INTO books (name, author, title, content) VALUES (?, ?, ?, ?)");
+                                "INSERT INTO books (name, author, title, content) VALUES (?, ?, ?, ?)");
                             statement.setString(1, name);
                             statement.setString(2, author);
                             statement.setString(3, title);
@@ -158,7 +161,7 @@ public class SMBooks extends SMFeature {
                         int rowsAffected = statement.executeUpdate();
 
                         if (rowsAffected > 0) {
-                            if(rowCount > 0) {
+                            if (rowCount > 0) {
                                 SMMessenger.successLocale(ctx.sender, "BOOK_SAVE_UPDATED", "name", name);
                             } else {
                                 SMMessenger.successLocale(ctx.sender, "BOOK_SAVE_NEW", "name", name);
@@ -170,13 +173,13 @@ public class SMBooks extends SMFeature {
                         e.printStackTrace();
                     }
 
-                // Sub command - get
-                } else if("get".equals(sub)) {
+                    // Sub command - get
+                } else if ("get".equals(sub)) {
                     ctx.checkNotConsole();
                     ctx.checkArgsLocale(2, "BOOK_USAGE_GET");
 
-                    ItemStack book = this.getBook(ctx.args[1]);
-                    if(book != null) {
+                    ItemStack book = this.getBook(ctx.args.get(1));
+                    if (book != null) {
                         Map<Integer, ItemStack> result = ctx.player.getInventory().addItem(book);
                         if (!result.isEmpty()) {
                             ctx.returnErrorLocale("BOOK_INVENTORY_FULL");
@@ -187,30 +190,30 @@ public class SMBooks extends SMFeature {
                         ctx.returnErrorLocale("BOOK_NOT_FOUND");
                     }
 
-                // Sub command - show
-                } else if("show".equals(sub)) {
+                    // Sub command - show
+                } else if ("show".equals(sub)) {
                     ctx.checkArgsLocale(2, "BOOK_USAGE_SHOW");
-                    ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.length < 3), "CMD_PLAYER_REQ_FROM_CONSOLE");
+                    ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.size() < 3), "CMD_PLAYER_REQ_FROM_CONSOLE");
 
                     Player targetPlayer = ctx.getArgAsPlayer(3, ctx.player);
                     ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
 
-                    ItemStack book = this.getBook(ctx.args[1]);
-                    if(book != null) {
+                    ItemStack book = this.getBook(ctx.args.get(1));
+                    if (book != null) {
                         targetPlayer.openBook(book);
                     } else {
                         ctx.returnErrorLocale("BOOK_NOT_FOUND");
                     }
 
-                // Sub command - del
-                } else if("del".equals(sub)) {
+                    // Sub command - del
+                } else if ("del".equals(sub)) {
                     ctx.checkPermission("stemcraft.book.edit");
                     ctx.checkArgsLocale(2, "BOOK_USAGE_DEL");
 
                     try {
                         PreparedStatement selectStatement = SMDatabase.prepareStatement(
-                                "SELECT COUNT(*) FROM books WHERE name = ?");
-                        selectStatement.setString(1, ctx.args[1]);
+                            "SELECT COUNT(*) FROM books WHERE name = ?");
+                        selectStatement.setString(1, ctx.args.get(1));
                         ResultSet selectResult = selectStatement.executeQuery();
                         selectResult.next();
 
@@ -219,9 +222,9 @@ public class SMBooks extends SMFeature {
                         PreparedStatement statement;
                         if (rowCount > 0) {
                             statement = SMDatabase.prepareStatement(
-                                    "DELETE FROM books WHERE name = ?");
+                                "DELETE FROM books WHERE name = ?");
 
-                            statement.setString(1, ctx.args[1]);
+                            statement.setString(1, ctx.args.get(1));
                             statement.executeUpdate();
                             ctx.returnSuccessLocale("BOOK_DELETE_SUCCESSFUL");
                         } else {
@@ -231,13 +234,13 @@ public class SMBooks extends SMFeature {
                         e.printStackTrace();
                     }
 
-                // Sub command - unlock
-                } else if("unlock".equals(sub)) {
+                    // Sub command - unlock
+                } else if ("unlock".equals(sub)) {
                     ctx.checkNotConsole();
                     ctx.checkPermission("stemcraft.book.edit");
 
                     ItemStack item = ctx.player.getInventory().getItemInMainHand();
-                    if(item.getType() == Material.WRITTEN_BOOK) {
+                    if (item.getType() == Material.WRITTEN_BOOK) {
                         Material material = Material.getMaterial("BOOK_AND_QUILL");
                         if (material == null)
                             material = Material.getMaterial("WRITABLE_BOOK");
@@ -248,7 +251,7 @@ public class SMBooks extends SMFeature {
                         BookMeta meta = (BookMeta) item.getItemMeta();
                         List<String> bookPages = meta.getPages();
                         List<String> newPages = new ArrayList<>(bookPages);
-                        
+
                         for (int i = 0; i < newPages.size(); i++) {
                             String originalPage = newPages.get(i);
 
@@ -276,16 +279,16 @@ public class SMBooks extends SMFeature {
 
     /**
      * Get Book item from database.
+     * 
      * @param name
      * @return
      */
     private ItemStack getBook(String name) {
         try {
             PreparedStatement statement = SMDatabase.prepareStatement(
-                    "SELECT * FROM books WHERE name = ? LIMIT 1"
-            );
+                "SELECT * FROM books WHERE name = ? LIMIT 1");
             statement.setString(1, name);
-            
+
             ResultSet resultSet = statement.executeQuery();
 
             if (resultSet.next()) {
@@ -294,7 +297,7 @@ public class SMBooks extends SMFeature {
                 String content = resultSet.getString("content");
 
                 ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
-                BookMeta meta = (BookMeta)book.getItemMeta();
+                BookMeta meta = (BookMeta) book.getItemMeta();
 
                 meta.setAuthor(author);
                 meta.setTitle(title);
@@ -303,7 +306,7 @@ public class SMBooks extends SMFeature {
 
                 return book;
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -319,7 +322,7 @@ public class SMBooks extends SMFeature {
 
         // Convert to lowercase
         title = title.toLowerCase();
-        
+
         return title;
     }
 
@@ -333,7 +336,7 @@ public class SMBooks extends SMFeature {
             ResultSet resultSet = statement.executeQuery();
 
             this.cacheList.clear();
-            while(resultSet.next()) {
+            while (resultSet.next()) {
                 String name = resultSet.getString("name");
                 this.cacheList.add(name);
             }
@@ -344,6 +347,7 @@ public class SMBooks extends SMFeature {
 
     /**
      * Untranslate the Minecraft color char to & symbol.
+     * 
      * @param input
      * @return
      */
@@ -353,12 +357,13 @@ public class SMBooks extends SMFeature {
 
     /**
      * Present a book to a player.
+     * 
      * @param player
      * @param name
      */
     public void showBook(Player player, String name) {
         ItemStack book = this.getBook(name);
-        if(book != null) {
+        if (book != null) {
             player.openBook(book);
         } else {
             SMMessenger.errorLocale(player, "BOOK_NOT_FOUND");
@@ -367,22 +372,22 @@ public class SMBooks extends SMFeature {
 
     /**
      * Check a book exists.
+     * 
      * @param name
      * @return
      */
     public Boolean bookExists(String name) {
         try {
             PreparedStatement statement = SMDatabase.prepareStatement(
-                    "SELECT * FROM books WHERE name = ? LIMIT 1"
-            );
+                "SELECT * FROM books WHERE name = ? LIMIT 1");
             statement.setString(1, name);
-            
+
             ResultSet resultSet = statement.executeQuery();
 
             if (resultSet.next()) {
                 return true;
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

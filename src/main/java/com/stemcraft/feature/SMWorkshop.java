@@ -30,12 +30,11 @@ import com.stemcraft.core.util.SMWorldRegion;
 /**
  * Workshop Feature
  * 
- * - Create a world or region with the prefix `workshop_`. The following text will be the workshop name
- *      - Regions by default are protected from players
- *      - Region enter/exit text will be handled by the class
- *      - Players need to be in the group the same name as the workshop, including the prefix
- *      - Add the same group with the suffix `_active` as a group member to the region. DO NOT ADD THE workshop group
- *          to the region. The `_active` group will be given/removed from the player automagically
+ * - Create a world or region with the prefix `workshop_`. The following text will be the workshop name - Regions by
+ * default are protected from players - Region enter/exit text will be handled by the class - Players need to be in the
+ * group the same name as the workshop, including the prefix - Add the same group with the suffix `_active` as a group
+ * member to the region. DO NOT ADD THE workshop group to the region. The `_active` group will be given/removed from the
+ * player automagically
  */
 public class SMWorkshop extends SMFeature {
     RegionContainer container = null;
@@ -55,9 +54,9 @@ public class SMWorkshop extends SMFeature {
                 if (world.getName().startsWith("workshop_")) {
                     list.add(world.getName().substring(9));
                 }
-                
+
                 RegionManager regionManager = container.get(BukkitAdapter.adapt(world));
-                
+
                 if (regionManager != null) {
                     for (ProtectedRegion region : regionManager.getRegions().values()) {
                         if (region.getId().startsWith("workshop_")) {
@@ -86,20 +85,20 @@ public class SMWorkshop extends SMFeature {
                 ctx.checkNotConsole();
                 ctx.checkArgs(1, "WORKSHOP_USAGE");
 
-                SMWorldRegion worldRegion = this.findWorkshopRegion(ctx.args[0]);
-                if(worldRegion == null) {
-                    World world = Bukkit.getWorld("workshop_" + ctx.args[0]);
-                    if(world == null) {
+                SMWorldRegion worldRegion = this.findWorkshopRegion(ctx.args.get(0));
+                if (worldRegion == null) {
+                    World world = Bukkit.getWorld("workshop_" + ctx.args.get(0));
+                    if (world == null) {
                         ctx.returnErrorLocale("WORKSHOP_NOT_FOUND");
                     } else {
-                        if(!SMLuckPerms.playerInGroup(ctx.player, "workshop_" + ctx.args[0].toLowerCase())) {
+                        if (!SMLuckPerms.playerInGroup(ctx.player, "workshop_" + ctx.args.get(0).toLowerCase())) {
                             ctx.returnErrorLocale("WORKSHOP_NO_PERMISSION");
                         }
 
                         SMCommon.delayedPlayerTeleport(ctx.player, world.getSpawnLocation());
                     }
                 } else {
-                    if(!SMLuckPerms.playerInGroup(ctx.player, "workshop_" + ctx.args[0].toLowerCase())) {
+                    if (!SMLuckPerms.playerInGroup(ctx.player, "workshop_" + ctx.args.get(0).toLowerCase())) {
                         ctx.returnErrorLocale("WORKSHOP_NO_PERMISSION");
                     }
 
@@ -117,7 +116,7 @@ public class SMWorkshop extends SMFeature {
 
         for (World world : Bukkit.getWorlds()) {
             RegionManager regionManager = container.get(BukkitAdapter.adapt(world));
-            
+
             if (regionManager != null) {
                 for (ProtectedRegion region : regionManager.getRegions().values()) {
                     if (region.getId().matches("workshop_" + searchString)) {
@@ -134,9 +133,12 @@ public class SMWorkshop extends SMFeature {
         RegionManager oldRegionManager = container.get(BukkitAdapter.adapt(from.getWorld()));
         RegionManager newRegionManager = container.get(BukkitAdapter.adapt(to.getWorld()));
 
-        if (oldRegionManager == null || newRegionManager == null) return;
-        ApplicableRegionSet oldRegions = oldRegionManager.getApplicableRegions(BukkitAdapter.adapt(from).toVector().toBlockPoint());
-        ApplicableRegionSet newRegions = newRegionManager.getApplicableRegions(BukkitAdapter.adapt(to).toVector().toBlockPoint());
+        if (oldRegionManager == null || newRegionManager == null)
+            return;
+        ApplicableRegionSet oldRegions =
+            oldRegionManager.getApplicableRegions(BukkitAdapter.adapt(from).toVector().toBlockPoint());
+        ApplicableRegionSet newRegions =
+            newRegionManager.getApplicableRegions(BukkitAdapter.adapt(to).toVector().toBlockPoint());
 
         if (!oldRegions.getRegions().equals(newRegions.getRegions())) {
             // Check regions the player has left
@@ -159,20 +161,21 @@ public class SMWorkshop extends SMFeature {
 
     private void enterRegion(Player player, ProtectedRegion region) {
         String regionId = region.getId();
-        if(regionId.startsWith("workshop_")) {
+        if (regionId.startsWith("workshop_")) {
             String workshopName = regionId.substring(9);
             String beautifiedName = SMCommon.beautifyCapitalize(workshopName);
-            
-            SMCommon.showGreeting(
-                player, 
-                SMReplacer.replaceVariables(SMLocale.get(player.getLocale(), "WORKSHOP_ENTER_TITLE") , "workshop", beautifiedName),
-                SMReplacer.replaceVariables(SMLocale.get(player.getLocale(), "WORKSHOP_ENTER_SUBTITLE"), "workshop", beautifiedName)
-            );
 
-            if(SMLuckPerms.playerInGroup(player, regionId)) {
+            SMCommon.showGreeting(
+                player,
+                SMReplacer.replaceVariables(SMLocale.get(player.getLocale(), "WORKSHOP_ENTER_TITLE"), "workshop",
+                    beautifiedName),
+                SMReplacer.replaceVariables(SMLocale.get(player.getLocale(), "WORKSHOP_ENTER_SUBTITLE"), "workshop",
+                    beautifiedName));
+
+            if (SMLuckPerms.playerInGroup(player, regionId)) {
                 SMLuckPerms.addGroup(player, regionId + "_active");
                 SMMessenger.infoLocale(player, "WORKSHOP_ENTER_MEMBER", "workshop", beautifiedName);
-                
+
                 LocalPlayer wgPlayer = WorldGuardPlugin.inst().wrapPlayer(player);
                 if (wgPlayer != null) {
                     WorldGuard.getInstance().getPlatform().getSessionManager().resetState(wgPlayer);
@@ -185,7 +188,7 @@ public class SMWorkshop extends SMFeature {
 
     private void exitRegion(Player player, ProtectedRegion region) {
         String regionId = region.getId();
-        if(regionId.startsWith("workshop_")) {
+        if (regionId.startsWith("workshop_")) {
             String workshopName = regionId.substring(9);
 
             SMMessenger.infoLocale(player, "WORKSHOP_EXIT", "workshop", SMCommon.beautifyCapitalize(workshopName));

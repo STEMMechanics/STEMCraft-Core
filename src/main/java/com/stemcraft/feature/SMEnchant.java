@@ -48,7 +48,7 @@ public class SMEnchant extends SMFeature {
             .action(ctx -> {
                 // Check there are args
                 ctx.checkArgsLocale(1, "ENCHANT_USAGE");
-                String sub = ctx.args[0].toLowerCase();
+                String sub = ctx.args.get(0).toLowerCase();
 
                 // Sub command - add
                 if ("add".equals(sub)) {
@@ -62,14 +62,14 @@ public class SMEnchant extends SMFeature {
 
                     ItemStack item = targetPlayer.getInventory().getItemInMainHand();
 
-                    Enchantment enchantment = SMBridge.getEnchantment(ctx.args[1]);
+                    Enchantment enchantment = SMBridge.getEnchantment(ctx.args.get(1));
                     if (enchantment == null) {
                         ctx.returnErrorLocale("ENCHANT_INVALID_NAME");
                     }
 
                     int level = 1;
                     try {
-                        level = Integer.parseInt(ctx.args[2]);
+                        level = Integer.parseInt(ctx.args.get(2));
                     } catch (NumberFormatException e) {
                         ctx.returnErrorLocale("ENCHANT_INVALID_LEVEL");
                     }
@@ -99,7 +99,7 @@ public class SMEnchant extends SMFeature {
 
                     ItemStack item = targetPlayer.getInventory().getItemInMainHand();
 
-                    Enchantment enchantment = SMBridge.getEnchantment(ctx.args[1]);
+                    Enchantment enchantment = SMBridge.getEnchantment(ctx.args.get(1));
                     if (enchantment == null) {
                         ctx.returnErrorLocale("ENCHANT_INVALID_NAME");
                     }
