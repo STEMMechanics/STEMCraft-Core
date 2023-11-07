@@ -13,7 +13,7 @@ import com.stemcraft.core.event.SMEvent;
 /**
  * Set the player chat formatting
  */
-public class SMChatFormat extends SMFeature {
+public class SMChat extends SMFeature {
     // Format placeholders
     private static final String NAME_PLACEHOLDER = "{name}";
     private static final String MESSAGE_PLACEHOLDER = "{message}";
@@ -31,8 +31,8 @@ public class SMChatFormat extends SMFeature {
     private String format;
 
     /**
-     * The current Vault chat implementation registered on the server.
-     * Automatically updated as new services are registered.
+     * The current Vault chat implementation registered on the server. Automatically updated as new services are
+     * registered.
      */
     private Chat vaultChat = null;
 
@@ -43,7 +43,7 @@ public class SMChatFormat extends SMFeature {
     @Override
     protected Boolean onEnable() {
         this.vaultChat = STEMCraft.getPlugin().getServer().getServicesManager().load(Chat.class);
-        if(this.vaultChat == null) {
+        if (this.vaultChat == null) {
             STEMCraft.info("Vault not enabled. Prefix/suffix will be ignored in chat formatting");
         }
 
@@ -61,8 +61,10 @@ public class SMChatFormat extends SMFeature {
             String format = ctx.event.getFormat();
 
             if (this.vaultChat != null) {
-                format = SMCommon.replaceAll(PREFIX_PLACEHOLDER_PATTERN, format, () -> SMCommon.colorize(this.vaultChat.getPlayerPrefix(ctx.event.getPlayer())));
-                format = SMCommon.replaceAll(SUFFIX_PLACEHOLDER_PATTERN, format, () -> SMCommon.colorize(this.vaultChat.getPlayerSuffix(ctx.event.getPlayer())));
+                format = SMCommon.replaceAll(PREFIX_PLACEHOLDER_PATTERN, format,
+                    () -> SMCommon.colorize(this.vaultChat.getPlayerPrefix(ctx.event.getPlayer())));
+                format = SMCommon.replaceAll(SUFFIX_PLACEHOLDER_PATTERN, format,
+                    () -> SMCommon.colorize(this.vaultChat.getPlayerSuffix(ctx.event.getPlayer())));
             }
 
             ctx.event.setFormat(format);
