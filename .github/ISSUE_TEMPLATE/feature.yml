@@ -1,0 +1,32 @@
+name: Feature
+
+description: File a feature report.
+
+title: "[Feature]: "
+
+labels: ["enhancement"]
+
+body:
+  - type: input
+    id: Version
+    attributes:
+      label: Version
+      description: What is your current version of STEMCraft?
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature
+    attributes:
+      label: Feature
+      description: What is it that you want?
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_feature
+    attributes:
+      label: Current Feature
+      description: What is it that currently happens in STEMCraft?
+    validations:
+      required: true

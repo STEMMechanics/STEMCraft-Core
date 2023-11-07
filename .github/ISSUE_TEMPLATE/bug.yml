@@ -1,0 +1,54 @@
+name: Discord Ticket Proxy - Bug
+
+description: File a bug report which was filed on Discord. Used internally for issue filing and is not expected to be used by other users.
+
+title: "[Ticket Bug]: "
+
+labels: ["bug"]
+
+body:
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: What environment is STEMCraft running under?
+      options:
+        - "STEMMechanics"
+        - "STEMMechanics Test Server (Under triage)"
+        - "Self-Hosted"
+    validations:
+      required: true
+
+  - type: input
+    id: Version
+    attributes:
+      label: Version
+      description: What is your current version of STEMCraft?
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected
+      description: What is it that the user who filed the ticket expected?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual
+      description: What is it that the user who filed the ticket actually experienced?
+    validations:
+      required: true
+
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: If running under the Test Server or in a Self-Hosted instance, what logs were there to show an issue?
+      render: Shell
+    validations:
+      required: true

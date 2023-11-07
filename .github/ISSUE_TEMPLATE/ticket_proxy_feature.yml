@@ -1,0 +1,41 @@
+name: Discord Ticket Proxy - Feature
+
+description: File a feature report which was filed on Discord. Used internally for issue filing and is not expected to be used by other users.
+
+title: "[Ticket Feature]: "
+
+labels: ["enhancement"]
+
+body:
+
+  - type: input
+    id: ticket_number
+    attributes:
+      label: Discord Ticket Number
+      description: What is the ticket number assigned by *Tickets*?
+    validations:
+      required: true
+
+  - type: input
+    id: ticket_user
+    attributes:
+      label: Discord User
+      description: What is the user who created the ticket (Username)?
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature
+    attributes:
+      label: Feature
+      description: What is it that the user wants?
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_feature
+    attributes:
+      label: Current Feature
+      description: What is it that the user who filed the ticket currently experiences in STEMCraft?
+    validations:
+      required: true
