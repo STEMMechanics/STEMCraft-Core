@@ -1,0 +1,360 @@
+# regex checks must be prefixed with regex:\b
+# /b indicates a "border check" (ie start/end of test or space before/after)
+# eg to catch spaces/periods between letters: \b(s+(\W|\d|_)*t+(\W|\d|_)*u+(\W|\d|_)*p+(\W|\d|_)*i+(\W|\d|_)*d)
+
+chat:
+    ignore:
+        list:
+            - minecraftskins.com
+            - stemcraft.com
+            - stemmechanics.com
+            - github.com
+    filter:
+        silent:
+            action: silent
+            list:
+                - bareback
+                - regex:\bbeaner(s|z)?
+                - beaver
+                - regex:\bbutt(?!(on|ons|er|ery)\b)
+                - regex:\bbollock(s)?
+                - doosh
+                - duche
+                - fetish
+                - murder
+                - gay
+                - gypsy
+                - regex:\bpawn
+                - prick
+                - regex:\bpuss(y|ie)
+                - spick
+                - suck
+                - suck
+                - suicide
+                - tainted love
+                - regex:\btea(\W|\d|_)*bag
+                - topless
+                - twat
+                - twink
+                - regex:\b([a-zA-Z])+( |_|-|\.)*com\b
+        notify:
+            action: notify
+            list:
+                - regex:\b(ass|ar(r)?se)\b
+                - barely legal
+                - barenaked
+                - blonde action
+                - brunette action
+                - busty
+                - regex:\bcialis\b
+                - circlejerk
+                - dink
+                - regex:\bdirty(\W|\d|_)*pillows
+                - domination
+                - fingerbang
+                - regex:\bfinger(\W|\d|_)*bang
+                - regex:\bhot(\W|\d|_)*chick
+                - knockers
+                - genitals
+                - nipple
+                - nsfw
+                - nude
+                - nudity
+                - panties
+                - panty
+                - penis
+                - playboy
+                - pleasure chest
+                - porn
+                - scissoring
+                - scrotum
+                - sex
+                - shemale
+                - snatch
+                - snowballing
+                - spunk
+                - regex:\btest(t)?(icle|ie|y)
+                - regex:\btit(t)*(s|y|ys|ies)
+                - tushy
+                - twat
+                - undressing
+                - vagina
+                - viagra
+                - venus mound
+                - vibrator
+                - vulva
+                - regex:\bwet(\W|\d|_)*dream
+        bad_language:
+            label: bad language
+            action: kick
+            list:
+                - regex:\b(1|2|one|two)(\W|\d|_)*(g|m|g|girl|girls|man|guy)(\W|\d|_)*(1|one)(\W|\d|_)*(c|j|cup|jar)
+                - <=8
+                - 8=>
+                - 8=D
+                - acrotomophilia
+                - anilingus
+                - anal
+                - anus
+                - arsehole
+                - asshole
+                - assmunch
+                - asswhore
+                - regex:\bauto(\W|\d|_)*erotic
+                - regex:\bbaby(\W|\d|_)*(batter|juice)
+                - regex:\bball(\W|\d|_)*(bag|gag|gravy|kick|lick|sack|suck)
+                - bangbros
+                - bastard
+                - bastinado
+                - bbw
+                - bestial
+                - regex:\bbe(a)?stiality
+                - regex:\bbig(\W|\d|_)*black
+                - bimbos
+                - regex:\bb(i|!)(a)?tch
+                - regex:\bblow(\W|\d|_)*job
+                - regex:\bblow (your|ur) load
+                - boiolas
+                - bondage
+                - boner
+                - boob
+                - bdsm
+                - regex:\bbooty(\W|\d|_)*call
+                - brown showers
+                - buceta
+                - bukkake
+                - regex:\bbung(\W|\d|_)*hole
+                - regex:\bbutt(\W|\d|_)*hole
+                - regex:\bbutt(\W|\d|_)*muncher
+                - camgirl
+                - regex:\bcamel(\W|\d|_)*toe
+                - regex:\bcarpet(\W|\d|_)*muncher
+                - clit
+                - clitoris
+                - chink
+                - chocolate rosebuds
+                - regex:\bcock(\W|\d|_)
+                - regex:\bcock([a-z]{0,3})head
+                - coprolagnia
+                - coprophilia
+                - cornhole
+                - coon
+                - regex:\bcream(\W|\d|_)*pie
+                - regex:\bcum(m)?(er|ing|s|shot)?
+                - cunnilingus
+                - cunt
+                - regex:\bcurry(\W|\d|_)*muncher
+                - darkie
+                - regex:\bdate(\W|\d|_)*rape
+                - regex:\bdeep(\W|\d|_)*throat
+                - dendrophilia
+                - regex:\bdic(s|k|ks|head|khead)?
+                - dildo
+                - regex:\bdingle(\W|\d|_)*(berry|berries)
+                - dirsa
+                - regex:\bdirty(\W|\d|_)*sanchez
+                - regex:\bdog(g)?ing
+                - regex:\bdog(gie)?(\W|\d|_)*style
+                - dolcett
+                - dominatrix
+                - dommes
+                - regex:\bdonkey(\W|\d|_)*ribber
+                - regex:\bdouble(\W|\d|_)*dong
+                - regex:\bdouble(\W|\d|_)*penetration
+                - dp action
+                - regex:\bdry(\W|\d|_)*hump
+                - dyke
+                - eat my ass
+                - ecchi
+                - regex:\beja(c|k)ulat(e|ed|es|ing|ings|ion)
+                - regex:\beroti(c|ism)
+                - escort
+                - eunuch
+                - regex:\bfag(g|s|z)?(it|s|ot)?
+                - fecal
+                - fellate
+                - fellatio
+                - feltch
+                - femdom
+                - figging
+                - fingering
+                - fisting
+                - foot fetish
+                - regex:\bfoot(\W|\d|_)*job
+                - fook
+                - frotting
+                - regex:\b\b(f)+(u|v)+(c)*k
+                - regex:\bfudge(\W|\d|_)*packer
+                - futanari
+                - regex:\bgang(\W|\d|_)*bang
+                - girl on top
+                - girls gone wild
+                - regex:\bgoat(cx|se)
+                - gokkun
+                - golden shower
+                - regex:\bgol(l)?(i|y)wog
+                - goodpoop
+                - goregasm
+                - goyim
+                - gringo
+                - grope
+                - regex:\bg(-| )?spot
+                - regex:\bhand(\W|\d|_)*job
+                - regex:\bhard(\W|\d|_)*core
+                - hentai
+                - homoerotic
+                - regex:\bhoar(e|s)?
+                - honkey
+                - hooker
+                - horniest
+                - horny
+                - huge fat
+                - humping
+                - incest
+                - intercourse
+                - jerk
+                - regex:\bjack(\W|\d|_)*off
+                - regex:\bjail(\W|\d|_)*bait
+                - regex:\bjerk(\W|\d|_)*off
+                - regex:\bjig(g)?(a|er)?boo
+                - jizz
+                - juggs
+                - kawk
+                - kike
+                - kinbaku
+                - regex:\bkink(y|ster)?
+                - regex:\bknob(b)?(ead|ed|end|head|jock|jok)
+                - kock
+                - kondum
+                - kum
+                - kunilingus
+                - kys
+                - labia
+                - lolita
+                - lovemaking
+                - regex:\bmasturbat(e|ing|ion)
+                - milf
+                - mofo
+                - mong
+                - muthafecker
+                - regex:\bmuff(\W|\d|_)*div(er|ing)
+                - nambla
+                - nawashi
+                - nazi
+                - negro
+                - neonazi
+                - regex:\bnig(g)?(a|ah|er|let|s|z)?(s)?\b
+                - nimphomania
+                - regex:\bnobjo(c|k)
+                - regex:\bnut(t)?sa(c|k)
+                - nutten
+                - regex:\bnympho(mania)?
+                - octopussy
+                - omorashi
+                - orgasm
+                - orgy
+                - regex:\bpaki/b
+                - regex:\bpedo(bear|phile)?
+                - pegging
+                - pikey
+                - piss
+                - pole smoker
+                - ponyplay
+                - poof
+                - poon
+                - poontang
+                - regex:\bpoop(\W|\d|_)*chute
+                - punany
+                - prince albert
+                - pube
+                - queaf
+                - queef
+                - quim
+                - raghead
+                - regex:\brap(e|ing|ist)
+                - rectum
+                - retard
+                - reverse cowgirl
+                - ricey
+                - regex:\brim(\W|\d|_)*(jaw|job|ming|ing)
+                - rosy palm
+                - regex:\brus(s)?k(i|y)
+                - regex:\bsadis(m|t)
+                - santorum
+                - regex:\bscat\b
+                - schlong
+                - semen
+                - regex:\bshag(g)?(a|er|in)
+                - shaved beaver
+                - shibari
+                - regex:\bsh[i1!]+t
+                - shota
+                - shrimping
+                - skank
+                - skeet
+                - slanteye
+                - shibari
+                - slut
+                - smut
+                - soab
+                - regex:\bson(\W|\d|_ )+of(f)*(\W|\d|_ )+(a)?(\W|\d|_ )*bi(a)?tch
+                - regex:\bsodom(y|ize)
+                - regex:\bspac\b
+                - splooge
+                - spick
+                - spooge
+                - spread legs
+                - regex:\bstrap(\W|\d|_)*(on|ado|pado)
+                - style doggy
+                - swastika
+                - swinger
+                - regex:\btea(\W|\d|_)*bagging
+                - threesome
+                - throating
+                - tight white
+                - tosser
+                - towelhead
+                - tranny
+                - tribadism
+                - regex:\btub(\W|\d|_)*girl
+                - upskirt
+                - urophilia
+                - vorarephilia
+                - regex:\bvoyeur(web)?
+                - wank
+                - wetback
+                - regex:\bwhite(\W|\d|_)*power
+                - whore
+                - regex:\b/bwog/b
+                - yellow showers
+                - yiffy
+                - zoophilia
+                - 🖕
+                - regex:\byouporn(\W|\d|_)*com
+                - regex:\bredtube(\W|\d|_)*com
+        advertising:
+            label: advertising
+            action: kick
+            list:
+                - regex:\baternos(\W|\d|_)*com
+                - regex:\bfalixnodes(\W|\d|_)*com
+                - regex:\bfabithost(\W|\d|_)*com
+                - regex:\bminehut(\W|\d|_)*com
+                - regex:\bserverpro(\W|\d|_)*com
+                - regex:\bpebblehost(\W|\d|_)*com
+                - regex:\bshockbyte(\W|\d|_)*com
+                - regex:\bapexminecrafthosting(\W|\d|_)*com
+                - regex:\bapexmc(\W|\d|_)*com
+                - regex:\bscalacube(\W|\d|_)*com
+                - regex:\bnodecraft(\W|\d|_)*com
+                - regex:\bmcprohosting(\W|\d|_)*com
+                - regex:\btitannodes(\W|\d|_)*com
+                - regex:\bbisecthosting(\W|\d|_)*com
+                - regex:\bsparkedhost(\W|\d|_)*com
+                - regex:\bcubedhost(\W|\d|_)*com
+                - regex:\bnodecraft(\W|\d|_)*com
+        blacklist:
+            label: blacklisted word
+            action: ban perm
+            list:
+                - "${jndi:"
