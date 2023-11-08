@@ -23,7 +23,7 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 
 ## Changes
 
-### 1.1.0
+### 1.1
 
 -   Added ability to customize stonecutter recipes in the configuration
 -   Graves will now spawn in the nearest safe location on land. If there is no suitable location, your items will just be dropped
