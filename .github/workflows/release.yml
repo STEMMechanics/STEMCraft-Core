@@ -35,6 +35,7 @@ jobs:
     - name: Identify JAR File
       run: |
         JAR_FILE=$(ls target/STEMCraft-*.jar | head -n 1)
+        JAR_FILE=$(basename $JAR_PATH)
         echo "JAR_FILE=${JAR_FILE}" >> $GITHUB_ENV
         
     - name: Extract Release Notes
