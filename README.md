@@ -10,7 +10,7 @@ STEMMechanics brings creativity to life by developing engaging resources and pro
 
 We welcome all contributions that are in the spirit of the STEMCraft server. All contributions should be in their own branch with the appropriate prefixes:
 
-**Bug fix**: fix/<name>\
+**Bug fix**: hotfix/<name>\
 **Feature**: feature/<name>
 
 Contributions must:
@@ -23,7 +23,7 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 
 ## Changes
 
-### 1.1
+### 1.1.0
 
 -   Added ability to customize stonecutter recipes in the configuration
 -   Graves will now spawn in the nearest safe location on land. If there is no suitable location, your items will just be dropped
@@ -38,7 +38,7 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 -   Restores remaining player night vision duration when disabling command
 -   Added a simple persistent saving feature for other features to utilize
 -   Added the /enchant command that add or removes enchantments from player items
--   Added the /tptop command that teleports a player upwards to the next safe location
+-   Added the /tptop command that teleports a player upwards to the next safe location.
 
 ### 1.0.2
 
