@@ -1,0 +1,3 @@
+<module name="AbbreviationAsWordInName">
+  <property name="allowedAbbreviations" value="STEM"/>
+</module>
