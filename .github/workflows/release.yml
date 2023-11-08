@@ -40,6 +40,7 @@ jobs:
           exit 1
         fi
         JAR_FILE=$(basename "$JAR_PATH")
+        echo "JAR_PATH=${JAR_PATH}" >> $GITHUB_ENV
         echo "JAR_FILE=${JAR_FILE}" >> $GITHUB_ENV
         
     - name: Extract Release Notes
@@ -69,6 +70,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ env.JAR_FILE }}
+        asset_path: ${{ env.JAR_PATH }}
         asset_name: ${{ env.JAR_FILE }}
         asset_content_type: application/java-archive
