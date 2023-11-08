@@ -25,6 +25,9 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 
 ### 1.2.0
 
+-   Added `/t` to direct message a player
+-   Added chat/sign/book filtering
+
 ### 1.1.0
 
 -   Added ability to customize stonecutter recipes in the configuration
