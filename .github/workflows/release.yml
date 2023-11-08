@@ -40,16 +40,24 @@ jobs:
           exit 1
         fi
         JAR_FILE=$(basename "$JAR_PATH")
+        echo "JAR_PATH=${JAR_PATH}" >> $GITHUB_ENV
         echo "JAR_FILE=${JAR_FILE}" >> $GITHUB_ENV
         
     - name: Extract Release Notes
       run: |
         VERSION_NUMBER=${{ env.VERSION_NUMBER }}
         RELEASE_NOTES=$(awk "/^### \[?$VERSION_NUMBER\]?/{flag=1; next} /^##/{flag=0} flag" README.md)
-        RELEASE_NOTES="${RELEASE_NOTES//'%'/'%25'}"
-        RELEASE_NOTES="${RELEASE_NOTES//$'\n'/'%0A'}"
-        RELEASE_NOTES="${RELEASE_NOTES//$'\r'/'%0D'}"
-        echo "RELEASE_NOTES=$RELEASE_NOTES" >> $GITHUB_ENV
+        # Trim leading and trailing whitespace and empty lines
+        RELEASE_NOTES=$(echo "$RELEASE_NOTES" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        # Remove empty lines
+        RELEASE_NOTES=$(echo "$RELEASE_NOTES" | sed '/^$/d')
+        #RELEASE_NOTES="${RELEASE_NOTES//'%'/'%25'}"
+        #RELEASE_NOTES="${RELEASE_NOTES//$'\n'/'%0A'}"
+        #RELEASE_NOTES="${RELEASE_NOTES//$'\r'/'%0D'}"
+        #echo "RELEASE_NOTES=$RELEASE_NOTES" >> $GITHUB_ENV
+        echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
+        echo "$RELEASE_NOTES" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
 
     - name: Create Release
       id: create_release
@@ -58,7 +66,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ env.VERSION_NUMBER }}
-        release_name: Release ${{ env.VERSION_NUMBER }}
+        release_name: ${{ env.VERSION_NUMBER }}
         body: ${{ env.RELEASE_NOTES }}
         draft: false
         prerelease: false
@@ -69,6 +77,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ env.JAR_FILE }}
+        asset_path: ${{ env.JAR_PATH }}
         asset_name: ${{ env.JAR_FILE }}
         asset_content_type: application/java-archive
