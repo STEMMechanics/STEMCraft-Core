@@ -14,27 +14,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # ... (other steps remain the same)
-
-
-
-
-name: Maven Build and Release
-
-on:
-  push:
-    branches:
-      - main
-    tags:
-      - 'v*'
-
-jobs:
-  build-and-release:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-
     - name: Set up JDK 17
       uses: actions/setup-java@v2
       with:
