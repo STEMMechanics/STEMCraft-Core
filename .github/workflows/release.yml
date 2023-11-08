@@ -34,8 +34,12 @@ jobs:
 
     - name: Identify JAR File
       run: |
-        JAR_FILE=$(ls target/STEMCraft-*.jar | head -n 1)
-        JAR_FILE=$(basename $JAR_PATH)
+        JAR_PATH=$(ls target/STEMCraft-*.jar | head -n 1)
+        if [ -z "$JAR_PATH" ]; then
+          echo "Error: JAR file not found."
+          exit 1
+        fi
+        JAR_FILE=$(basename "$JAR_PATH")
         echo "JAR_FILE=${JAR_FILE}" >> $GITHUB_ENV
         
     - name: Extract Release Notes
