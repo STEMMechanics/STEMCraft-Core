@@ -28,7 +28,10 @@ jobs:
       run: |
         BRANCH_NAME=${GITHUB_HEAD_REF}
         VERSION_NUMBER=${BRANCH_NAME#release/}
-        VERSION_NUMBER="${VERSION_NUMBER/./.0}"  # Defaulting patch version to '0' if missing
+        # Check if the version number is missing a patch version
+        if [[ ! $VERSION_NUMBER =~ \.[0-9]+\.[0-9]+ ]]; then
+          VERSION_NUMBER="${VERSION_NUMBER}.0"
+        fi
         echo "VERSION_NUMBER=${VERSION_NUMBER}" >> $GITHUB_ENV
 
     - name: Extract Release Notes
@@ -48,8 +51,7 @@ jobs:
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
       with:
         tag_name: ${{ env.VERSION_NUMBER }}
         release_name: Release ${{ env.VERSION_NUMBER }}
-        body: $RELEASE_NOTES
+        body: ${{ env.RELEASE_NOTES }}
