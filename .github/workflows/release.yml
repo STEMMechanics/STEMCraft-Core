@@ -34,8 +34,9 @@ jobs:
 
     - name: Identify JAR File
       run: |
-        echo "JAR_FILE=$(ls target/*.jar)" >> $GITHUB_ENV
-
+        JAR_FILE=$(ls target/STEMCraft-*.jar | head -n 1)
+        echo "JAR_FILE=${JAR_FILE}" >> $GITHUB_ENV
+        
     - name: Extract Release Notes
       run: |
         VERSION_NUMBER=${{ env.VERSION_NUMBER }}
