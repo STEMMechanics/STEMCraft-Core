@@ -636,9 +636,16 @@ public class SMConfigFile {
     }
 
     /**
+     * Will add any missing default root values to a user configuration file.
+     */
+    public void addMissingDefaultValues() {
+        addMissingDefaultValues(null);
+    }
+
+    /**
      * Will add any missing default values to a user configuration file.
      * 
-     * @param key The key to add from.
+     * @param key The key to add from, null for root
      */
     public void addMissingDefaultValues(String key) {
         List<String> defaultKeys = getDefaultKeys(key);
