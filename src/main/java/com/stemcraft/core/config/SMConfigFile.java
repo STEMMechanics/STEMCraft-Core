@@ -590,22 +590,48 @@ public class SMConfigFile {
     }
 
     /**
+     * Fetches a list of keys from the root.
+     *
+     * @return A list of string keys.
+     */
+    public List<String> getKeys() {
+        return getKeys(null);
+    }
+
+    /**
      * Fetches a list of keys from a path.
      *
-     * @param key The path to fetch keys.
+     * @param key The path to fetch keys, null for root.
      * @return A list of string keys.
      */
     public List<String> getKeys(String key) {
+        if (key == null) {
+            return SMCommon.setToList(file.getKeys());
+        }
+
         return SMCommon.setToList(file.getSection(key).getKeys());
+    }
+
+    /**
+     * Fetches a list of default keys from the root.
+     *
+     * @return A list of string keys.
+     */
+    public List<String> getDefaultKeys() {
+        return getDefaultKeys(null);
     }
 
     /**
      * Fetches a list of default keys from a path.
      *
-     * @param key The path to fetch default keys.
+     * @param key The path to fetch default keys, null for root.
      * @return A list of string keys.
      */
     public List<String> getDefaultKeys(String key) {
+        if (key == null) {
+            return SMCommon.setToList(defaults.getKeys());
+        }
+
         return SMCommon.setToList(defaults.getSection(key).getKeys());
     }
 
