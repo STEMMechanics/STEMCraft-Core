@@ -23,6 +23,8 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 
 ## Changes
 
+### 1.2.0
+
 ### 1.1.0
 
 -   Added ability to customize stonecutter recipes in the configuration
