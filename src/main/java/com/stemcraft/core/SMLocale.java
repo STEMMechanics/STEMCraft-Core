@@ -50,7 +50,9 @@ public class SMLocale {
                     String locale = fileName.substring(prefix.length(), fileName.length() - extension.length());
                     if (!localeFiles.containsKey(locale)) {
                         STEMCraft.info("Replaced locale: " + locale);
-                        localeFiles.put(locale, new SMConfigFile(fileName));
+                        SMConfigFile localeFile = new SMConfigFile(fileName);
+                        localeFiles.put(locale, localeFile);
+                        localeFile.addMissingDefaultValues();
                     }
                 }
             }
