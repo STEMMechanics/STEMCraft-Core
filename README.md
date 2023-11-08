@@ -10,7 +10,7 @@ STEMMechanics brings creativity to life by developing engaging resources and pro
 
 We welcome all contributions that are in the spirit of the STEMCraft server. All contributions should be in their own branch with the appropriate prefixes:
 
-**Bug fix**: fix/<name>\
+**Bug fix**: hotfix/<name>\
 **Feature**: feature/<name>
 
 Contributions must:
