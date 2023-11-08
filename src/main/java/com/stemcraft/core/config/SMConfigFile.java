@@ -598,4 +598,32 @@ public class SMConfigFile {
     public List<String> getKeys(String key) {
         return SMCommon.setToList(file.getSection(key).getKeys());
     }
+
+    /**
+     * Fetches a list of default keys from a path.
+     *
+     * @param key The path to fetch default keys.
+     * @return A list of string keys.
+     */
+    public List<String> getDefaultKeys(String key) {
+        return SMCommon.setToList(defaults.getSection(key).getKeys());
+    }
+
+    /**
+     * Will add any missing default values to a user configuration file.
+     * 
+     * @param key The key to add from.
+     */
+    public void addMissingDefaultValues(String key) {
+        List<String> defaultKeys = getDefaultKeys(key);
+        if (defaultKeys == null) {
+            return;
+        }
+
+        defaultKeys.removeAll(getKeys(key));
+
+        for (String defaultKey : defaultKeys) {
+            file.set(defaultKey, defaults.get(defaultKey));
+        }
+    }
 }
