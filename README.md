@@ -30,6 +30,7 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 -   Added support for retrieving a list of root keys in config files
 -   Added `addMissingDefaultValues` to allow syncing default/user config files
 -   Server locale files will now append missing strings when added in future versions
+-   Added moderation tools that override `/ban` and `/kick`
 
 ### 1.1.0
 
