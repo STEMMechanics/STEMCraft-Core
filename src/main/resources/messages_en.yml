@@ -139,3 +139,12 @@ TPTOP_NO_SAFE_LOCATION: "There are no safe locations above you"
 
 VALUE_ITEM_NOT_FOUND: "The item was not found"
 VALUE_ITEM_NO_VALUE: "The item has no value"
+
+CHAT_TELL_USAGE: "/t <player> <message>"
+CHAT_MANAGER_USAGE: "/chat <player> (<page>)"
+CHAT_TELL_NO_MSG_TO_SELF: "You cannot send a message to yourself"
+CHAT_TELL_NO_REPLY: "There is no one to reply to"
+CHAT_MESSAGE_FILTERED: "Your message was not sent as it contains a forbidden word"
+CHAT_SIGN_FILTERED: "Your sign was not saved as it contains a forbidden word"
+CHAT_BOOK_FILTERED: "Your book was not saved as it contains a forbidden word"
+CHAT_COMMAND_FILTERED: "Your command was not sent as it contains a forbidden word"
