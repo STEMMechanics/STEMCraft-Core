@@ -36,7 +36,9 @@ public class SMLocale {
             if (fileName.startsWith(prefix) && fileName.endsWith(extension)) {
                 String locale = fileName.substring(prefix.length(), fileName.length() - extension.length());
                 STEMCraft.info("Loaded built-in locale: " + locale);
-                localeFiles.put(locale, new SMConfigFile(fileName));
+                SMConfigFile localeFile = new SMConfigFile(fileName);
+                localeFile.addMissingDefaultValues();
+                localeFiles.put(locale, localeFile);
             }
         });
 
@@ -51,8 +53,8 @@ public class SMLocale {
                     if (!localeFiles.containsKey(locale)) {
                         STEMCraft.info("Replaced locale: " + locale);
                         SMConfigFile localeFile = new SMConfigFile(fileName);
-                        localeFiles.put(locale, localeFile);
                         localeFile.addMissingDefaultValues();
+                        localeFiles.put(locale, localeFile);
                     }
                 }
             }

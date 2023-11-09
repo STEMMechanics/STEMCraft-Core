@@ -654,9 +654,17 @@ public class SMConfigFile {
         }
 
         defaultKeys.removeAll(getKeys(key));
+        System.out.println(String.join(",", defaultKeys));
 
         for (String defaultKey : defaultKeys) {
             file.set(defaultKey, defaults.get(defaultKey));
+            System.out.println(defaultKey);
+        }
+
+        try {
+            file.save();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
