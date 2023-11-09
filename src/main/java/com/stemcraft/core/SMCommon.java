@@ -21,6 +21,8 @@ import static org.bukkit.ChatColor.COLOR_CHAR;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -882,4 +884,53 @@ public class SMCommon {
         return relativeTime.toString();
     }
 
+    /**
+     * Convert a duration string (1d) to seconds or epoch expiry time.
+     * 
+     * @param duration The duration string.
+     * @param toEpochTime Return a epoch time instead of seconds.
+     * @return The result or null if error.
+     */
+    public static Long durationToSeconds(String duration, boolean toEpochTime) {
+        if (duration == null || duration.isEmpty()) {
+            return null;
+        }
+
+        long multiplier;
+        long seconds;
+        char timeUnit = duration.charAt(duration.length() - 1);
+
+        try {
+            switch (timeUnit) {
+                case 's': // Seconds
+                    multiplier = 1;
+                    seconds = Long.parseLong(duration.substring(0, duration.length() - 1));
+                    break;
+                case 'm': // Minutes
+                    multiplier = 60;
+                    seconds = Long.parseLong(duration.substring(0, duration.length() - 1));
+                    break;
+                case 'h': // Hours
+                    multiplier = 3600;
+                    seconds = Long.parseLong(duration.substring(0, duration.length() - 1));
+                    break;
+                case 'd': // Days
+                    multiplier = 86400;
+                    seconds = Long.parseLong(duration.substring(0, duration.length() - 1));
+                    break;
+                case 'w': // Weeks
+                    multiplier = 604800;
+                    seconds = Long.parseLong(duration.substring(0, duration.length() - 1));
+                    break;
+                default:
+                    return null;
+            }
+        } catch (NumberFormatException e) {
+            return null; // Input is not a valid number
+        }
+
+        long totalSeconds = seconds * multiplier;
+
+        return toEpochTime ? Instant.now().plus(totalSeconds, ChronoUnit.SECONDS).getEpochSecond() : totalSeconds;
+    }
 }
