@@ -4,6 +4,7 @@ import com.stemcraft.STEMCraft;
 import com.stemcraft.core.SMCommon;
 import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.SMLocale;
+import com.stemcraft.core.SMMessenger;
 import com.stemcraft.core.command.SMCommand;
 import com.stemcraft.core.config.SMConfig;
 import com.stemcraft.core.config.SMConfigFile;
@@ -30,12 +31,21 @@ import org.bukkit.event.player.PlayerEditBookEvent;
  */
 public class SMChat extends SMFeature {
 
+    /**
+     * The Chat Filter action data
+     */
     private class SMChatFilterAction {
         @Getter
         private String action;
 
+        @Getter
+        private String meta;
+
+        /** Constuctor */
         SMChatFilterAction(String action) {
-            this.action = action;
+            String[] parts = action.split(" ", 2);
+            this.action = parts[0];
+            this.meta = (parts.length > 1) ? parts[1] : null;
         }
     }
 
@@ -154,12 +164,12 @@ public class SMChat extends SMFeature {
         /** Load Chat Filtering */
         chatFilterConfig = SMConfig.getOrLoadConfig("chat.yml");
         if (chatFilterConfig != null) {
-            List<String> filterListIds = chatFilterConfig.getKeys("chat");
+            List<String> filterListIds = chatFilterConfig.getKeys("chat.filter");
             if (filterListIds != null && !filterListIds.isEmpty()) {
                 for (String id : filterListIds) {
-                    String label = chatFilterConfig.getString("chat." + id + ".label", id);
-                    String action = chatFilterConfig.getString("chat." + id + ".action", "kick");
-                    List<String> keywords = chatFilterConfig.getStringList("chat." + id + ".list");
+                    String label = chatFilterConfig.getString("chat.filter." + id + ".label", id);
+                    String action = chatFilterConfig.getString("chat.filter." + id + ".action", "kick");
+                    List<String> keywords = chatFilterConfig.getStringList("chat.filter." + id + ".list");
 
                     if (keywords == null) {
                         continue;
@@ -196,6 +206,7 @@ public class SMChat extends SMFeature {
         SMEvent.register(AsyncPlayerChatEvent.class, ctx -> {
             if (isFiltered(ctx.event.getPlayer(), ctx.event.getMessage())) {
                 ctx.event.setCancelled(true);
+                SMMessenger.errorLocale(ctx.event.getPlayer(), "CHAT_MESSAGE_FILTERED");
             }
         });
 
@@ -203,6 +214,7 @@ public class SMChat extends SMFeature {
         SMEvent.register(PlayerCommandPreprocessEvent.class, ctx -> {
             if (isFiltered(ctx.event.getPlayer(), ctx.event.getMessage())) {
                 ctx.event.setCancelled(true);
+                SMMessenger.errorLocale(ctx.event.getPlayer(), "CHAT_COMMAND_FILTERED");
             }
         });
 
@@ -211,6 +223,7 @@ public class SMChat extends SMFeature {
             for (String line : ctx.event.getLines()) {
                 if (isFiltered(ctx.event.getPlayer(), line)) {
                     ctx.event.setCancelled(true);
+                    SMMessenger.errorLocale(ctx.event.getPlayer(), "CHAT_SIGN_FILTERED");
                     break;
                 }
             }
@@ -221,6 +234,7 @@ public class SMChat extends SMFeature {
             ctx.event.getNewBookMeta().getPages().forEach(page -> {
                 if (isFiltered(ctx.event.getPlayer(), page)) {
                     ctx.event.setCancelled(true);
+                    SMMessenger.errorLocale(ctx.event.getPlayer(), "CHAT_BOOK_FILTERED");
                 }
             });
         });
@@ -246,7 +260,8 @@ public class SMChat extends SMFeature {
 
                 lastTellMessageFrom.put(targetPlayer.getUniqueId(),
                     ctx.fromConsole() ? null : ctx.player.getUniqueId());
-            });
+            })
+            .register();
 
         /** Send private message */
         new SMCommand("r")
@@ -265,11 +280,19 @@ public class SMChat extends SMFeature {
                 targetPlayer.sendMessage(targetPlayer.getDisplayName() + " whispers: " + message);
                 targetPlayer.playSound(targetPlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.0f);
                 lastTellMessageFrom.put(targetPlayer.getUniqueId(), ctx.player.getUniqueId());
-            });
+            })
+            .register();
 
         return true;
     }
 
+    /**
+     * Check if a string has been caught by one of the filters.
+     * 
+     * @param player
+     * @param s
+     * @return
+     */
     public Boolean isFiltered(Player player, String s) {
         if (player.hasPermission("stemcraft.chat.override")) {
             return false;
