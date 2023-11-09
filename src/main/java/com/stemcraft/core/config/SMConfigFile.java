@@ -590,12 +590,81 @@ public class SMConfigFile {
     }
 
     /**
+     * Fetches a list of keys from the root.
+     *
+     * @return A list of string keys.
+     */
+    public List<String> getKeys() {
+        return getKeys(null);
+    }
+
+    /**
      * Fetches a list of keys from a path.
      *
-     * @param key The path to fetch keys.
+     * @param key The path to fetch keys, null for root.
      * @return A list of string keys.
      */
     public List<String> getKeys(String key) {
+        if (key == null) {
+            return SMCommon.setToList(file.getKeys());
+        }
+
         return SMCommon.setToList(file.getSection(key).getKeys());
+    }
+
+    /**
+     * Fetches a list of default keys from the root.
+     *
+     * @return A list of string keys.
+     */
+    public List<String> getDefaultKeys() {
+        return getDefaultKeys(null);
+    }
+
+    /**
+     * Fetches a list of default keys from a path.
+     *
+     * @param key The path to fetch default keys, null for root.
+     * @return A list of string keys.
+     */
+    public List<String> getDefaultKeys(String key) {
+        if (key == null) {
+            return SMCommon.setToList(defaults.getKeys());
+        }
+
+        return SMCommon.setToList(defaults.getSection(key).getKeys());
+    }
+
+    /**
+     * Will add any missing default root values to a user configuration file.
+     */
+    public void addMissingDefaultValues() {
+        addMissingDefaultValues(null);
+    }
+
+    /**
+     * Will add any missing default values to a user configuration file.
+     * 
+     * @param key The key to add from, null for root
+     */
+    public void addMissingDefaultValues(String key) {
+        List<String> defaultKeys = getDefaultKeys(key);
+        if (defaultKeys == null) {
+            return;
+        }
+
+        defaultKeys.removeAll(getKeys(key));
+        System.out.println(String.join(",", defaultKeys));
+
+        for (String defaultKey : defaultKeys) {
+            file.set(defaultKey, defaults.get(defaultKey));
+            System.out.println(defaultKey);
+        }
+
+        try {
+            file.save();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
