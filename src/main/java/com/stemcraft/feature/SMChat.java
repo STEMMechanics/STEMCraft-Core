@@ -5,6 +5,7 @@ import com.stemcraft.core.SMCommon;
 import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.SMLocale;
 import com.stemcraft.core.SMMessenger;
+import com.stemcraft.core.SMPersistent;
 import com.stemcraft.core.command.SMCommand;
 import com.stemcraft.core.config.SMConfig;
 import com.stemcraft.core.config.SMConfigFile;
@@ -204,6 +205,11 @@ public class SMChat extends SMFeature {
 
         /** Event Chat - Filter */
         SMEvent.register(AsyncPlayerChatEvent.class, ctx -> {
+            if (playerMuted(ctx.event.getPlayer())) {
+                ctx.event.setCancelled(true);
+                SMMessenger.errorLocale(ctx.event.getPlayer(), "CHAT_CURRENTLY_MUTED");
+            }
+
             if (isFiltered(ctx.event.getPlayer(), ctx.event.getMessage())) {
                 ctx.event.setCancelled(true);
                 SMMessenger.errorLocale(ctx.event.getPlayer(), "CHAT_MESSAGE_FILTERED");
@@ -254,6 +260,13 @@ public class SMChat extends SMFeature {
                     ctx.returnErrorLocale("CHAT_TELL_NO_MSG_TO_SELF");
                 }
 
+                // check if player is muted or if the target player can view muted messages
+                if (!ctx.fromConsole() && playerMuted(ctx.player)) {
+                    if (!targetPlayer.hasPermission("stemcraft.chat.override")) {
+                        ctx.returnErrorLocale("CHAT_CURRENTLY_MUTED");
+                    }
+                }
+
                 String message = String.join(" ", ctx.args).substring(ctx.args.get(0).length() + 1);
                 targetPlayer.sendMessage(targetPlayer.getDisplayName() + " whispers: " + message);
                 targetPlayer.playSound(targetPlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.0f);
@@ -276,10 +289,57 @@ public class SMChat extends SMFeature {
                 ctx.checkNotNullLocale(replyUuid, "CMD_PLAYER_NOT_FOUND");
                 ctx.checkBooleanLocale(targetPlayer.isOnline(), "CMD_PLAYER_NOT_FOUND");
 
+                // check if player is muted or if the target player can view muted messages
+                if (!ctx.fromConsole() && playerMuted(ctx.player)) {
+                    if (!targetPlayer.hasPermission("stemcraft.chat.override")) {
+                        ctx.returnErrorLocale("CHAT_CURRENTLY_MUTED");
+                    }
+                }
+
                 String message = String.join(" ", ctx.args);
                 targetPlayer.sendMessage(targetPlayer.getDisplayName() + " whispers: " + message);
                 targetPlayer.playSound(targetPlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.0f);
                 lastTellMessageFrom.put(targetPlayer.getUniqueId(), ctx.player.getUniqueId());
+            })
+            .register();
+
+        /** Mute Player Command */
+        new SMCommand("mute")
+            .tabComplete("{player}")
+            .permission("stemcraft.chat.mute")
+            .action(ctx -> {
+                ctx.checkArgs(1, SMLocale.get("CHAT_MUTE_USAGE"));
+
+                Player targetPlayer = ctx.getArgAsPlayer(1, null);
+                ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
+
+                if (SMPersistent.getBool(this, targetPlayer.getUniqueId().toString(), false)) {
+                    ctx.returnInfoLocale("CHAT_MUTED_ALREADY", "player", targetPlayer.getDisplayName());
+                }
+
+                SMPersistent.set(this, targetPlayer.getUniqueId().toString(), true);
+                SMMessenger.infoLocale(targetPlayer, "CHAT_MUTED_PLAYER", "player", ctx.senderName());
+                ctx.returnInfoLocale("CHAT_MUTED_SENDER", "player", targetPlayer.getDisplayName());
+            })
+            .register();
+
+        /** Unmute Player Command */
+        new SMCommand("unmute")
+            .tabComplete("{player}")
+            .permission("stemcraft.chat.mute")
+            .action(ctx -> {
+                ctx.checkArgs(1, SMLocale.get("CHAT_UNMUTE_USAGE"));
+
+                Player targetPlayer = ctx.getArgAsPlayer(1, null);
+                ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
+
+                if (!SMPersistent.getBool(this, targetPlayer.getUniqueId().toString(), false)) {
+                    ctx.returnInfoLocale("CHAT_UNMUTED_ALREADY", "player", targetPlayer.getDisplayName());
+                }
+
+                SMPersistent.set(this, targetPlayer.getUniqueId().toString(), false);
+                SMMessenger.infoLocale(targetPlayer, "CHAT_UNMUTED_PLAYER", "player", ctx.senderName());
+                ctx.returnInfoLocale("CHAT_UNMUTED_SENDER", "player", targetPlayer.getDisplayName());
             })
             .register();
 
@@ -305,5 +365,16 @@ public class SMChat extends SMFeature {
         }
 
         return false;
+    }
+
+    /**
+     * Return if the supplied player is currently muted on the server.
+     * 
+     * @param player The player to check.
+     * @return Boolean value if the player is muted.
+     */
+    public Boolean playerMuted(Player player) {
+        return player.hasPermission("stemcraft.chat.muted")
+            || SMPersistent.getBool(this, player.getUniqueId().toString(), false);
     }
 }
