@@ -30,6 +30,8 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 -   Added support for retrieving a list of root keys in config files
 -   Added `addMissingDefaultValues` to allow syncing default/user config files
 -   Server locale files will now append missing strings when added in future versions
+-   Looted and Traded item metrics are now recorded and shown on tools
+-   Optimized toolstats code and fix docs
 
 ### 1.1.0
 

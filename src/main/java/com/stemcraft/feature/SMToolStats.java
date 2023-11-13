@@ -72,19 +72,19 @@ public class SMToolStats extends SMFeature {
         SMItemLore.register("toolstats", (item) -> {
             List<String> lore = new ArrayList<>();
 
-            // created-at
-            Long createdAt = getItemCreatedAt(item);
-            if (createdAt != null) {
-                Date formattedDate = new Date(createdAt);
+            // crafted-at
+            Long craftedAt = getItemCraftedAt(item);
+            if (craftedAt != null) {
+                Date formattedDate = new Date(craftedAt);
                 lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-CREATED-AT"), "date",
                     SMCommon.formatDate(formattedDate)));
-            }
 
-            // created-by
-            Player createdBy = getItemCreatedBy(item);
-            if (createdBy != null) {
-                lore.add(
-                    SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-CREATED-BY"), "name", createdBy.getName()));
+                // crafted-by
+                Player craftedBy = getItemCraftedBy(item);
+                if (craftedBy != null) {
+                    lore.add(
+                        SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-CREATED-BY"), "name", createdBy.getName()));
+                }
             }
 
             // player-kills
@@ -136,6 +136,66 @@ public class SMToolStats extends SMFeature {
                 lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-SHEEP-SHEARED"), "sheep",
                     SMCommon.formatInt(sheepSheared)));
 
+            }
+
+            // dropped-at
+            Long droppedAt = getItemDroppedAt(item);
+            if (droppedAt != null) {
+                Date formattedDate = new Date(droppedAt);
+                // lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-DROPPED-AT"), "date",
+                //     SMCommon.formatDate(formattedDate)));
+
+                // dropped-by
+                String droppedBy = getItemCraftedBy(item);
+                if (droppedBy != null) {
+                    lore.add(
+                        SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-DROPPED-BY"), "name", droppedBy));
+                }
+            }
+
+            // looted-at
+            Long lootedAt = getItemLootedAt(item);
+            if (lootedAt != null) {
+                Date formattedDate = new Date(lootedAt);
+                lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-LOOTED-AT"), "date",
+                    SMCommon.formatDate(formattedDate)));
+
+                // looted-by
+                Player lootedBy = getItemLootedBy(item);
+                if (lootedBy != null) {
+                    lore.add(
+                        SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-LOOTED-BY"), "name", createdBy.getName()));
+                }
+            }
+
+            // traded-at
+            Long tradedAt = getItemTradedAt(item);
+            if (tradedAt != null) {
+                Date formattedDate = new Date(tradedAt);
+                lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-TRADED-AT"), "date",
+                    SMCommon.formatDate(formattedDate)));
+
+                // traded-by
+                Player tradedBy = getItemLootedBy(item);
+                if (tradedBy != null) {
+                    lore.add(
+                        SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-TRADED-BY"), "name", createdBy.getName()));
+                }
+            }
+
+            // found-at
+            Long foundAt = getItemFoundAt(item);
+            if (foundAt != null) {
+                Date formattedDate = new Date(foundAt);
+                lore.add(SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-FOUND-AT"), "date",
+                    SMCommon.formatDate(formattedDate)));
+
+                // found-by
+                Player foundBy = getItemFoundBy(item);
+                if (foundBy != null) {
+                    lore.add(
+                        SMReplacer.replaceVariables(SMLocale.get("TOOLSTATS-FOUND-BY"), "name", createdBy.getName()));
+                }
             }
 
             return lore;
@@ -325,14 +385,12 @@ public class SMToolStats extends SMFeature {
 
                     // Check if this key does not exist in the origItems map
                     if (!origItems.containsKey(key)) {
-                        setItemCreatedAt(newItem);
-                        setItemCreatedBy(newItem, player);
+                        setItemCraftedBy(newItem, player);
                     }
                 }
             });
 
-            setItemCreatedAt(itemStack);
-            setItemCreatedBy(itemStack, player);
+            setItemCraftedBy(itemStack, player);
         });
 
         SMEvent.register(EntityDamageByEntityEvent.class, EventPriority.MONITOR, ctx -> {
@@ -434,6 +492,110 @@ public class SMToolStats extends SMFeature {
             }
         });
 
+        SMEvent.register(EntityDeathEvent.class, EventPriority.HIGHEST, ctx -> {
+            LivingEntity livingEntity = ctx.event.getEntity();
+
+            if (livingEntity instanceof Player) {
+                return;
+            }
+
+            String name = livingEntity.getName();
+
+            for (int i = 0; i < ctx.event.getDrops().size(); i++) {
+                ItemStack droppedItem = ctx.event.getDrops().get(i);
+
+                setItemDroppedBy(droppedItem, name);
+            }
+        });
+
+        SMEvent.register(EntityPickupItemEvent.class, EventPriority.HIGHEST, ctx -> {
+            if (ctx.event.isCancelled()) {
+                return;
+            }
+
+            Player player = ctx.event.getEntity();
+
+            if (!(player instanceof Player) || player.getGameMode() != GameMode.SURVIVAL) {
+                return;
+            }
+
+            Item item = event.getItem();
+            ItemStack itemStack = event.getItem().getItemStack();
+
+            if(setItemLootedBy(itemStack, player)) {
+                item.setItemStack(itemStack);
+            }
+        });
+
+        SMEvent.register(InventoryClickEvent.class, EventPriority.HIGHEST, ctx -> {
+            if (ctx.event.isCancelled() || ctx.event.getCurrentItem() == null) {
+                return;
+            }
+
+            Player player = (Player) ctx.event.getWhoClicked();
+            if (player.getGameMode() != GameMode.SURVIVAL) {
+                return;
+            }
+
+            ItemStack itemStack = ctx.event.getCurrentItem();
+            if (itemStack == null || itemStack.getType() == Material.AIR) {
+                return;
+            }
+
+            if (!isTrackedItem(itemStack.getType())) {
+                return;
+            }
+
+            if (inventory instanceof MerchantInventory) {
+                if (event.getSlotType() == InventoryType.SlotType.RESULT) {
+                    final Material material = itemStack.getType();
+                    HashMap<Integer, ItemStack> origItems = (HashMap<Integer, ItemStack>) player.getInventory().all(material);
+
+                    STEMCraft.runLater(1, () -> {
+                        HashMap<Integer, ItemStack> newItems =
+                            (HashMap<Integer, ItemStack>) player.getInventory().all(material);
+
+                        for (Map.Entry<Integer, ItemStack> entry : newItems.entrySet()) {
+                            Integer key = entry.getKey();
+                            ItemStack newItem = entry.getValue();
+
+                            // Check if this key does not exist in the origItems map
+                            if (!origItems.containsKey(key)) {
+                                setItemTradedBy(newItem, player);
+                            }
+                        }
+                    });
+
+                    setItemTradedBy(itemStack, player);
+                }
+            } else {
+                if(ctx.event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                    setItemLootedBy(itemStack, player);
+                }
+            }
+        });
+
+        SMEvent.register(EntityPickupItemEvent.class, EventPriority.HIGHEST, ctx -> {
+            if(ctx.event.isCancelled()) {
+                return;
+            }
+
+            Entity entity = event.getEntity();
+            if (entity instanceof Player) {
+                Player player = (Player) entity;
+
+                if (player.getGameMode() != GameMode.SURVIVAL) {
+                    return;
+                }
+
+                Item item = event.getItem();
+                if (item.getType() == EntityType.DROPPED_ITEM) {
+                    ItemStack itemStack = event.getItem().getItemStack();
+                    setItemLootedBy(itemStack, player);
+                }
+            }
+        });
+
         return true;
     }
 
@@ -472,100 +634,278 @@ public class SMToolStats extends SMFeature {
     }
 
     /**
-     * Get the item crafted at -data for this tool. Returns the date or null.
+     * Get the item crafted at data for this tool. Returns the date or null.
      * 
-     * @param tool
+     * @param tool The tool to retrieve the data.
+     * @param origin The origin to confirm in the retrieval.
+     * @return the time the item was created if origin matches, else null.
      */
-    private Long getItemCreatedAt(ItemStack tool) {
+    private Long getItemCreatedAt(ItemStack tool, Integer origin) {
         ItemMeta meta = tool.getItemMeta();
         if (meta == null) {
             return null;
         }
 
         PersistentDataContainer container = meta.getPersistentDataContainer();
+
+        if(container.get(originType, PersistentDataType.INTEGER) != origin) {
+            return null;
+        }
+
         Long timeCreated = container.get(itemCreated, PersistentDataType.LONG);
         return timeCreated;
     }
 
     /**
-     * Set the item crafted at data for this tool.
+     * Get the item crafted by data for this tool. Returns the data or null.
      * 
-     * @param tool
+     * @param tool The tool to retrieve the data.
+     * @param origin The origin to confirm in the retrieval.
+     * @param type The persistant data type.
+     * @return the item data if origin matches, else null.
      */
-    private void setItemCreatedAt(ItemStack tool) {
-        if (!isTrackedItem(tool.getType())) {
-            return;
-        }
-
-        ItemMeta meta = tool.getItemMeta();
-        if (meta == null) {
-            return;
-        }
-
-        long timeCreated = System.currentTimeMillis();
-        PersistentDataContainer container = meta.getPersistentDataContainer();
-
-        if (container.has(itemCreated, PersistentDataType.LONG)) {
-            return;
-        }
-
-        container.set(itemCreated, PersistentDataType.LONG, timeCreated);
-        container.set(originType, PersistentDataType.INTEGER, 0);
-        tool.setItemMeta(meta);
-        SMItemLore.updateLore(tool);
-
-        return;
-    }
-
-    /**
-     * Get the item crafted by data for this tool. Returns the date or null.
-     * 
-     * @param tool
-     */
-    public Player getItemCreatedBy(ItemStack tool) {
+    public <T> getItemCreatedBy(ItemStack tool, Integer origin, PersistantDataType<T> type) {
         ItemMeta meta = tool.getItemMeta();
         if (meta == null) {
             return null;
         }
 
         PersistentDataContainer container = meta.getPersistentDataContainer();
-        UUID playerUUID = container.get(itemOwner, new SMPersistentUUIDDataType());
-        if (playerUUID == null) {
+
+        if(container.get(originType, PersistentDataType.INTEGER) != origin) {
             return null;
         }
 
-        return Bukkit.getPlayer(playerUUID);
+        return container.get(itemOwner, type);
     }
 
     /**
      * Set the item crafted by data for this tool.
      * 
-     * @param tool
+     * @param tool The item stack to set.
+     * @param player The player that created the item.
+     * @return If the set was successful.
      */
-    private void setItemCreatedBy(ItemStack tool, Player player) {
+    private Boolean setItemCreatedBy(ItemStack tool, Player player) {
+        return setItemCreatedBy(tool, player, true);
+    }
+
+    /**
+     * Set the item crafted by data for this tool.
+     * 
+     * @param tool The item stack to set.
+     * @param origin The origin type to set.
+     * @param setCreatedAtNow Set the time created to now.
+     * @param type The persistant data type.
+     * @param data The data value.
+     * @return If the set was successful.
+     */
+    private Boolean setItemCreatedBy(ItemStack tool, Integer origin, Boolean setCreatedAtNow, PersistantDataType<T,Z> type, Z data) {
         if (!isTrackedItem(tool.getType())) {
-            return;
+            return false;
         }
 
         ItemMeta meta = tool.getItemMeta();
         if (meta == null) {
-            return;
+            return false;
         }
 
         PersistentDataContainer container = meta.getPersistentDataContainer();
-        if (container.has(itemOwner, new SMPersistentUUIDDataType())) {
-            return;
+        if (container.has(originType, PersistentDataType.INTEGER)) {
+            return false;
         }
 
-        container.set(itemOwner, new SMPersistentUUIDDataType(), player.getUniqueId());
+        container.set(itemOwner, type, data);
+        container.set(originType, PersistentDataType.INTEGER, origin);
+        
+        if(setCreatedAtNow) {
+            long timeCreated = System.currentTimeMillis();
+            container.set(itemCreated, PersistentDataType.LONG, timeCreated);
+        }
+        
         tool.setItemMeta(meta);
         SMItemLore.updateLore(tool);
 
-        return;
+        return true;
     }
 
     /**
-     * Get the item crafted by data for this tool. Returns the date or null.
+     * Get the item crafted at data for this tool.
+     * 
+     * @param tool The item stack to check.
+     * @return The time or null.
+     */
+    public Long getItemCraftedAt(ItemStack tool) {
+        return getItemCreatedAt(tool, 0);
+    }
+
+    /**
+     * Set the item crafted by data for this tool.
+     * 
+     * @param tool The item stack to check.
+     * @return The player object or null.
+     */
+    public Player getItemCraftedBy(ItemStack tool) {
+        UUID playerUUID = getItemCreatedBy(tool, 0, new SMPersistentUUIDDataType());
+        if(playerUUID != null) {
+            return Bukkit.getPlayer(playerUUID);
+        }
+
+        return null;
+    }
+
+    /**
+     * Set the item crafted by data for this tool.
+     * 
+     * @param tool The item stack to update.
+     * @param player The player to set created by.
+     * @return If the item update was successful.
+     */
+    public Boolean setItemCraftedBy(ItemStack tool, Player player) {
+        return setItemCreatedBy(tool, 0, true, new SMPersistentUUIDDataType(), player.getUniqueId());
+    }
+
+    /**
+     * Get the item dropped at data for this tool.
+     * 
+     * @param tool The item stack to check.
+     * @return The time or null.
+     */
+    public Long getItemDroppedAt(ItemStack tool) {
+        return getItemCreatedAt(tool, 1);
+    }
+
+    /**
+     * Set the item dropped by data for this tool.
+     * 
+     * @param tool The item stack to check.
+     * @return The entity name or null.
+     */
+    public String getItemDroppedBy(ItemStack tool) {
+        return getItemCreatedBy(tool, 1, PersistantDataType.STRING);
+    }
+
+    /**
+     * Set the item dropped by data for this tool.
+     * 
+     * @param tool The item stack to update.
+     * @param name The entity name to set dropped by.
+     * @return If the item update was successful.
+     */
+    public Boolean setItemDroppedBy(ItemStack tool, String name) {
+        return setItemCreatedBy(tool, 1, true, PersistantDataType.STRING, name);
+    }
+   
+    /**
+     * Get the item looted at data for this tool.
+     * 
+     * @param tool The item stack to check.
+     * @return The time or null.
+     */
+    public Long getItemLootedAt(ItemStack tool) {
+        return getItemCreatedAt(tool, 2);
+    }
+
+    /**
+     * Set the item looted by data for this tool.
+     * 
+     * @param tool The item stack to check.
+     * @return The player object or null.
+     */
+    public Player getItemLootedBy(ItemStack tool) {
+        UUID playerUUID = getItemCreatedBy(tool, 2, new SMPersistentUUIDDataType());
+        if(playerUUID != null) {
+            return Bukkit.getPlayer(playerUUID);
+        }
+
+        return null;
+    }
+
+    /**
+     * Set the item looted by data for this tool.
+     * 
+     * @param tool The item stack to update.
+     * @param player The player to set looted by.
+     * @return If the item update was successful.
+     */
+    public Boolean setItemLootedBy(ItemStack tool, Player player) {
+        return setItemCreatedBy(tool, 2, true, new SMPersistentUUIDDataType(), player.getUniqueId());
+    }
+
+    /**
+     * Get the item traded at data for this tool.
+     * 
+     * @param tool The item stack to check.
+     * @return The time or null.
+     */
+    public Long getItemTradedAt(ItemStack tool) {
+        return getItemCreatedAt(tool, 3);
+    }
+
+    /**
+     * Set the item traded by data for this tool.
+     * 
+     * @param tool The item stack to check.
+     * @return The player object or null.
+     */
+    public Player getItemTradedBy(ItemStack tool) {
+        UUID playerUUID = getItemCreatedBy(tool, 3, new SMPersistentUUIDDataType());
+        if(playerUUID != null) {
+            return Bukkit.getPlayer(playerUUID);
+        }
+
+        return null;
+    }
+
+    /**
+     * Set the item traded by data for this tool.
+     * 
+     * @param tool The item stack to update.
+     * @param player The player to set traded by.
+     * @return If the item update was successful.
+     */
+    public Boolean setItemTradedBy(ItemStack tool, Player player) {
+        return setItemCreatedBy(tool, 3, true, new SMPersistentUUIDDataType(), player.getUniqueId());
+    }
+
+    /**
+     * Get the item found at data for this tool.
+     * 
+     * @param tool The item stack to check.
+     * @return The time or null.
+     */
+    public Long getItemFoundAt(ItemStack tool) {
+        return getItemCreatedAt(tool, 4);
+    }
+
+    /**
+     * Set the item found by data for this tool.
+     * 
+     * @param tool The item stack to check.
+     * @return The player object or null.
+     */
+    public Player getItemFoundBy(ItemStack tool) {
+        UUID playerUUID = getItemCreatedBy(tool, 4, new SMPersistentUUIDDataType());
+        if(playerUUID != null) {
+            return Bukkit.getPlayer(playerUUID);
+        }
+
+        return null;
+    }
+
+    /**
+     * Set the item found by data for this tool.
+     * 
+     * @param tool The item stack to update.
+     * @param player The player to set found by.
+     * @return If the item update was successful.
+     */
+    public Boolean setItemFoundBy(ItemStack tool, Player player) {
+        return setItemCreatedBy(tool, 4, true, new SMPersistentUUIDDataType(), player.getUniqueId());
+    }
+
+    /**
+     * Get the item player kills data for this tool. Returns the date or null.
      * 
      * @param tool
      */
@@ -582,7 +922,7 @@ public class SMToolStats extends SMFeature {
     }
 
     /**
-     * Set the item crafted by data for this tool.
+     * Add a player kill to the item data for this tool.
      * 
      * @param tool
      */
@@ -614,7 +954,7 @@ public class SMToolStats extends SMFeature {
     }
 
     /**
-     * Get the item crafted by data for this tool. Returns the date or null.
+     * Get the item mob kills data for this tool. Returns the date or null.
      * 
      * @param tool
      */
@@ -631,7 +971,7 @@ public class SMToolStats extends SMFeature {
     }
 
     /**
-     * Set the item crafted by data for this tool.
+     * Add a mob kill to the item data for this tool.
      * 
      * @param tool
      */
