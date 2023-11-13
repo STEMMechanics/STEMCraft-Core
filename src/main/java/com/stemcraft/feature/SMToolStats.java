@@ -453,6 +453,10 @@ public class SMToolStats extends SMFeature {
         if (container.has(key, PersistentDataType.INTEGER)) {
             value = container.get(key, PersistentDataType.INTEGER);
             if (value == null) {
+                if(increase == 0) {
+                    return null;
+                }
+
                 value = 0;
             }
         }
