@@ -6,9 +6,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import com.stemcraft.core.event.SMEvent;
 import com.stemcraft.STEMCraft;
 import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.event.SMEvent;
 
 public class SMItemAttribs extends SMFeature {
     private final NamespacedKey destroyOnDrop = new NamespacedKey(STEMCraft.getPlugin(), "destroy-on-drop");
@@ -45,12 +45,15 @@ public class SMItemAttribs extends SMFeature {
      * @param key The key for the attribute.
      * @param value The value for the attribute.
      */
-    public static void addAttrib(ItemStack item, String key, String value) {
+    public static <T, Z> void addAttrib(ItemStack item, String key, T value) {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             NamespacedKey namespacedKey = new NamespacedKey(STEMCraft.getPlugin(), key);
-            meta.getPersistentDataContainer().set(namespacedKey, PersistentDataType.STRING, value);
-            item.setItemMeta(meta);
+            PersistentDataType<Z, T> type = getPersistentDataType(value);
+            if (type != null) {
+                meta.getPersistentDataContainer().set(namespacedKey, type, value);
+                item.setItemMeta(meta);
+            }
         }
     }
 
@@ -98,7 +101,7 @@ public class SMItemAttribs extends SMFeature {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             NamespacedKey namespacedKey = new NamespacedKey(STEMCraft.getPlugin(), key);
-            PersistentDataType<Z, T> type = getDataTypeForClass(typeClass);
+            PersistentDataType<Z, T> type = getPersistentDataType(typeClass);
             if (type != null) {
                 PersistentDataContainer container = meta.getPersistentDataContainer();
                 if (container.has(namespacedKey, type)) {
@@ -110,23 +113,38 @@ public class SMItemAttribs extends SMFeature {
     }
 
     /**
-     * Determines the PersistentDataType based on the class provided.
+     * Determines the PersistentDataType based on the object provided (class or value).
      *
-     * @param typeClass The class of the type (String.class, Byte.class, etc.).
-     * @return The corresponding PersistentDataType, or null if the class is unsupported.
+     * @param object The object for which to determine the PersistentDataType (Class<?> or instance of a type).
+     * @return The corresponding PersistentDataType, or null if the type is unsupported.
      */
     @SuppressWarnings("unchecked")
-    private static <T, Z> PersistentDataType<Z, T> getDataTypeForClass(Class<T> typeClass) {
-        if (typeClass == String.class) {
-            return (PersistentDataType<Z, T>) PersistentDataType.STRING;
-        } else if (typeClass == Byte.class) {
-            return (PersistentDataType<Z, T>) PersistentDataType.BYTE;
-        } else if (typeClass == Integer.class) {
-            return (PersistentDataType<Z, T>) PersistentDataType.INTEGER;
-        } else if (typeClass == Double.class) {
-            return (PersistentDataType<Z, T>) PersistentDataType.DOUBLE;
-        } else if (typeClass == Float.class) {
-            return (PersistentDataType<Z, T>) PersistentDataType.FLOAT;
+    private static <T, Z> PersistentDataType<Z, T> getPersistentDataType(Object object) {
+        if (object instanceof Class<?>) {
+            Class<?> typeClass = (Class<?>) object;
+            if (typeClass == String.class) {
+                return (PersistentDataType<Z, T>) PersistentDataType.STRING;
+            } else if (typeClass == Byte.class) {
+                return (PersistentDataType<Z, T>) PersistentDataType.BYTE;
+            } else if (typeClass == Integer.class) {
+                return (PersistentDataType<Z, T>) PersistentDataType.INTEGER;
+            } else if (typeClass == Double.class) {
+                return (PersistentDataType<Z, T>) PersistentDataType.DOUBLE;
+            } else if (typeClass == Float.class) {
+                return (PersistentDataType<Z, T>) PersistentDataType.FLOAT;
+            }
+        } else {
+            if (object instanceof String) {
+                return (PersistentDataType<Z, T>) PersistentDataType.STRING;
+            } else if (object instanceof Byte) {
+                return (PersistentDataType<Z, T>) PersistentDataType.BYTE;
+            } else if (object instanceof Integer) {
+                return (PersistentDataType<Z, T>) PersistentDataType.INTEGER;
+            } else if (object instanceof Double) {
+                return (PersistentDataType<Z, T>) PersistentDataType.DOUBLE;
+            } else if (object instanceof Float) {
+                return (PersistentDataType<Z, T>) PersistentDataType.FLOAT;
+            }
         }
         // Add more types if needed
         return null;
