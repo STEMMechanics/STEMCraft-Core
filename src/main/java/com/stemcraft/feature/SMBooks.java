@@ -202,6 +202,10 @@ public class SMBooks extends SMFeature {
                     ItemStack book = this.getBook(ctx.args.get(1));
                     if (book != null) {
                         if (STEMCraft.featureEnabled("SMGeyser") && SMGeyser.isBedrockPlayer(targetPlayer)) {
+                            if (STEMCraft.featureEnabled("SMItemAttribs")) {
+                                SMItemAttribs.addAttrib(book, "destroy-on-drop", 1);
+                            }
+
                             SMCommon.givePlayerItem(targetPlayer, book);
 
                             String title = getBookTitle(book);
@@ -373,6 +377,10 @@ public class SMBooks extends SMFeature {
         ItemStack book = this.getBook(name);
         if (book != null) {
             if (STEMCraft.featureEnabled("SMGeyser") && SMGeyser.isBedrockPlayer(player)) {
+                if (STEMCraft.featureEnabled("SMItemAttribs")) {
+                    SMItemAttribs.addAttrib(book, "destroy-on-drop", 1);
+                }
+
                 if (SMCommon.givePlayerItem(player, book)) {
                     String title = getBookTitle(book);
                     SMMessenger.infoLocale(player, "BOOK_GIVEN_WITH_TITLE", "title", title);
