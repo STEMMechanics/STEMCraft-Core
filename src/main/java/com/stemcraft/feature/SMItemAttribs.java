@@ -11,9 +11,6 @@ import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.event.SMEvent;
 
 public class SMItemAttribs extends SMFeature {
-    private final NamespacedKey destroyOnDrop = new NamespacedKey(STEMCraft.getPlugin(), "destroy-on-drop");
-    private final NamespacedKey noDrop = new NamespacedKey(STEMCraft.getPlugin(), "no-drop");
-
     /**
      * When the feature is enabled
      */
@@ -25,11 +22,11 @@ public class SMItemAttribs extends SMFeature {
             ItemMeta meta = item.getItemMeta();
 
             if (meta != null) {
-                if (meta.getPersistentDataContainer().has(destroyOnDrop, PersistentDataType.BYTE)) {
+                if (getAttrib(item, "destroy-on-drop", Integer.class, 0) == 1) {
                     event.getItemDrop().remove();
                 }
 
-                if (meta.getPersistentDataContainer().has(noDrop, PersistentDataType.BYTE)) {
+                if (getAttrib(item, "no-drop", Integer.class, 0) == 1) {
                     event.setCancelled(true);
                 }
             }
@@ -97,7 +94,16 @@ public class SMItemAttribs extends SMFeature {
      * @param typeClass The class of the type you're expecting (String.class, Byte.class, etc.).
      * @return The value of the attribute, or null if not found or if the type doesn't match.
      */
-    public static <T, Z> T getAttrib(ItemStack item, String key, Class<T> typeClass) {
+    /**
+     * Retrieves an attribute from the ItemStack with the given key or returns a default value if not found.
+     *
+     * @param item The ItemStack to check.
+     * @param key The key for the attribute.
+     * @param typeClass The class of the type you're expecting (String.class, Byte.class, etc.).
+     * @param defaultValue The default value to return if the attribute is not found or there's an issue.
+     * @return The value of the attribute or the default value.
+     */
+    public static <T, Z> T getAttrib(ItemStack item, String key, Class<T> typeClass, T defaultValue) {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             NamespacedKey namespacedKey = new NamespacedKey(STEMCraft.getPlugin(), key);
@@ -105,11 +111,19 @@ public class SMItemAttribs extends SMFeature {
             if (type != null) {
                 PersistentDataContainer container = meta.getPersistentDataContainer();
                 if (container.has(namespacedKey, type)) {
-                    return container.get(namespacedKey, type);
+                    T value = container.get(namespacedKey, type);
+                    if (value != null) {
+                        return value;
+                    }
                 }
             }
         }
-        return null;
+
+        return defaultValue;
+    }
+
+    public static <T, Z> T getAttrib(ItemStack item, String key, Class<T> typeClass) {
+        return getAttrib(item, key, typeClass, null);
     }
 
     /**
