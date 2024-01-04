@@ -89,3 +89,9 @@ character-bindings:
     click_action_left: "\uE133"
     click_action_right: "\uE134"
     chest: "\uE135"
+
+custom_items:
+    "stemcraft:copper_coin":
+        item: "minecraft:stick"
+        display_name: "Copper Coin"
+        custom_model_data: 10000
