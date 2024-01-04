@@ -1,6 +1,7 @@
 package com.stemcraft.feature;
 
 import com.stemcraft.STEMCraft;
+import com.stemcraft.core.SMBridge;
 import com.stemcraft.core.SMCommon;
 import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.SMLocale;
@@ -13,6 +14,7 @@ import com.stemcraft.core.event.SMEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,6 +28,7 @@ import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerEditBookEvent;
+import org.bukkit.inventory.meta.BookMeta;
 
 /**
  * Set the player chat formatting
@@ -184,6 +187,10 @@ public class SMChat extends SMFeature {
             }
         }
 
+        SMBridge.registerParserProvider("smchat", (id, string, player) -> {
+            return updateBindings(string);
+        });
+
         // Event Chat - Set Format
         SMEvent.register(AsyncPlayerChatEvent.class, EventPriority.LOWEST, ctx -> {
             ctx.event.setFormat(this.format);
@@ -214,6 +221,9 @@ public class SMChat extends SMFeature {
                 ctx.event.setCancelled(true);
                 SMMessenger.errorLocale(ctx.event.getPlayer(), "CHAT_MESSAGE_FILTERED");
             }
+
+            String message = ctx.event.getMessage();
+            ctx.event.setMessage(updateBindings(message));
         });
 
         /** Event Command Preprocess - Filter */
@@ -226,23 +236,36 @@ public class SMChat extends SMFeature {
 
         /** Event Sign Change - Filter */
         SMEvent.register(SignChangeEvent.class, ctx -> {
-            for (String line : ctx.event.getLines()) {
+            for (int i = 0; i < 4; i++) {
+                String line = ctx.event.getLine(i);
                 if (isFiltered(ctx.event.getPlayer(), line)) {
                     ctx.event.setCancelled(true);
                     SMMessenger.errorLocale(ctx.event.getPlayer(), "CHAT_SIGN_FILTERED");
-                    break;
+                    return;
                 }
+
+                ctx.event.setLine(i, updateBindings(line));
             }
         });
 
         /** Event Player Edit Book - Filter */
         SMEvent.register(PlayerEditBookEvent.class, ctx -> {
-            ctx.event.getNewBookMeta().getPages().forEach(page -> {
+            BookMeta meta = ctx.event.getNewBookMeta();
+            List<String> pages = meta.getPages();
+
+            for (int i = 0; i < pages.size(); i++) {
+                String page = pages.get(i);
                 if (isFiltered(ctx.event.getPlayer(), page)) {
                     ctx.event.setCancelled(true);
                     SMMessenger.errorLocale(ctx.event.getPlayer(), "CHAT_BOOK_FILTERED");
+                    return;
+                } else {
+                    pages.set(i, updateBindings(page));
                 }
-            });
+            } ;
+
+            meta.setPages(pages);
+            ctx.event.setNewBookMeta(meta);
         });
 
         /** Send private message */
@@ -268,6 +291,8 @@ public class SMChat extends SMFeature {
                 }
 
                 String message = String.join(" ", ctx.args).substring(ctx.args.get(0).length() + 1);
+                message = updateBindings(message);
+
                 targetPlayer.sendMessage(targetPlayer.getDisplayName() + " whispers: " + message);
                 targetPlayer.playSound(targetPlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.0f);
 
@@ -297,6 +322,8 @@ public class SMChat extends SMFeature {
                 }
 
                 String message = String.join(" ", ctx.args);
+                message = updateBindings(message);
+
                 targetPlayer.sendMessage(targetPlayer.getDisplayName() + " whispers: " + message);
                 targetPlayer.playSound(targetPlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.0f);
                 lastTellMessageFrom.put(targetPlayer.getUniqueId(), ctx.player.getUniqueId());
@@ -376,5 +403,23 @@ public class SMChat extends SMFeature {
     public Boolean playerMuted(Player player) {
         return player.hasPermission("stemcraft.chat.muted")
             || SMPersistent.getBool(this, player.getUniqueId().toString(), false);
+    }
+
+    /**
+     * Insert Bindings
+     * 
+     * @param string The string to insert bindings.
+     * @return String The updated string.
+     */
+    public String updateBindings(String string) {
+        Map<String, String> bindings = SMConfig.main().getStringMap("character-bindings");
+
+        for (Map.Entry<String, String> entry : bindings.entrySet()) {
+            String key = ":" + entry.getKey() + ":";
+            String value = entry.getValue();
+            string = string.replace(key, value);
+        }
+
+        return string;
     }
 }
