@@ -521,6 +521,26 @@ public class SMConfigFile {
     }
 
     /**
+     * Fetches a map from the file based on the given key and filters it to contain only Char values.
+     *
+     * @param key The key to fetch the map from the file.
+     * @return A map with string keys and Integer values.
+     */
+    public Map<String, Character> getCharMap(String key) {
+        Map<String, Object> valueMap =
+            file != null ? file.getSection(key).getStringRouteMappedValues(false) : new HashMap<>();
+        Map<String, Character> resultMap = new HashMap<>();
+
+        for (Map.Entry<?, ?> entry : valueMap.entrySet()) {
+            String valueAsString = entry.getValue().toString();
+            char value = valueAsString.length() > 0 ? valueAsString.charAt(0) : '\u0000';
+            resultMap.put(entry.getKey().toString(), value);
+        }
+
+        return resultMap;
+    }
+
+    /**
      * Fetches a map from the file based on the given key and filters it to contain only Integer values.
      *
      * @param key The key to fetch the map from the file.
