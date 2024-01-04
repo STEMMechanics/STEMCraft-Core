@@ -10,7 +10,7 @@ import com.stemcraft.core.SMFeature;
  * Geyser plugin support
  */
 public class SMGeyser extends SMFeature {
-    private static String dependantName = "Geyser";
+    private static String dependantName = "Geyser-Spigot";
     private static GeyserApi api = null;
 
     /**
