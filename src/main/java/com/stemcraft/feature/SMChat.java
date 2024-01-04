@@ -228,10 +228,15 @@ public class SMChat extends SMFeature {
 
         /** Event Command Preprocess - Filter */
         SMEvent.register(PlayerCommandPreprocessEvent.class, ctx -> {
-            if (isFiltered(ctx.event.getPlayer(), ctx.event.getMessage())) {
+            String message = ctx.event.getMessage();
+
+            if (isFiltered(ctx.event.getPlayer(), message)) {
                 ctx.event.setCancelled(true);
                 SMMessenger.errorLocale(ctx.event.getPlayer(), "CHAT_COMMAND_FILTERED");
+                return;
             }
+
+            ctx.event.setMessage(updateBindings(message));
         });
 
         /** Event Sign Change - Filter */
