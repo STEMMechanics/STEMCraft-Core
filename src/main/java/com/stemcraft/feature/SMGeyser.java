@@ -1,21 +1,10 @@
 package com.stemcraft.feature;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.inventory.ItemStack;
 import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.connection.GeyserConnection;
 import com.stemcraft.STEMCraft;
-import com.stemcraft.core.SMBridge;
-import com.stemcraft.core.SMDependency;
 import com.stemcraft.core.SMFeature;
-import com.stemcraft.core.event.SMEvent;
-import dev.lone.itemsadder.api.CustomStack;
-import dev.lone.itemsadder.api.FontImages.FontImageWrapper;
 
 /**
  * Geyser plugin support
@@ -48,7 +37,6 @@ public class SMGeyser extends SMFeature {
      * @return If the feature enabled successfully.
      */
     @Override
-    @SuppressWarnings("unchecked")
     protected Boolean onEnable() {
         return true;
     }
