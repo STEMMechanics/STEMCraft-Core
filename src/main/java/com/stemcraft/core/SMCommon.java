@@ -933,4 +933,36 @@ public class SMCommon {
 
         return toEpochTime ? Instant.now().plus(totalSeconds, ChronoUnit.SECONDS).getEpochSecond() : totalSeconds;
     }
+
+    /**
+     * Convert a duration string (1d) to seconds or epoch expiry time.
+     * 
+     * @param player The player to give the item.
+     * @param item The item to give.
+     * @param dropOnFail Drop the item if the player inventory is full.
+     * @param showMessage Show a message if giving the item failed and item was not dropped.
+     * @return The result or null if error.
+     */
+    public static Boolean givePlayerItem(Player player, ItemStack item, Boolean dropOnFail, Boolean showMessage) {
+        Map<Integer, ItemStack> leftover = player.getInventory().addItem(item);
+        if (!leftover.isEmpty()) {
+            // Handle the full inventory case here
+            player.sendMessage("You don't have enough room in your inventory!");
+
+            if (dropOnFail) {
+                player.getWorld().dropItemNaturally(player.getLocation(), item);
+                return true;
+            } else if (showMessage) {
+                SMMessenger.error(player, SMLocale.get("INV_NO_ROOM"));
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public static Boolean givePlayerItem(Player player, ItemStack item) {
+        return givePlayerItem(player, item, false, true);
+    }
 }
