@@ -6,12 +6,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.stemcraft.STEMCraft;
 import com.stemcraft.core.SMCommon;
 import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings.KeyFormat;
@@ -629,7 +631,12 @@ public class SMConfigFile {
             return SMCommon.setToList(file.getKeys());
         }
 
-        return SMCommon.setToList(file.getSection(key).getKeys());
+        Section section = file.getSection(key);
+        if (section != null) {
+            return SMCommon.setToList(section.getKeys());
+        }
+
+        return new ArrayList<>();
     }
 
     /**
