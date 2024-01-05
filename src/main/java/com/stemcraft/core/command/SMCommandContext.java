@@ -228,6 +228,20 @@ public class SMCommandContext {
     }
 
     /**
+     * Get Command argument from index.
+     * 
+     * @param idx
+     * @return
+     */
+    public float getArgFloat(int idx, float defValue) {
+        try {
+            return idx > 0 && this.args.size() >= idx ? Float.parseFloat(this.args.get(idx - 1)) : defValue;
+        } catch (Exception e) {
+            return defValue;
+        }
+    }
+
+    /**
      * Get Player from argument index.
      * 
      * @param idx
