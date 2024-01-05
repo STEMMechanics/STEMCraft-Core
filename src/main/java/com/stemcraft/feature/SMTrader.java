@@ -234,7 +234,6 @@ public class SMTrader extends SMFeature {
             Player randomPlayer = filteredPlayers.get(randomIndex);
 
             double chance = random.nextDouble();
-            System.out.println(chance + " " + SPAWN_CHANCE);
             if (chance < SPAWN_CHANCE) {
                 Location spawnLocation = SMCommon.findSafeLocation(randomPlayer.getLocation(), 16, 32, true);
                 spawnTrader(spawnLocation);
