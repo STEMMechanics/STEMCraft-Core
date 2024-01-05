@@ -1,7 +1,10 @@
 package com.stemcraft.feature;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -38,6 +41,7 @@ import com.stemcraft.core.util.SMWorldRegion;
  */
 public class SMWorkshop extends SMFeature {
     RegionContainer container = null;
+    private final Map<UUID, Location> lastLocations = new HashMap<>();
 
     public SMWorkshop() {
         requireFeatures.add("SMLuckPerms");
@@ -49,6 +53,8 @@ public class SMWorkshop extends SMFeature {
 
         SMTabComplete.register("workshops", () -> {
             List<String> list = new ArrayList<>();
+
+            list.add("exit");
 
             for (World world : Bukkit.getWorlds()) {
                 if (world.getName().startsWith("workshop_")) {
@@ -85,6 +91,17 @@ public class SMWorkshop extends SMFeature {
                 ctx.checkNotConsole();
                 ctx.checkArgs(1, "WORKSHOP_USAGE");
 
+                if (ctx.args.get(0).equalsIgnoreCase("exit")) {
+                    UUID uuid = ctx.player.getUniqueId();
+                    if (lastLocations.containsKey(uuid)) {
+                        SMCommon.safePlayerTeleport(ctx.player, lastLocations.get(uuid));
+                        lastLocations.remove(uuid);
+                    } else {
+                        ctx.returnErrorLocale("WORKSHOP_EXIT_WALK");
+                        return;
+                    }
+                }
+
                 SMWorldRegion worldRegion = this.findWorkshopRegion(ctx.args.get(0));
                 if (worldRegion == null) {
                     World world = Bukkit.getWorld("workshop_" + ctx.args.get(0));
@@ -95,6 +112,7 @@ public class SMWorkshop extends SMFeature {
                             ctx.returnErrorLocale("WORKSHOP_NO_PERMISSION");
                         }
 
+                        updateLastLocation(ctx.player);
                         SMCommon.delayedPlayerTeleport(ctx.player, world.getSpawnLocation());
                     }
                 } else {
@@ -105,6 +123,8 @@ public class SMWorkshop extends SMFeature {
                     Location center = worldRegion.center();
                     if (!SMCommon.safePlayerTeleport(ctx.player, center)) {
                         ctx.returnErrorLocale("COMMON_NO_SAFE_TELEPORT");
+                    } else {
+                        updateLastLocation(ctx.player);
                     }
                 }
             })
@@ -195,6 +215,19 @@ public class SMWorkshop extends SMFeature {
 
             SMMessenger.infoLocale(player, "WORKSHOP_EXIT", "workshop", SMCommon.beautifyCapitalize(workshopName));
             SMLuckPerms.removeGroup(player, regionId + "_active");
+
+            UUID uuid = player.getUniqueId();
+            if (lastLocations.containsKey(uuid)) {
+                SMCommon.safePlayerTeleport(player, lastLocations.get(uuid));
+                lastLocations.remove(uuid);
+            }
+        }
+    }
+
+    private void updateLastLocation(Player player) {
+        UUID uuid = player.getUniqueId();
+        if (!lastLocations.containsKey(uuid)) {
+            lastLocations.put(uuid, player.getLocation());
         }
     }
 }
