@@ -213,6 +213,10 @@ public class SMCommandContext {
         return idx > 0 && this.args.size() >= idx ? this.args.get(idx - 1) : defValue;
     }
 
+    public String getArg(int idx) {
+        return getArg(idx, "");
+    }
+
     /**
      * Get Command argument from index.
      * 
