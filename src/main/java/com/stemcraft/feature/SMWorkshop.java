@@ -103,7 +103,9 @@ public class SMWorkshop extends SMFeature {
                     }
 
                     Location center = worldRegion.center();
-                    SMCommon.safePlayerTeleport(ctx.player, center);
+                    if (!SMCommon.safePlayerTeleport(ctx.player, center)) {
+                        ctx.returnErrorLocale("COMMON_NO_SAFE_TELEPORT");
+                    }
                 }
             })
             .register();
