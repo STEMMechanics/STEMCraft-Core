@@ -30,10 +30,7 @@ public class SMInvincible extends SMFeature {
         });
 
         SMEvent.register(PlayerTeleportEvent.class, ctx -> {
-            if (!ctx.event.getCause().equals(PlayerTeleportEvent.TeleportCause.END_PORTAL)
-                && !ctx.event.getCause().equals(PlayerTeleportEvent.TeleportCause.NETHER_PORTAL)) {
-                setInvincible(ctx.event.getPlayer());
-            }
+            setInvincible(ctx.event.getPlayer());
         });
 
         return true;
