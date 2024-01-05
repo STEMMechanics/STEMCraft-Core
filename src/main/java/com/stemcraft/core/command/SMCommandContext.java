@@ -174,7 +174,7 @@ public class SMCommandContext {
         boolean valueFound = false;
 
         for (String element : array) {
-            if (element.equals(value)) {
+            if (element.equalsIgnoreCase(value)) {
                 valueFound = true;
                 break;
             }
