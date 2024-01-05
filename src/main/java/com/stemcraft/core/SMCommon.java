@@ -980,7 +980,7 @@ public class SMCommon {
      * @param value The string to check.
      * @return
      */
-    public Boolean isInArrayIgnoreCase(String[] array, String value) {
+    public static Boolean isInArrayIgnoreCase(String[] array, String value) {
         for (String element : array) {
             if (element.equalsIgnoreCase(value)) {
                 return true;
