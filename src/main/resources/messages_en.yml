@@ -169,3 +169,7 @@ STEMCRAFT_GIVE_ITEM_RECEIVED: "Gave {amount} '{name}' to {player}"
 STEMCRAFT_GIVE_ITEM_QTY_INVALID: "The amount {amount} is invalid"
 
 COMMON_NO_SAFE_TELEPORT: "Could not find a safe location to teleport you"
+
+SPEED_USAGE: "/speed (fly|walk) <number> (player)"
+SPEED_NUMBER_USAGE: "Speed must be a number between 0.1 and 10"
+SPEED_CHANGED: "{type} speed changed to {speed}"
