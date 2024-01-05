@@ -114,6 +114,7 @@ WORKSHOP_ENTER_SUBTITLE: "{workshop}"
 WORKSHOP_ENTER_MEMBER: "You have entered the workshop area"
 WORKSHOP_ENTER_NON_MEMBER: "You cannot make changes in this area"
 WORKSHOP_NO_PERMISSION: "You do not have permission to enter that workshop"
+WORKSHOP_EXIT_WALK: "You did not teleport into this workshop. You will need to walk out."
 
 TOOLSTATS-BLOCKS-MINED: "&7Blocks mined: &8{blocks}"
 TOOLSTATS-CROPS-HARVESTED: "&7Crops harvested: &8{crops}"
