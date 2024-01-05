@@ -382,10 +382,17 @@ public class SMCommon {
      * @param player
      * @param location
      */
-    public static void safePlayerTeleport(Player player, Location location) {
-        STEMCraft.runLater(1, () -> {
-            player.teleport(findSafeLocation(location, 30));
-        });
+    public static Boolean safePlayerTeleport(Player player, Location location) {
+        Location safeLocation = findSafeLocation(location, 30);
+        if (safeLocation != null) {
+            STEMCraft.runLater(1, () -> {
+                player.teleport(safeLocation);
+            });
+
+            return true;
+        }
+
+        return false;
     }
 
     public static String getKeyByValue(Map<String, String> map, String value) {
