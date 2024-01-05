@@ -634,7 +634,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
      * @param delayTime
      * @param callback
      */
-    public static void runOnceDelay(final String id, final long delayTime, final SMCallback callback) {
+    public static SMTask runOnceDelay(final String id, final long delayTime, final SMCallback callback) {
         if (runOnceMapDelay.containsKey(id)) {
             runOnceMapDelay.get(id).cancel();
         }
@@ -649,6 +649,20 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
         SMTask task = SMTask.fromBukkit(runnable.runTaskLater(STEMCraft.getPlugin(), delayTime));
         runOnceMapDelay.put(id, task);
+
+        return task;
+    }
+
+    /**
+     * Run a callback once after a delay. Calls with the same id will cancel within the delay will cancel the original
+     * callback.
+     * 
+     * @param id
+     */
+    public static void cancelRunOnceDelay(final String id) {
+        if (runOnceMapDelay.containsKey(id)) {
+            runOnceMapDelay.get(id).cancel();
+        }
     }
 
     /**
