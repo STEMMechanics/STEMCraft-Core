@@ -972,4 +972,21 @@ public class SMCommon {
     public static Boolean givePlayerItem(Player player, ItemStack item) {
         return givePlayerItem(player, item, false, true);
     }
+
+    /**
+     * Is string in array, ignoring case.
+     * 
+     * @param array The array to check.
+     * @param value The string to check.
+     * @return
+     */
+    public Boolean isInArrayIgnoreCase(String[] array, String value) {
+        for (String element : array) {
+            if (element.equalsIgnoreCase(value)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
