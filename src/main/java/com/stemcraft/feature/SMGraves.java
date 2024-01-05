@@ -37,139 +37,140 @@ public class SMGraves extends SMFeature {
 
     @Override
     protected Boolean onEnable() {
-        SMDatabase.runMigration("230804162200_CreateGravestoneTable", () -> {
-            SMDatabase.prepareStatement(
-                "CREATE TABLE IF NOT EXISTS graves (" +
-                    "id TEXT PRIMARY KEY," +
-                    "data TEXT)")
-                .executeUpdate();
-        });
+        return false;
+        // SMDatabase.runMigration("230804162200_CreateGravestoneTable", () -> {
+        // SMDatabase.prepareStatement(
+        // "CREATE TABLE IF NOT EXISTS graves (" +
+        // "id TEXT PRIMARY KEY," +
+        // "data TEXT)")
+        // .executeUpdate();
+        // });
 
-        SMDatabase.runMigration("231023201700_UpdateGravestoneTable", () -> {
-            // Lazy
-            SMDatabase.prepareStatement(
-                "DROP TABLE graves").executeUpdate();
+        // SMDatabase.runMigration("231023201700_UpdateGravestoneTable", () -> {
+        // // Lazy
+        // SMDatabase.prepareStatement(
+        // "DROP TABLE graves").executeUpdate();
 
-            SMDatabase.prepareStatement(
-                "CREATE TABLE IF NOT EXISTS graves (" +
-                    "id TEXT PRIMARY KEY," +
-                    "title TEXT," +
-                    "contents TEXT)")
-                .executeUpdate();
-        });
+        // SMDatabase.prepareStatement(
+        // "CREATE TABLE IF NOT EXISTS graves (" +
+        // "id TEXT PRIMARY KEY," +
+        // "title TEXT," +
+        // "contents TEXT)")
+        // .executeUpdate();
+        // });
 
-        SMDependency.onDependencyReady("itemsadder", () -> {
-            SMEvent.register(FurnitureInteractEvent.class, ctx -> {
-                if (ctx.event.getNamespacedID().equalsIgnoreCase("stemcraft:grave")) {
-                    UUID id = ctx.event.getFurniture().getEntity().getUniqueId();
+        // SMDependency.onDependencyReady("itemsadder", () -> {
+        // SMEvent.register(FurnitureInteractEvent.class, ctx -> {
+        // if (ctx.event.getNamespacedID().equalsIgnoreCase("stemcraft:grave")) {
+        // UUID id = ctx.event.getFurniture().getEntity().getUniqueId();
 
-                    Inventory inventory = loadGrave(id);
-                    if (inventory == null) {
-                        String title = "Unknown Grave";
-                        inventory = Bukkit.createInventory(null, 54, title);
-                        this.saveGrave(id, inventory.getContents(), title);
-                    }
+        // Inventory inventory = loadGrave(id);
+        // if (inventory == null) {
+        // String title = "Unknown Grave";
+        // inventory = Bukkit.createInventory(null, 54, title);
+        // this.saveGrave(id, inventory.getContents(), title);
+        // }
 
-                    if (inventory != null) {
-                        ctx.event.getPlayer().openInventory(inventory);
-                        this.trackedInventories.put(inventory, id);
-                    }
-                }
-            });
+        // if (inventory != null) {
+        // ctx.event.getPlayer().openInventory(inventory);
+        // this.trackedInventories.put(inventory, id);
+        // }
+        // }
+        // });
 
-            SMEvent.register(FurnitureBreakEvent.class, ctx -> {
-                if (ctx.event.getNamespacedID().equalsIgnoreCase("stemcraft:grave")) {
-                    Entity grave = ctx.event.getFurniture().getEntity();
-                    World world = grave.getWorld();
-                    Location location = grave.getLocation();
-                    UUID id = grave.getUniqueId();
+        // SMEvent.register(FurnitureBreakEvent.class, ctx -> {
+        // if (ctx.event.getNamespacedID().equalsIgnoreCase("stemcraft:grave")) {
+        // Entity grave = ctx.event.getFurniture().getEntity();
+        // World world = grave.getWorld();
+        // Location location = grave.getLocation();
+        // UUID id = grave.getUniqueId();
 
-                    ItemStack wall = new ItemStack(Material.MOSSY_STONE_BRICK_WALL);
-                    ItemStack slab = new ItemStack(Material.MOSSY_STONE_BRICK_SLAB);
-                    Inventory inventory = loadGrave(id);
+        // ItemStack wall = new ItemStack(Material.MOSSY_STONE_BRICK_WALL);
+        // ItemStack slab = new ItemStack(Material.MOSSY_STONE_BRICK_SLAB);
+        // Inventory inventory = loadGrave(id);
 
-                    if (!SMCommon.playerHasSilkTouch(ctx.event.getPlayer())) {
-                        spawnCancellations.add(location);
-                        // break grave and drop stone brick parts
-                        world.dropItemNaturally(location, wall);
-                        world.dropItemNaturally(location, slab);
-                    }
+        // if (!SMCommon.playerHasSilkTouch(ctx.event.getPlayer())) {
+        // spawnCancellations.add(location);
+        // // break grave and drop stone brick parts
+        // world.dropItemNaturally(location, wall);
+        // world.dropItemNaturally(location, slab);
+        // }
 
-                    // drop grave items
-                    if (inventory != null) {
-                        for (ItemStack item : inventory.getContents()) {
-                            if (item != null && item.getType() != Material.AIR) {
-                                world.dropItemNaturally(location, item);
-                            }
-                        }
-                    }
+        // // drop grave items
+        // if (inventory != null) {
+        // for (ItemStack item : inventory.getContents()) {
+        // if (item != null && item.getType() != Material.AIR) {
+        // world.dropItemNaturally(location, item);
+        // }
+        // }
+        // }
 
-                    this.clearGrave(id);
-                }
-            });
+        // this.clearGrave(id);
+        // }
+        // });
 
-            SMEvent.register(PlayerDeathEvent.class, ctx -> {
-                if (ctx.event.getEventName().equalsIgnoreCase("playerdeathevent")) {
-                    Player player = ctx.event.getEntity();
+        // SMEvent.register(PlayerDeathEvent.class, ctx -> {
+        // if (ctx.event.getEventName().equalsIgnoreCase("playerdeathevent")) {
+        // Player player = ctx.event.getEntity();
 
-                    if (player.getGameMode() != GameMode.SURVIVAL) {
-                        return;
-                    }
+        // if (player.getGameMode() != GameMode.SURVIVAL) {
+        // return;
+        // }
 
-                    Location graveLocation = SMCommon.findSafeLocation(player.getLocation(), 64);
-                    if (graveLocation == null) {
-                        STEMCraft.info("No suitable location was found near the player for a grave");
-                        return;
-                    }
+        // Location graveLocation = SMCommon.findSafeLocation(player.getLocation(), 64);
+        // if (graveLocation == null) {
+        // STEMCraft.info("No suitable location was found near the player for a grave");
+        // return;
+        // }
 
-                    String title = player.getName() + (player.getName().endsWith("s") ? "'" : "'s") + " Grave";
-                    Inventory inventory = Bukkit.createInventory(null, 54, title);
-                    ctx.event.getDrops().forEach((itemStack) -> {
-                        inventory.addItem(itemStack.clone());
-                    });
+        // String title = player.getName() + (player.getName().endsWith("s") ? "'" : "'s") + " Grave";
+        // Inventory inventory = Bukkit.createInventory(null, 54, title);
+        // ctx.event.getDrops().forEach((itemStack) -> {
+        // inventory.addItem(itemStack.clone());
+        // });
 
-                    try {
-                        CustomFurniture grave =
-                            CustomFurniture.spawn("stemcraft:grave", graveLocation.getBlock());
-                        this.saveGrave(grave.getEntity().getUniqueId(), inventory.getContents(), title);
-                        ctx.event.getDrops().clear();
-                    } catch (Exception e) {
-                        /* fallback to vanilla drops */
-                        e.printStackTrace();
-                    }
-                }
-            });
+        // try {
+        // CustomFurniture grave =
+        // CustomFurniture.spawn("stemcraft:grave", graveLocation.getBlock());
+        // this.saveGrave(grave.getEntity().getUniqueId(), inventory.getContents(), title);
+        // ctx.event.getDrops().clear();
+        // } catch (Exception e) {
+        // /* fallback to vanilla drops */
+        // e.printStackTrace();
+        // }
+        // }
+        // });
 
-            SMEvent.register(ItemSpawnEvent.class, ctx -> {
-                if (ctx.event.getEventName().equalsIgnoreCase("ItemSpawnEvent")) {
-                    CustomStack customStack = CustomStack.byItemStack(ctx.event.getEntity().getItemStack());
-                    if (customStack != null) {
-                        if (customStack.getNamespacedID().equalsIgnoreCase("stemcraft:grave")) {
-                            for (Location location : spawnCancellations) {
-                                if (ctx.event.getLocation().distanceSquared(location) < 2) {
-                                    ctx.event.setCancelled(true);
-                                    spawnCancellations.remove(location);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
+        // SMEvent.register(ItemSpawnEvent.class, ctx -> {
+        // if (ctx.event.getEventName().equalsIgnoreCase("ItemSpawnEvent")) {
+        // CustomStack customStack = CustomStack.byItemStack(ctx.event.getEntity().getItemStack());
+        // if (customStack != null) {
+        // if (customStack.getNamespacedID().equalsIgnoreCase("stemcraft:grave")) {
+        // for (Location location : spawnCancellations) {
+        // if (ctx.event.getLocation().distanceSquared(location) < 2) {
+        // ctx.event.setCancelled(true);
+        // spawnCancellations.remove(location);
+        // break;
+        // }
+        // }
+        // }
+        // }
+        // }
+        // });
 
-            SMEvent.register(InventoryCloseEvent.class, ctx -> {
-                Inventory inventory = ctx.event.getInventory();
+        // SMEvent.register(InventoryCloseEvent.class, ctx -> {
+        // Inventory inventory = ctx.event.getInventory();
 
-                if (this.trackedInventories.containsKey(inventory)) {
-                    UUID id = this.trackedInventories.get(inventory);
+        // if (this.trackedInventories.containsKey(inventory)) {
+        // UUID id = this.trackedInventories.get(inventory);
 
-                    this.trackedInventories.remove(inventory);
-                    this.saveGrave(id, inventory.getContents(), ctx.event.getView().getTitle());
-                }
-            });
-        });
+        // this.trackedInventories.remove(inventory);
+        // this.saveGrave(id, inventory.getContents(), ctx.event.getView().getTitle());
+        // }
+        // });
+        // });
 
-        return true;
+        // return true;
     }
 
     private Inventory loadGrave(UUID id) {
