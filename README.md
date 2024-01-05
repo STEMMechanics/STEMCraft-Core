@@ -23,6 +23,15 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 
 ## Changes
 
+### 1.3.0
+
+-   Added character bindings due to ItemsAdder removal.
+-   Added `givePlayerItem` helper in `SMCommon`.
+-   Show book will instead give the book to bedrock players (`openBook` is not compadible).
+-   Added SMItemAttribs for special attributes for items such as `destroy-on-drop`.
+-   Added `/stemcraft give <item> (quantity) (player)`
+-   Added players are invincilble if teleporting between worlds (except through portals), changing gamemodes or when joining the server.
+
 ### 1.2.0
 
 -   Added `/t` to direct message a player
