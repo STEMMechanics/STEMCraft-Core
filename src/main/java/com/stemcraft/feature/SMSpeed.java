@@ -27,18 +27,25 @@ public class SMSpeed extends SMFeature {
             .permission("stemcraft.command.speed")
             .tabComplete("{speedtype}", "{speed}", "{player}")
             .tabComplete("{speed}", "{player}")
+            .tabComplete("reset", "{player}")
             .action(ctx -> {
                 ctx.checkArgsLocale(1, "SPEED_USAGE");
 
                 String type = ctx.getArg(1);
                 Float speed = null;
                 Player targetPlayer = null;
+                Boolean reset = false;
 
                 if (SMCommon.isInArrayIgnoreCase(movementTypes, type)) {
                     speed = ctx.getArgFloatLocale(2, "SPEED_NUMBER_USAGE");
                     targetPlayer = ctx.getArgAsPlayer(3, ctx.player);
                 } else {
-                    speed = ctx.getArgFloatLocale(1, "SPEED_NUMBER_USAGE");
+                    if (!type.equalsIgnoreCase("reset")) {
+                        speed = ctx.getArgFloatLocale(1, "SPEED_NUMBER_USAGE");
+                    } else {
+                        reset = true;
+                    }
+
                     targetPlayer = ctx.getArgAsPlayer(2, ctx.player);
                 }
 
@@ -46,31 +53,41 @@ public class SMSpeed extends SMFeature {
                     ctx.returnErrorLocale("CMD_PLAYER_REQ_FROM_CONSOLE");
                 }
 
-                if (speed < 0.1f) {
-                    speed = 0.1f;
-                } else if (speed > 10f) {
-                    speed = 10f;
-                }
-
-                if (!SMCommon.isInArrayIgnoreCase(movementTypes, type)) {
-                    type = targetPlayer.isFlying() ? "fly" : "walk";
-                }
-
-                if (type.equalsIgnoreCase("fly")) {
-                    targetPlayer.setFlySpeed(getRealSpeed(speed, true));
+                if (reset) {
+                    targetPlayer.setFlySpeed(getDefaultSpeed(true));
+                    targetPlayer.setWalkSpeed(getDefaultSpeed(false));
+                    ctx.returnInfoLocale("SPEED_RESET");
                 } else {
-                    targetPlayer.setWalkSpeed(getRealSpeed(speed, false));
-                }
+                    if (speed < 0.1f) {
+                        speed = 0.1f;
+                    } else if (speed > 10f) {
+                        speed = 10f;
+                    }
 
-                ctx.returnInfoLocale("SPEED_CHANGED", "type", SMCommon.capitalize(type), "speed", speed.toString());
+                    if (!SMCommon.isInArrayIgnoreCase(movementTypes, type)) {
+                        type = targetPlayer.isFlying() ? "fly" : "walk";
+                    }
+
+                    if (type.equalsIgnoreCase("fly")) {
+                        targetPlayer.setFlySpeed(getRealSpeed(speed, true));
+                    } else {
+                        targetPlayer.setWalkSpeed(getRealSpeed(speed, false));
+                    }
+
+                    ctx.returnInfoLocale("SPEED_CHANGED", "type", SMCommon.capitalize(type), "speed", speed.toString());
+                }
             })
             .register();
 
         return true;
     }
 
+    private float getDefaultSpeed(final boolean isFly) {
+        return isFly ? 0.1f : 0.2f;
+    }
+
     private float getRealSpeed(final float speed, final boolean isFly) {
-        final float defaultSpeed = isFly ? 0.1f : 0.2f;
+        final float defaultSpeed = getDefaultSpeed(isFly);
         float maxSpeed = 1f;
 
         if (speed < 1f) {
