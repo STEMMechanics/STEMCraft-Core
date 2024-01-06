@@ -7,6 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.logging.Logger;
@@ -14,6 +15,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -28,6 +30,7 @@ import com.stemcraft.core.SMMessenger;
 import com.stemcraft.core.SMTask;
 import com.stemcraft.core.command.SMCommand;
 import com.stemcraft.core.config.SMConfig;
+import com.stemcraft.core.event.SMEvent;
 import com.stemcraft.core.interfaces.SMCallback;
 import com.stemcraft.core.tabcomplete.SMTabComplete;
 import lombok.NonNull;
@@ -56,6 +59,8 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     private static HashMap<String, Long> runOnceMap = new HashMap<>();
     private static HashMap<String, SMTask> runOnceMapDelay = new HashMap<>();
+
+    private static List<UUID> recentlyJoinedPlayers = new ArrayList<>();
 
     /**
      * The display version. Can be set in config. Defaults to plugin version.
@@ -166,6 +171,22 @@ public class STEMCraft extends JavaPlugin implements Listener {
         // Enable features
         features.forEach((name, instance) -> {
             enableFeature(name);
+        });
+
+        SMEvent.register(PlayerJoinEvent.class, (ctx) -> {
+            PlayerJoinEvent event = (PlayerJoinEvent) ctx.event;
+            Player player = event.getPlayer();
+            UUID uuid = player.getUniqueId();
+            String taskId = "recently_joined_" + uuid.toString();
+
+
+            if (!recentlyJoinedPlayers.contains(uuid)) {
+                recentlyJoinedPlayers.add(uuid);
+            }
+
+            STEMCraft.runOnceDelay(taskId, 100, () -> {
+                recentlyJoinedPlayers.remove(uuid);
+            });
         });
 
         new SMCommand("stemcraft")
@@ -634,7 +655,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
      * @param delayTime
      * @param callback
      */
-    public static SMTask runOnceDelay(final String id, final long delayTime, final SMCallback callback) {
+    public static SMTask runOnceDelay(final String id, final long delayTicks, final SMCallback callback) {
         if (runOnceMapDelay.containsKey(id)) {
             runOnceMapDelay.get(id).cancel();
         }
@@ -672,5 +693,15 @@ public class STEMCraft extends JavaPlugin implements Listener {
      */
     public static String getNamed() {
         return STEMCraft.getPlugin().getDescription().getName();
+    }
+
+    /**
+     * Has the player recently joined the server
+     * 
+     * @param player
+     * @return
+     */
+    public static Boolean hasPlayerRecentlyJoined(Player player) {
+        return recentlyJoinedPlayers.contains(player.getUniqueId());
     }
 }
