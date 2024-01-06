@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.server.PluginDisableEvent;
@@ -173,7 +174,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
             enableFeature(name);
         });
 
-        SMEvent.register(PlayerJoinEvent.class, (ctx) -> {
+        SMEvent.register(PlayerJoinEvent.class, EventPriority.HIGHEST, (ctx) -> {
             PlayerJoinEvent event = (PlayerJoinEvent) ctx.event;
             Player player = event.getPlayer();
             UUID uuid = player.getUniqueId();
