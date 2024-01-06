@@ -668,7 +668,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
             }
         };
 
-        SMTask task = SMTask.fromBukkit(runnable.runTaskLater(STEMCraft.getPlugin(), delayTime));
+        SMTask task = SMTask.fromBukkit(runnable.runTaskLater(STEMCraft.getPlugin(), delayTicks));
         runOnceMapDelay.put(id, task);
 
         return task;
