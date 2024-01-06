@@ -256,7 +256,7 @@ public class SMChat extends SMFeature {
         /** Event Player Edit Book - Filter */
         SMEvent.register(PlayerEditBookEvent.class, ctx -> {
             BookMeta meta = ctx.event.getNewBookMeta();
-            List<String> pages = meta.getPages();
+            List<String> pages = new ArrayList<>(meta.getPages());
 
             for (int i = 0; i < pages.size(); i++) {
                 String page = pages.get(i);
