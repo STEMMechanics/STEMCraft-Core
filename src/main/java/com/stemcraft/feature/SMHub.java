@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 import com.stemcraft.core.config.SMConfig;
 import com.stemcraft.core.event.SMEvent;
+import com.stemcraft.STEMCraft;
 import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.SMLocale;
 import com.stemcraft.core.SMMessenger;
@@ -24,26 +25,27 @@ public class SMHub extends SMFeature {
             .permission("stemcraft.command.hub")
             .action(ctx -> {
                 ctx.checkNotConsole();
-                if(ctx.player != null) {
+                if (ctx.player != null) {
                     teleportToHub(ctx.player);
                 }
             })
             .register();
 
         SMEvent.register(PlayerJoinEvent.class, (ctx) -> {
-            PlayerJoinEvent event = (PlayerJoinEvent)ctx.event;
+            PlayerJoinEvent event = (PlayerJoinEvent) ctx.event;
             Player player = event.getPlayer();
 
-            if(!player.hasPermission("stemcraft.hub.override")) {
+            if (!player.hasPermission("stemcraft.hub.override")) {
                 teleportToHub(player);
             }
         });
-        
+
         return true;
     }
 
     /**
      * Teleport player to hub world.
+     * 
      * @param player
      */
     private final static void teleportToHub(Player player) {
@@ -51,12 +53,12 @@ public class SMHub extends SMFeature {
         final String key = "hub.tp-commands." + player.getWorld().getName().toLowerCase();
 
         World hubWorld = Bukkit.getWorld(hubWorldName);
-        if(hubWorld == null) {
+        if (hubWorld == null) {
             SMMessenger.error(player, SMLocale.get("HUB_NOT_DEFINED"));
-            throw new SMException("Hub world " + hubWorldName + " not found"); 
+            throw new SMException("Hub world " + hubWorldName + " not found");
         }
 
-        if(SMConfig.main().contains(key)) {
+        if (SMConfig.main().contains(key)) {
             SMConfig.main().getStringList(key).forEach(command -> {
                 SMReplacer.replaceVariables(command, "player", player.getName(), "hub-world", hubWorldName);
                 Bukkit.getServer().dispatchCommand(player, command);
@@ -65,6 +67,8 @@ public class SMHub extends SMFeature {
             player.teleport(hubWorld.getSpawnLocation());
         }
 
-        SMMessenger.info(player, SMLocale.get("HUB_TELEPORTED"));
+        if (!STEMCraft.hasPlayerRecentlyJoined(player)) {
+            SMMessenger.info(player, SMLocale.get("HUB_TELEPORTED"));
+        }
     }
 }

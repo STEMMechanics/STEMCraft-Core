@@ -213,7 +213,10 @@ public class SMWorkshop extends SMFeature {
         if (regionId.startsWith("workshop_")) {
             String workshopName = regionId.substring(9);
 
-            SMMessenger.infoLocale(player, "WORKSHOP_EXIT", "workshop", SMCommon.beautifyCapitalize(workshopName));
+            if (!STEMCraft.hasPlayerRecentlyJoined(player)) {
+                SMMessenger.infoLocale(player, "WORKSHOP_EXIT", "workshop", SMCommon.beautifyCapitalize(workshopName));
+            }
+
             SMLuckPerms.removeGroup(player, regionId + "_active");
 
             UUID uuid = player.getUniqueId();
