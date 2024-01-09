@@ -25,75 +25,75 @@ public class SMGameModeInventories extends SMFeature {
     protected Boolean onEnable() {
         SMDatabase.runMigration("230805142700_CreateGameModeInventoriesTable", () -> {
             SMDatabase.prepareStatement(
-            "CREATE TABLE IF NOT EXISTS gamemode_inventories (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "uuid TEXT NOT NULL," +
-                "death INTEGER DEFAULT 0," +
-                "location TEXT NOT NULL," +
-                "gamemode TEXT NOT NULL," +
-                "xp INTEGER NOT NULL," +
-                "inventory TEXT NOT NULL," +
-                "armour TEXT NOT NULL," +
-                "enderchest TEXT NOT NULL," +
-                "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP)").executeUpdate();
+                "CREATE TABLE IF NOT EXISTS gamemode_inventories (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "uuid TEXT NOT NULL," +
+                    "death INTEGER DEFAULT 0," +
+                    "location TEXT NOT NULL," +
+                    "gamemode TEXT NOT NULL," +
+                    "xp INTEGER NOT NULL," +
+                    "inventory TEXT NOT NULL," +
+                    "armour TEXT NOT NULL," +
+                    "enderchest TEXT NOT NULL," +
+                    "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
+                .executeUpdate();
         });
 
         SMDatabase.runMigration("230805160400_AddReasonToGameModeInventoriesTable", () -> {
             SMDatabase.prepareStatement(
                 "ALTER TABLE gamemode_inventories " +
-                "ADD COLUMN reason TEXT DEFAULT ''").executeUpdate();
+                    "ADD COLUMN reason TEXT DEFAULT ''")
+                .executeUpdate();
         });
 
         SMDatabase.runMigration("230817181600_AddWorldToGameModeInventoriesTable", () -> {
             SMDatabase.prepareStatement(
                 "ALTER TABLE gamemode_inventories " +
-                "ADD COLUMN world TEXT DEFAULT 'world'").executeUpdate();
-            
+                    "ADD COLUMN world TEXT DEFAULT 'world'")
+                .executeUpdate();
+
             SMDatabase.prepareStatement(
-                    "UPDATE gamemode_inventories SET world = 'world' WHERE world = ''").executeUpdate();
+                "UPDATE gamemode_inventories SET world = 'world' WHERE world = ''").executeUpdate();
         });
 
         SMDatabase.runMigration("231022154400_ConvertInventoryFormat", () -> {
             PreparedStatement statement = SMDatabase.prepareStatement(
-                "SELECT id,inventory,armour,enderchest FROM gamemode_inventories WHERE 1"
-            );
-            
+                "SELECT id,inventory,armour,enderchest FROM gamemode_inventories WHERE 1");
+
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 Integer id = resultSet.getInt("id");
                 String oldInventory = resultSet.getString("inventory");
                 String oldArmour = resultSet.getString("armour");
                 String oldEnderchest = resultSet.getString("enderchest");
-                
+
                 try {
                     ReadWriteNBT nbtInventory = NBT.parseNBT(oldInventory);
                     ReadWriteNBT nbtArmour = NBT.parseNBT(oldArmour);
                     ReadWriteNBT nbtEnderchest = NBT.parseNBT(oldEnderchest);
-                    
+
                     ItemStack[] itemStackInventory = NBT.itemStackArrayFromNBT(nbtInventory);
                     ItemStack[] itemStackArmour = NBT.itemStackArrayFromNBT(nbtArmour);
                     ItemStack[] itemStackEnderchest = NBT.itemStackArrayFromNBT(nbtEnderchest);
-                    
+
                     String jsonInventory = SMJson.toJson(itemStackInventory, ItemStack[].class);
                     String jsonArmour = SMJson.toJson(itemStackArmour, ItemStack[].class);
                     String jsonEnderchest = SMJson.toJson(itemStackEnderchest, ItemStack[].class);
 
                     PreparedStatement updateStatement = SMDatabase.prepareStatement(
-                        "UPDATE gamemode_inventories SET inventory = ?, armour = ?, enderchest = ? WHERE id = ?"
-                    );
-                
+                        "UPDATE gamemode_inventories SET inventory = ?, armour = ?, enderchest = ? WHERE id = ?");
+
                     updateStatement.setString(1, jsonInventory);
                     updateStatement.setString(2, jsonArmour);
                     updateStatement.setString(3, jsonEnderchest);
                     updateStatement.setInt(4, id);
                     updateStatement.executeUpdate();
                     updateStatement.close();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
 
                     PreparedStatement updateStatement = SMDatabase.prepareStatement(
-                        "DELETE FROM gamemode_inventories WHERE id = ?"
-                    );
+                        "DELETE FROM gamemode_inventories WHERE id = ?");
 
                     updateStatement.setInt(1, id);
                     updateStatement.executeUpdate();
@@ -102,23 +102,34 @@ public class SMGameModeInventories extends SMFeature {
             }
         });
 
+        SMDatabase.runMigration("240109203000_AddHungerGameModeInventoriesTable", () -> {
+            SMDatabase.prepareStatement(
+                "ALTER TABLE gamemode_inventories " +
+                    "ADD COLUMN food INTEGER DEFAULT 20")
+                .executeUpdate();
+
+            SMDatabase.prepareStatement(
+                "UPDATE gamemode_inventories SET food = 20 WHERE 1").executeUpdate();
+        });
+
+
         SMEvent.register(PlayerGameModeChangeEvent.class, ctx -> {
             Player player = ctx.event.getPlayer();
             String newGameMode = ctx.event.getNewGameMode().toString();
-            
-            if(!this.SaveInventory(player, false, "Gamemode changed to " + newGameMode)) {
+
+            if (!this.SaveInventory(player, false, "Gamemode changed to " + newGameMode)) {
                 SMMessenger.errorLocale(player, "GMI_FAILED");
                 return;
             }
-            
-            if(!this.LoadLastInventory(player, newGameMode, player.getLocation().getWorld().getName())) {
+
+            if (!this.LoadLastInventory(player, newGameMode, player.getLocation().getWorld().getName())) {
                 SMMessenger.errorLocale(player, "GMI_FAILED");
                 return;
             }
         });
 
         SMEvent.register(PlayerDeathEvent.class, ctx -> {
-            if(ctx.event.getEventName().equalsIgnoreCase("playerdeathevent")) {
+            if (ctx.event.getEventName().equalsIgnoreCase("playerdeathevent")) {
                 Player player = ctx.event.getEntity();
                 this.SaveInventory(player, true, "Player death");
             }
@@ -154,19 +165,19 @@ public class SMGameModeInventories extends SMFeature {
         String inventoryContents = "";
         String armourContents = "";
         String enderChestContents = "";
+        int food = 20;
 
         world = getInventoryWorld(world);
 
         // Load player state
         try {
             PreparedStatement statement = SMDatabase.prepareStatement(
-                    "SELECT * FROM gamemode_inventories WHERE uuid = ? AND death = ? AND gamemode = ? AND world = ? ORDER BY created DESC"
-            );
+                "SELECT * FROM gamemode_inventories WHERE uuid = ? AND death = ? AND gamemode = ? AND world = ? ORDER BY created DESC");
             statement.setString(1, uuid);
             statement.setInt(2, 0);
             statement.setString(3, gameMode);
             statement.setString(4, world);
-            
+
             ResultSet resultSet = statement.executeQuery();
 
             if (resultSet.next()) {
@@ -174,10 +185,11 @@ public class SMGameModeInventories extends SMFeature {
                 inventoryContents = resultSet.getString("inventory");
                 armourContents = resultSet.getString("armour");
                 enderChestContents = resultSet.getString("enderchest");
+                food = resultSet.getInt("food");
 
                 foundInventory = true;
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             SMMessenger.errorLocale(player, "GMI_FAILED");
             success = false;
@@ -189,11 +201,12 @@ public class SMGameModeInventories extends SMFeature {
         });
 
         PlayerInventory playerInventory = player.getInventory();
-        if(foundInventory) {
+        if (foundInventory) {
             playerInventory.setContents(SMJson.fromJson(ItemStack[].class, inventoryContents));
             playerInventory.setArmorContents(SMJson.fromJson(ItemStack[].class, armourContents));
             player.getEnderChest().setContents(SMJson.fromJson(ItemStack[].class, enderChestContents));
             xpc.setExp(xp);
+            player.setFoodLevel(food);
         } else {
             playerInventory.clear();
             playerInventory.setBoots(null);
@@ -202,6 +215,7 @@ public class SMGameModeInventories extends SMFeature {
             playerInventory.setHelmet(null);
             player.getEnderChest().clear();
             xpc.setExp(0);
+            player.setFoodLevel(20);
         }
 
         return success;
@@ -229,14 +243,14 @@ public class SMGameModeInventories extends SMFeature {
         String armourContents = SMJson.toJson(player.getInventory().getArmorContents(), ItemStack[].class);
         String enderChestContents = SMJson.toJson(player.getEnderChest().getContents(), ItemStack[].class);
         String location = SMJson.toJson(player.getLocation(), Location.class);
+        int food = player.getFoodLevel();
 
         world = getInventoryWorld(world);
 
         // Save player state
         try {
             PreparedStatement statement = SMDatabase.prepareStatement(
-                    "INSERT INTO gamemode_inventories (uuid, death, location, gamemode, xp, inventory, armour, enderchest, reason, world) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-            );
+                "INSERT INTO gamemode_inventories (uuid, death, location, gamemode, xp, inventory, armour, enderchest, reason, world, food) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             statement.setString(1, uuid);
             statement.setInt(2, death == true ? 1 : 0);
             statement.setString(3, location);
@@ -247,11 +261,12 @@ public class SMGameModeInventories extends SMFeature {
             statement.setString(8, enderChestContents);
             statement.setString(9, reason);
             statement.setString(10, world);
+            statement.setInt(11, food);
             statement.executeUpdate();
             statement.close();
 
             RemoveOldInventories(player, player.getGameMode(), world);
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             SMMessenger.errorLocale(player, "GMI_FAILED");
             success = false;
@@ -265,7 +280,7 @@ public class SMGameModeInventories extends SMFeature {
         String gameModeString = gameMode.toString();
         Integer maxRows = SMConfig.main().getInt("gamemode-inventories.max-count", 50);
 
-        String sql = 
+        String sql =
             "WITH RankedRows AS ( " +
                 "SELECT *, " +
                 "ROW_NUMBER() OVER (ORDER BY created DESC) as rn " +
@@ -273,14 +288,14 @@ public class SMGameModeInventories extends SMFeature {
                 "WHERE uuid = ? " +
                 "AND gamemode = ? " +
                 "AND world = ? " +
-            ") " +
-            "DELETE FROM gamemode_inventories " +
-            "WHERE id IN ( " +
+                ") " +
+                "DELETE FROM gamemode_inventories " +
+                "WHERE id IN ( " +
                 "SELECT id " +
                 "FROM RankedRows " +
                 "WHERE rn > ? " +
-            ");";
-        
+                ");";
+
         try {
             PreparedStatement statement = SMDatabase.prepareStatement(sql);
             statement.setString(1, uuidString);
@@ -289,7 +304,7 @@ public class SMGameModeInventories extends SMFeature {
             statement.setInt(4, maxRows);
             statement.executeUpdate();
             statement.close();
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             SMMessenger.errorLocale(player, "GMI_FAILED");
         }

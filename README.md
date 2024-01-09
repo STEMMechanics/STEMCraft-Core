@@ -23,6 +23,10 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 
 ## Changes
 
+### 1.3.1
+
+-   Food level is now saved/restored when changing inventories
+
 ### 1.3.0
 
 -   Added character bindings due to ItemsAdder removal.
