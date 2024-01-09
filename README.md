@@ -23,6 +23,10 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 
 ## Changes
 
+### 1.3.2
+
+-   NPCs are ignored with announcing player deaths in console
+
 ### 1.3.1
 
 -   Food level is now saved/restored when changing inventories
