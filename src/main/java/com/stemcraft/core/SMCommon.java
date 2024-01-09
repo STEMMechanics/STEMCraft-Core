@@ -786,9 +786,11 @@ public class SMCommon {
     public static List<Player> getPlayersNearLocation(Location location, int distance) {
         List<Player> nearbyPlayers = new ArrayList<>();
         for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-            // Using distanceSquared for performance, as it avoids the sqrt operation
-            if (location.distanceSquared(player.getLocation()) <= distance * distance) {
-                nearbyPlayers.add(player);
+            if (location.getWorld().getName().equals(player.getLocation().getWorld().getName())) {
+                // Using distanceSquared for performance, as it avoids the sqrt operation
+                if (location.distanceSquared(player.getLocation()) <= distance * distance) {
+                    nearbyPlayers.add(player);
+                }
             }
         }
         return nearbyPlayers;
