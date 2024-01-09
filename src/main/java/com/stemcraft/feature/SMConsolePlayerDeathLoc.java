@@ -20,6 +20,11 @@ public class SMConsolePlayerDeathLoc extends SMFeature {
         SMEvent.register(PlayerDeathEvent.class, ctx -> {
             if(ctx.event.getEventName().equalsIgnoreCase("playerdeathevent")) {
                 Player player = ctx.event.getEntity();
+
+                if(player.hasMetaData("NPC")) {
+                    return;
+                }
+
                 Location deathLocation = player.getLocation();
         
                 String worldName = deathLocation.getWorld().getName();
