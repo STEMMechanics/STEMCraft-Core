@@ -26,6 +26,7 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 ### 1.3.2
 
 -   NPCs are ignored with announcing player deaths in console
+-   Player health is now saved/restored when teleporting or changing gamemodes
 
 ### 1.3.1
 
