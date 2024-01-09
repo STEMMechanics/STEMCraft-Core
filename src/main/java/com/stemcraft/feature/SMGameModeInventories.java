@@ -115,7 +115,7 @@ public class SMGameModeInventories extends SMFeature {
         SMDatabase.runMigration("240110075800_AddHealthGameModeInventoriesTable", () -> {
             SMDatabase.prepareStatement(
                 "ALTER TABLE gamemode_inventories " +
-                    "ADD COLUMN health INTEGER DEFAULT 20")
+                    "ADD COLUMN health DOUBLE DEFAULT 20.0")
                 .executeUpdate();
 
             SMDatabase.prepareStatement(
@@ -175,7 +175,7 @@ public class SMGameModeInventories extends SMFeature {
         String armourContents = "";
         String enderChestContents = "";
         int food = 20;
-        int health = 20;
+        double health = 20.0d;
 
         world = getInventoryWorld(world);
 
@@ -196,7 +196,7 @@ public class SMGameModeInventories extends SMFeature {
                 armourContents = resultSet.getString("armour");
                 enderChestContents = resultSet.getString("enderchest");
                 food = resultSet.getInt("food");
-                health = resultSet.getInt("health");
+                health = resultSet.getDouble("health");
 
                 foundInventory = true;
             }
@@ -228,7 +228,7 @@ public class SMGameModeInventories extends SMFeature {
             player.getEnderChest().clear();
             xpc.setExp(0);
             player.setFoodLevel(20);
-            player.setHealth(20);
+            player.setHealth(20.0d);
         }
 
         return success;
@@ -257,7 +257,7 @@ public class SMGameModeInventories extends SMFeature {
         String enderChestContents = SMJson.toJson(player.getEnderChest().getContents(), ItemStack[].class);
         String location = SMJson.toJson(player.getLocation(), Location.class);
         int food = player.getFoodLevel();
-        int health = player.getHealth();
+        double health = player.getHealth();
 
         world = getInventoryWorld(world);
 
@@ -276,7 +276,7 @@ public class SMGameModeInventories extends SMFeature {
             statement.setString(9, reason);
             statement.setString(10, world);
             statement.setInt(11, food);
-            statement.setInt(12, health);
+            statement.setDouble(12, health);
             statement.executeUpdate();
             statement.close();
 
