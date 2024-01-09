@@ -174,7 +174,7 @@ public class SMCommandContext {
         boolean valueFound = false;
 
         for (String element : array) {
-            if (element.equals(value)) {
+            if (element.equalsIgnoreCase(value)) {
                 valueFound = true;
                 break;
             }
@@ -213,18 +213,76 @@ public class SMCommandContext {
         return idx > 0 && this.args.size() >= idx ? this.args.get(idx - 1) : defValue;
     }
 
+    public String getArg(int idx) {
+        return getArg(idx, "");
+    }
+
     /**
      * Get Command argument from index.
      * 
      * @param idx
      * @return
      */
-    public int getArgInt(int idx, int defValue) {
+    private int getArgInt(int idx, int defValue, String onFail, Boolean isLocale) {
         try {
             return idx > 0 && this.args.size() >= idx ? Integer.parseInt(this.args.get(idx - 1)) : defValue;
         } catch (Exception e) {
+            if (onFail != null) {
+                if (isLocale) {
+                    throwCommandException(SMLocale.get(sender, onFail));
+                } else {
+                    throwCommandException(onFail);
+                }
+            }
+
             return defValue;
         }
+    }
+
+    public int getArgInt(int idx, int defValue) {
+        return getArgInt(idx, defValue, null, false);
+    }
+
+    public int getArgInt(int idx, String onFail) {
+        return getArgInt(idx, 0, onFail, false);
+    }
+
+    public int getArgIntLocale(int idx, String onFail) {
+        return getArgInt(idx, 0, onFail, true);
+    }
+
+    /**
+     * Get Command argument from index.
+     * 
+     * @param idx
+     * @return
+     */
+    private float getArgFloat(int idx, float defValue, String onFail, Boolean isLocale) {
+        try {
+            return idx > 0 && this.args.size() >= idx ? Float.parseFloat(this.args.get(idx - 1)) : defValue;
+        } catch (Exception e) {
+            if (onFail != null) {
+                if (isLocale) {
+                    throwCommandException(SMLocale.get(sender, onFail));
+                } else {
+                    throwCommandException(onFail);
+                }
+            }
+
+            return defValue;
+        }
+    }
+
+    public float getArgFloat(int idx, float defValue) {
+        return getArgFloat(idx, defValue, null, false);
+    }
+
+    public float getArgFloat(int idx, String onFail) {
+        return getArgFloat(idx, 0f, onFail, false);
+    }
+
+    public float getArgFloatLocale(int idx, String onFail) {
+        return getArgFloat(idx, 0f, onFail, true);
     }
 
     /**

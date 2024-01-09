@@ -21,6 +21,8 @@ import static org.bukkit.ChatColor.COLOR_CHAR;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -380,10 +382,17 @@ public class SMCommon {
      * @param player
      * @param location
      */
-    public static void safePlayerTeleport(Player player, Location location) {
-        STEMCraft.runLater(1, () -> {
-            player.teleport(findSafeLocation(location, 30));
-        });
+    public static Boolean safePlayerTeleport(Player player, Location location) {
+        Location safeLocation = findSafeLocation(location, 30);
+        if (safeLocation != null) {
+            STEMCraft.runLater(1, () -> {
+                player.teleport(safeLocation);
+            });
+
+            return true;
+        }
+
+        return false;
     }
 
     public static String getKeyByValue(Map<String, String> map, String value) {
@@ -777,9 +786,11 @@ public class SMCommon {
     public static List<Player> getPlayersNearLocation(Location location, int distance) {
         List<Player> nearbyPlayers = new ArrayList<>();
         for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-            // Using distanceSquared for performance, as it avoids the sqrt operation
-            if (location.distanceSquared(player.getLocation()) <= distance * distance) {
-                nearbyPlayers.add(player);
+            if (location.getWorld().getName().equals(player.getLocation().getWorld().getName())) {
+                // Using distanceSquared for performance, as it avoids the sqrt operation
+                if (location.distanceSquared(player.getLocation()) <= distance * distance) {
+                    nearbyPlayers.add(player);
+                }
             }
         }
         return nearbyPlayers;
@@ -882,4 +893,102 @@ public class SMCommon {
         return relativeTime.toString();
     }
 
+    /**
+     * Convert a duration string (1d) to seconds or epoch expiry time.
+     * 
+     * @param duration The duration string.
+     * @param toEpochTime Return a epoch time instead of seconds.
+     * @return The result or null if error.
+     */
+    public static Long durationToSeconds(String duration, boolean toEpochTime) {
+        if (duration == null || duration.isEmpty()) {
+            return null;
+        }
+
+        long multiplier;
+        long seconds;
+        char timeUnit = duration.charAt(duration.length() - 1);
+
+        try {
+            switch (timeUnit) {
+                case 's': // Seconds
+                    multiplier = 1;
+                    seconds = Long.parseLong(duration.substring(0, duration.length() - 1));
+                    break;
+                case 'm': // Minutes
+                    multiplier = 60;
+                    seconds = Long.parseLong(duration.substring(0, duration.length() - 1));
+                    break;
+                case 'h': // Hours
+                    multiplier = 3600;
+                    seconds = Long.parseLong(duration.substring(0, duration.length() - 1));
+                    break;
+                case 'd': // Days
+                    multiplier = 86400;
+                    seconds = Long.parseLong(duration.substring(0, duration.length() - 1));
+                    break;
+                case 'w': // Weeks
+                    multiplier = 604800;
+                    seconds = Long.parseLong(duration.substring(0, duration.length() - 1));
+                    break;
+                default:
+                    return null;
+            }
+        } catch (NumberFormatException e) {
+            return null; // Input is not a valid number
+        }
+
+        long totalSeconds = seconds * multiplier;
+
+        return toEpochTime ? Instant.now().plus(totalSeconds, ChronoUnit.SECONDS).getEpochSecond() : totalSeconds;
+    }
+
+    /**
+     * Convert a duration string (1d) to seconds or epoch expiry time.
+     * 
+     * @param player The player to give the item.
+     * @param item The item to give.
+     * @param dropOnFail Drop the item if the player inventory is full.
+     * @param showMessage Show a message if giving the item failed and item was not dropped.
+     * @return The result or null if error.
+     */
+    public static Boolean givePlayerItem(Player player, ItemStack item, Boolean dropOnFail, Boolean showMessage) {
+        Map<Integer, ItemStack> leftover = player.getInventory().addItem(item);
+        if (!leftover.isEmpty()) {
+            // Handle the full inventory case here
+            player.sendMessage("You don't have enough room in your inventory!");
+
+            if (dropOnFail) {
+                player.getWorld().dropItemNaturally(player.getLocation(), item);
+                return true;
+            } else if (showMessage) {
+                SMMessenger.error(player, SMLocale.get("INV_NO_ROOM"));
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public static Boolean givePlayerItem(Player player, ItemStack item) {
+        return givePlayerItem(player, item, false, true);
+    }
+
+    /**
+     * Is string in array, ignoring case.
+     * 
+     * @param array The array to check.
+     * @param value The string to check.
+     * @return
+     */
+    public static Boolean isInArrayIgnoreCase(String[] array, String value) {
+        for (String element : array) {
+            if (element.equalsIgnoreCase(value)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

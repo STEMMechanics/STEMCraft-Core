@@ -6,12 +6,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.stemcraft.STEMCraft;
 import com.stemcraft.core.SMCommon;
 import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings.KeyFormat;
@@ -521,6 +523,26 @@ public class SMConfigFile {
     }
 
     /**
+     * Fetches a map from the file based on the given key and filters it to contain only Char values.
+     *
+     * @param key The key to fetch the map from the file.
+     * @return A map with string keys and Integer values.
+     */
+    public Map<String, Character> getCharMap(String key) {
+        Map<String, Object> valueMap =
+            file != null ? file.getSection(key).getStringRouteMappedValues(false) : new HashMap<>();
+        Map<String, Character> resultMap = new HashMap<>();
+
+        for (Map.Entry<?, ?> entry : valueMap.entrySet()) {
+            String valueAsString = entry.getValue().toString();
+            char value = valueAsString.length() > 0 ? valueAsString.charAt(0) : '\u0000';
+            resultMap.put(entry.getKey().toString(), value);
+        }
+
+        return resultMap;
+    }
+
+    /**
      * Fetches a map from the file based on the given key and filters it to contain only Integer values.
      *
      * @param key The key to fetch the map from the file.
@@ -590,12 +612,84 @@ public class SMConfigFile {
     }
 
     /**
+     * Fetches a list of keys from the root.
+     *
+     * @return A list of string keys.
+     */
+    public List<String> getKeys() {
+        return getKeys(null);
+    }
+
+    /**
      * Fetches a list of keys from a path.
      *
-     * @param key The path to fetch keys.
+     * @param key The path to fetch keys, null for root.
      * @return A list of string keys.
      */
     public List<String> getKeys(String key) {
-        return SMCommon.setToList(file.getSection(key).getKeys());
+        if (key == null) {
+            return SMCommon.setToList(file.getKeys());
+        }
+
+        Section section = file.getSection(key);
+        if (section != null) {
+            return SMCommon.setToList(section.getKeys());
+        }
+
+        return new ArrayList<>();
+    }
+
+    /**
+     * Fetches a list of default keys from the root.
+     *
+     * @return A list of string keys.
+     */
+    public List<String> getDefaultKeys() {
+        return getDefaultKeys(null);
+    }
+
+    /**
+     * Fetches a list of default keys from a path.
+     *
+     * @param key The path to fetch default keys, null for root.
+     * @return A list of string keys.
+     */
+    public List<String> getDefaultKeys(String key) {
+        if (key == null) {
+            return SMCommon.setToList(defaults.getKeys());
+        }
+
+        return SMCommon.setToList(defaults.getSection(key).getKeys());
+    }
+
+    /**
+     * Will add any missing default root values to a user configuration file.
+     */
+    public void addMissingDefaultValues() {
+        addMissingDefaultValues(null);
+    }
+
+    /**
+     * Will add any missing default values to a user configuration file.
+     * 
+     * @param key The key to add from, null for root
+     */
+    public void addMissingDefaultValues(String key) {
+        List<String> defaultKeys = getDefaultKeys(key);
+        if (defaultKeys == null) {
+            return;
+        }
+
+        defaultKeys.removeAll(getKeys(key));
+
+        for (String defaultKey : defaultKeys) {
+            file.set(defaultKey, defaults.get(defaultKey));
+        }
+
+        try {
+            file.save();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

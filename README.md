@@ -23,6 +23,28 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 
 ## Changes
 
+### 1.3.1
+
+-   Food level is now saved/restored when changing inventories
+
+### 1.3.0
+
+-   Added character bindings due to ItemsAdder removal.
+-   Added `givePlayerItem` helper in `SMCommon`.
+-   Show book will instead give the book to bedrock players (`openBook` is not compadible).
+-   Added SMItemAttribs for special attributes for items such as `destroy-on-drop`.
+-   Added `/stemcraft give <item> (quantity) (player)`
+-   Added players are invincilble if teleporting between worlds (except through portals), changing gamemodes or when joining the server.
+
+### 1.2.0
+
+-   Added `/t` to direct message a player
+-   Added chat/sign/book filtering
+-   Added support for retrieving a list of root keys in config files
+-   Added `addMissingDefaultValues` to allow syncing default/user config files
+-   Server locale files will now append missing strings when added in future versions
+-   Added moderation tools that override `/ban` and `/kick`
+
 ### 1.1.0
 
 -   Added ability to customize stonecutter recipes in the configuration

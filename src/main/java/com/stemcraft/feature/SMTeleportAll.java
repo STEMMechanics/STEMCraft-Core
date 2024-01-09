@@ -27,7 +27,6 @@ public class SMTeleportAll extends SMFeature {
                 if (ctx.optionArgs.containsKey("w")) {
                     World world = Bukkit.getServer().getWorld(ctx.optionArgs.get("w"));
                     if (world != null) {
-                        System.out.println("WORLD: " + world.getName());
                         teleportPlayers = teleportPlayers.stream()
                             .filter(player -> player.getWorld().equals(world))
                             .collect(Collectors.toList());
@@ -38,7 +37,6 @@ public class SMTeleportAll extends SMFeature {
                 if (ctx.optionArgs.containsKey("g")) {
                     if (STEMCraft.featureEnabled("SMLuckPerms")) {
                         if (SMLuckPerms.groupExists(ctx.optionArgs.get("g"))) {
-                            System.out.println("GROUP: " + ctx.optionArgs.get("g"));
                             teleportPlayers = teleportPlayers.stream()
                                 .filter(player -> SMLuckPerms.playerInGroup(player, ctx.optionArgs.get("g")))
                                 .collect(Collectors.toList());

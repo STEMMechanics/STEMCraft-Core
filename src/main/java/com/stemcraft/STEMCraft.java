@@ -7,13 +7,18 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.server.PluginDisableEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import com.stemcraft.core.SMBridge;
@@ -26,6 +31,7 @@ import com.stemcraft.core.SMMessenger;
 import com.stemcraft.core.SMTask;
 import com.stemcraft.core.command.SMCommand;
 import com.stemcraft.core.config.SMConfig;
+import com.stemcraft.core.event.SMEvent;
 import com.stemcraft.core.interfaces.SMCallback;
 import com.stemcraft.core.tabcomplete.SMTabComplete;
 import lombok.NonNull;
@@ -54,6 +60,8 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     private static HashMap<String, Long> runOnceMap = new HashMap<>();
     private static HashMap<String, SMTask> runOnceMapDelay = new HashMap<>();
+
+    private static List<UUID> recentlyJoinedPlayers = new ArrayList<>();
 
     /**
      * The display version. Can be set in config. Defaults to plugin version.
@@ -145,13 +153,46 @@ public class STEMCraft extends JavaPlugin implements Listener {
             return names;
         });
 
+        SMTabComplete.register("quantity", () -> {
+            List<String> quantity = new ArrayList<>();
+
+            quantity.add("1");
+            quantity.add("2");
+            quantity.add("3");
+            quantity.add("5");
+            quantity.add("10");
+            quantity.add("15");
+            quantity.add("20");
+            quantity.add("50");
+            quantity.add("64");
+
+            return quantity;
+        });
+
         // Enable features
         features.forEach((name, instance) -> {
             enableFeature(name);
         });
 
+        SMEvent.register(PlayerJoinEvent.class, EventPriority.HIGHEST, (ctx) -> {
+            PlayerJoinEvent event = (PlayerJoinEvent) ctx.event;
+            Player player = event.getPlayer();
+            UUID uuid = player.getUniqueId();
+            String taskId = "recently_joined_" + uuid.toString();
+
+
+            if (!recentlyJoinedPlayers.contains(uuid)) {
+                recentlyJoinedPlayers.add(uuid);
+            }
+
+            STEMCraft.runOnceDelay(taskId, 100, () -> {
+                recentlyJoinedPlayers.remove(uuid);
+            });
+        });
+
         new SMCommand("stemcraft")
             .tabComplete("info")
+            .tabComplete("give", "{material}", "{quantity}", "{player}")
             .tabComplete("reload")
             .action(ctx -> {
                 if (ctx.args.size() == 0) {
@@ -168,6 +209,38 @@ public class STEMCraft extends JavaPlugin implements Listener {
                         onEnable();
 
                         ctx.returnInfo("STEMCraft reloaded");
+                    } else if ("give".equalsIgnoreCase(ctx.args.get(0))) {
+                        ctx.checkArgsLocale(2, "STEMCRAFT_GIVE_USAGE_SHOW");
+                        ctx.checkBooleanLocale(!(ctx.fromConsole() && ctx.args.size() < 3),
+                            "CMD_PLAYER_REQ_FROM_CONSOLE");
+
+                        // STEMCRAFT_GIVE_USAGE_SHOW: "Usage: /stemcraft give <item> (amount) (player)"
+
+                        Player targetPlayer = ctx.getArgAsPlayer(4, ctx.player);
+                        ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
+                        ctx.checkPermission(
+                            ctx.fromConsole() || targetPlayer.getUniqueId().equals(ctx.player.getUniqueId()),
+                            "stemcraft.command.give");
+
+                        Integer amount = ctx.getArgInt(3, 1);
+                        if (amount < 1) {
+                            ctx.returnErrorLocale("STEMCRAFT_GIVE_ITEM_QTY_INVALID", "amount", ctx.args.get(2));
+                        }
+
+                        ItemStack itemStack = SMBridge.newItemStack(ctx.args.get(1), amount);
+                        if (itemStack == null) {
+                            ctx.returnErrorLocale("STEMCRAFT_GIVE_ITEM_NOT_FOUND", "name", ctx.args.get(1));
+                        }
+
+                        SMCommon.givePlayerItem(targetPlayer, itemStack, true, false);
+                        String displayName = SMBridge.getMaterialDisplayName(itemStack);
+                        if (displayName == null) {
+                            displayName = "Unknown";
+                        }
+
+                        ctx.returnInfoLocale("STEMCRAFT_GIVE_ITEM_RECEIVED", "amount", amount.toString(), "name",
+                            displayName,
+                            "player", targetPlayer.getName());
                     } else {
                         ctx.returnInvalidArgs();
                     }
@@ -583,7 +656,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
      * @param delayTime
      * @param callback
      */
-    public static void runOnceDelay(final String id, final long delayTime, final SMCallback callback) {
+    public static SMTask runOnceDelay(final String id, final long delayTicks, final SMCallback callback) {
         if (runOnceMapDelay.containsKey(id)) {
             runOnceMapDelay.get(id).cancel();
         }
@@ -596,8 +669,22 @@ public class STEMCraft extends JavaPlugin implements Listener {
             }
         };
 
-        SMTask task = SMTask.fromBukkit(runnable.runTaskLater(STEMCraft.getPlugin(), delayTime));
+        SMTask task = SMTask.fromBukkit(runnable.runTaskLater(STEMCraft.getPlugin(), delayTicks));
         runOnceMapDelay.put(id, task);
+
+        return task;
+    }
+
+    /**
+     * Run a callback once after a delay. Calls with the same id will cancel within the delay will cancel the original
+     * callback.
+     * 
+     * @param id
+     */
+    public static void cancelRunOnceDelay(final String id) {
+        if (runOnceMapDelay.containsKey(id)) {
+            runOnceMapDelay.get(id).cancel();
+        }
     }
 
     /**
@@ -607,5 +694,15 @@ public class STEMCraft extends JavaPlugin implements Listener {
      */
     public static String getNamed() {
         return STEMCraft.getPlugin().getDescription().getName();
+    }
+
+    /**
+     * Has the player recently joined the server
+     * 
+     * @param player
+     * @return
+     */
+    public static Boolean hasPlayerRecentlyJoined(Player player) {
+        return recentlyJoinedPlayers.contains(player.getUniqueId());
     }
 }

@@ -4,7 +4,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.bukkit.ChatColor;
@@ -13,9 +12,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.BookMeta;
+import com.stemcraft.STEMCraft;
 import com.stemcraft.core.SMCommon;
 import com.stemcraft.core.SMDatabase;
 import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.SMLocale;
 import com.stemcraft.core.SMMessenger;
 import com.stemcraft.core.command.SMCommand;
 import com.stemcraft.core.tabcomplete.SMTabComplete;
@@ -200,7 +201,18 @@ public class SMBooks extends SMFeature {
 
                     ItemStack book = this.getBook(ctx.args.get(1));
                     if (book != null) {
-                        targetPlayer.openBook(book);
+                        if (STEMCraft.featureEnabled("SMGeyser") && SMGeyser.isBedrockPlayer(targetPlayer)) {
+                            if (STEMCraft.featureEnabled("SMItemAttribs")) {
+                                SMItemAttribs.addAttrib(book, "destroy-on-drop", 1);
+                            }
+
+                            SMCommon.givePlayerItem(targetPlayer, book);
+
+                            String title = getBookTitle(book);
+                            SMMessenger.infoLocale(targetPlayer, "BOOK_GIVEN_WITH_TITLE", "title", title);
+                        } else {
+                            targetPlayer.openBook(book);
+                        }
                     } else {
                         ctx.returnErrorLocale("BOOK_NOT_FOUND");
                     }
@@ -364,7 +376,18 @@ public class SMBooks extends SMFeature {
     public void showBook(Player player, String name) {
         ItemStack book = this.getBook(name);
         if (book != null) {
-            player.openBook(book);
+            if (STEMCraft.featureEnabled("SMGeyser") && SMGeyser.isBedrockPlayer(player)) {
+                if (STEMCraft.featureEnabled("SMItemAttribs")) {
+                    SMItemAttribs.addAttrib(book, "destroy-on-drop", 1);
+                }
+
+                if (SMCommon.givePlayerItem(player, book)) {
+                    String title = getBookTitle(book);
+                    SMMessenger.infoLocale(player, "BOOK_GIVEN_WITH_TITLE", "title", title);
+                }
+            } else {
+                player.openBook(book);
+            }
         } else {
             SMMessenger.errorLocale(player, "BOOK_NOT_FOUND");
         }
@@ -392,5 +415,23 @@ public class SMBooks extends SMFeature {
         }
 
         return false;
+    }
+
+    /**
+     * Get a Books title or the no title locale.
+     * 
+     * @param item The book item.
+     * @return The book title.
+     */
+    public static String getBookTitle(ItemStack item) {
+        if (item.getType() == Material.WRITTEN_BOOK || item.getType() == Material.WRITABLE_BOOK) {
+            BookMeta bookMeta = (BookMeta) item.getItemMeta();
+
+            if (bookMeta != null && bookMeta.hasTitle()) {
+                return bookMeta.getTitle();
+            }
+        }
+
+        return SMLocale.get("BOOK_NO_TITLE");
     }
 }

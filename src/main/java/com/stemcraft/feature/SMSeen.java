@@ -8,7 +8,7 @@ import com.stemcraft.core.command.SMCommand;
 
 public class SMSeen extends SMFeature {
     private SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMMM yyyy HH:mm");
-    private String permission = "stemcraft.seen";
+    private String permission = "stemcraft.command.seen";
 
     @Override
     protected Boolean onEnable() {
@@ -18,14 +18,15 @@ public class SMSeen extends SMFeature {
             .action(ctx -> {
                 ctx.checkArgs(1, "SEEN_USAGE");
                 Player targetPlayer = ctx.getArgAsPlayer(1, null);
-                
-                if(targetPlayer == null) {
+
+                if (targetPlayer == null) {
                     ctx.returnErrorLocale("CMD_PLAYER_NOT_FOUND");
                     return;
                 }
-                
+
                 Date lastLogin = new Date(targetPlayer.getLastPlayed());
-                ctx.returnInfoLocale("SEEN_RESULT", "player", targetPlayer.getName(), "last-login", dateFormat.format(lastLogin));
+                ctx.returnInfoLocale("SEEN_RESULT", "player", targetPlayer.getName(), "last-login",
+                    dateFormat.format(lastLogin));
             })
             .register();
 

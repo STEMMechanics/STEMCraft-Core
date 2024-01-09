@@ -66,3 +66,32 @@ trader:
         - world
         - world_nether
         - world_the_end
+
+character-bindings:
+    crafting_table: "\uE120"
+    enchantment_table: "\uE121"
+    skeleton_head_front: "\uE122"
+    chat_bubble: "\uE123"
+    info_purple: "\uE124"
+    info_blue: "\uE125"
+    info_green: "\uE126"
+    question_yellow: "\uE127"
+    question_bluE: "\uE128"
+    question_green: "\uE129"
+    world: "\uE12a"
+    location: "\uE12b"
+    house: "\uE12c"
+    purple_bed: "\uE12d"
+    green_bed: "\uE12e"
+    discord: "\uE12f"
+    warning_yellow: "\uE131"
+    warning_red: "\uE132"
+    click_action_left: "\uE133"
+    click_action_right: "\uE134"
+    chest: "\uE135"
+
+custom_items:
+    "stemcraft:copper_coin":
+        item: "minecraft:stick"
+        display_name: "Copper Coin"
+        custom_model_data: 10000

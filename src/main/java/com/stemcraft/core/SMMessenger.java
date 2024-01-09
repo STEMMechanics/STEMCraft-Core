@@ -31,6 +31,7 @@ public class SMMessenger {
 
     /**
      * Send information message to sender.
+     * 
      * @param sender
      * @param message
      */
@@ -40,6 +41,7 @@ public class SMMessenger {
 
     /**
      * Send information message to sender.
+     * 
      * @param sender
      * @param messages
      */
@@ -49,6 +51,7 @@ public class SMMessenger {
 
     /**
      * Send information message to sender.
+     * 
      * @param sender
      * @param message
      */
@@ -58,15 +61,17 @@ public class SMMessenger {
 
     /**
      * Send information message to sender.
+     * 
      * @param sender
      * @param message
      */
     public static void infoLocale(final CommandSender sender, final String id, String... replacements) {
         tell(sender, infoPrefix, SMReplacer.replaceVariables(SMLocale.get(sender, id), replacements));
     }
-    
+
     /**
      * Send information message to sender.
+     * 
      * @param player
      * @param message
      */
@@ -76,6 +81,7 @@ public class SMMessenger {
 
     /**
      * Send information message to sender.
+     * 
      * @param player
      * @param messages
      */
@@ -85,6 +91,7 @@ public class SMMessenger {
 
     /**
      * Send information message to sender.
+     * 
      * @param player
      * @param message
      */
@@ -94,15 +101,17 @@ public class SMMessenger {
 
     /**
      * Send information message to sender.
+     * 
      * @param player
      * @param message
      */
     public static void infoLocale(final Player player, final String id, String... replacements) {
         tell(player, infoPrefix, SMReplacer.replaceVariables(SMLocale.get(player, id), replacements));
     }
-    
+
     /**
      * Send success message to sender with locale support.
+     * 
      * @param sender the command sender
      * @param id the message id
      */
@@ -112,6 +121,7 @@ public class SMMessenger {
 
     /**
      * Send success message to sender with locale and replacement support.
+     * 
      * @param sender the command sender
      * @param id the message id
      * @param replacements the replacements
@@ -122,6 +132,7 @@ public class SMMessenger {
 
     /**
      * Send success message to player.
+     * 
      * @param player the player
      * @param message the message
      */
@@ -131,6 +142,7 @@ public class SMMessenger {
 
     /**
      * Send success messages to player.
+     * 
      * @param player the player
      * @param messages the messages
      */
@@ -140,6 +152,7 @@ public class SMMessenger {
 
     /**
      * Send success message to sender.
+     * 
      * @param sender the sender
      * @param message the message
      */
@@ -149,6 +162,7 @@ public class SMMessenger {
 
     /**
      * Send success messages to sender.
+     * 
      * @param sender the sender
      * @param messages the messages
      */
@@ -158,6 +172,7 @@ public class SMMessenger {
 
     /**
      * Send success message to player with locale support.
+     * 
      * @param player the player
      * @param id the message id
      */
@@ -167,6 +182,7 @@ public class SMMessenger {
 
     /**
      * Send success message to player with locale and replacement support.
+     * 
      * @param player the player
      * @param id the message id
      * @param replacements the replacements
@@ -178,6 +194,7 @@ public class SMMessenger {
     // For warn
     /**
      * Send warning message to sender with locale support.
+     * 
      * @param sender the command sender
      * @param id the message id
      */
@@ -187,6 +204,7 @@ public class SMMessenger {
 
     /**
      * Send warning message to sender with locale and replacement support.
+     * 
      * @param sender the command sender
      * @param id the message id
      * @param replacements the replacements
@@ -197,6 +215,7 @@ public class SMMessenger {
 
     /**
      * Send warning message to player.
+     * 
      * @param sender the player
      * @param message the message
      */
@@ -206,6 +225,7 @@ public class SMMessenger {
 
     /**
      * Send warning messages to player.
+     * 
      * @param sender the player
      * @param messages the messages
      */
@@ -215,6 +235,7 @@ public class SMMessenger {
 
     /**
      * Send warning message to player.
+     * 
      * @param player the player
      * @param message the message
      */
@@ -224,6 +245,7 @@ public class SMMessenger {
 
     /**
      * Send warning messages to player.
+     * 
      * @param player the player
      * @param messages the messages
      */
@@ -233,6 +255,7 @@ public class SMMessenger {
 
     /**
      * Send warning message to player with locale support.
+     * 
      * @param player the player
      * @param id the message id
      */
@@ -242,6 +265,7 @@ public class SMMessenger {
 
     /**
      * Send warning message to player with locale and replacement support.
+     * 
      * @param player the player
      * @param id the message id
      * @param replacements the replacements
@@ -253,6 +277,7 @@ public class SMMessenger {
     // For error
     /**
      * Send error message to sender with locale support.
+     * 
      * @param sender the command sender
      * @param id the message id
      */
@@ -262,6 +287,7 @@ public class SMMessenger {
 
     /**
      * Send error message to sender with locale and replacement support.
+     * 
      * @param sender the command sender
      * @param id the message id
      * @param replacements the replacements
@@ -272,6 +298,7 @@ public class SMMessenger {
 
     /**
      * Send error message to sender.
+     * 
      * @param sender the sender
      * @param message the message
      */
@@ -281,6 +308,7 @@ public class SMMessenger {
 
     /**
      * Send error messages to sender.
+     * 
      * @param sender the sender
      * @param messages the messages
      */
@@ -290,6 +318,7 @@ public class SMMessenger {
 
     /**
      * Send error message to player.
+     * 
      * @param player the player
      * @param message the message
      */
@@ -299,6 +328,7 @@ public class SMMessenger {
 
     /**
      * Send error messages to player.
+     * 
      * @param player the player
      * @param messages the messages
      */
@@ -308,6 +338,7 @@ public class SMMessenger {
 
     /**
      * Send error message to player with locale support.
+     * 
      * @param player the player
      * @param id the message id
      */
@@ -317,6 +348,7 @@ public class SMMessenger {
 
     /**
      * Send error message to player with locale and replacement support.
+     * 
      * @param player the player
      * @param id the message id
      * @param replacements the replacements
@@ -328,6 +360,7 @@ public class SMMessenger {
 
     /**
      * Send announcement message to sender.
+     * 
      * @param player
      * @param message
      */
@@ -337,6 +370,7 @@ public class SMMessenger {
 
     /**
      * Send a blank line to the sender.
+     * 
      * @param player
      */
     public static void blankLine(final CommandSender player) {
@@ -351,11 +385,13 @@ public class SMMessenger {
         final String colorless = SMCommon.stripColors(message);
 
         // Remove prefix for console
-        if(!(player instanceof Player)) {
+        if (!(player instanceof Player)) {
             coloredPrefix = coloredPrefix.replaceAll(".*(?=(§[0-9a-fr])).*", "$1");
         }
 
-        player.sendMessage(coloredPrefix + colorless);
+        String parsedMessage =
+            SMBridge.parse(coloredPrefix + colorless, player instanceof Player ? (Player) player : null);
+        player.sendMessage(parsedMessage);
     }
 
     /*
@@ -363,20 +399,23 @@ public class SMMessenger {
      */
     private static void tell(final CommandSender player, final String prefix, List<String> messages) {
         String coloredPrefix = SMCommon.colorize(prefix);
-        final String transformedPrefix = player instanceof Player ? coloredPrefix : coloredPrefix.replaceAll(".*(?=(§[0-9a-fr])).*", "$1");
+        final String transformedPrefix =
+            player instanceof Player ? coloredPrefix : coloredPrefix.replaceAll(".*(?=(§[0-9a-fr])).*", "$1");
 
         messages.forEach(message -> {
             final String colorless = SMCommon.stripColors(message);
-        
-            
-            player.sendMessage(transformedPrefix + colorless);
+
+
+            String parsedMessage =
+                SMBridge.parse(transformedPrefix + colorless, player instanceof Player ? (Player) player : null);
+            player.sendMessage(parsedMessage);
         });
     }
 
     public static void seperatorLine(final CommandSender player) {
         seperatorLine(player, null);
     }
-    
+
     public static void seperatorLine(final CommandSender player, ChatColor color) {
         player.sendMessage(color == null ? "" : color + (ChatColor.STRIKETHROUGH + StringUtils.repeat(" ", 80)));
     }
