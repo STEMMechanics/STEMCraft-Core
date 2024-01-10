@@ -112,14 +112,24 @@ public class SMGameModeInventories extends SMFeature {
                 "UPDATE gamemode_inventories SET food = 20 WHERE 1").executeUpdate();
         });
 
-        SMDatabase.runMigration("240110075800_AddHealthGameModeInventoriesTable", () -> {
+        SMDatabase.runMigration("240110075800_AddExtraGameModeInventoriesTable", () -> {
             SMDatabase.prepareStatement(
                 "ALTER TABLE gamemode_inventories " +
                     "ADD COLUMN health DOUBLE DEFAULT 20.0")
                 .executeUpdate();
 
             SMDatabase.prepareStatement(
-                "UPDATE gamemode_inventories SET health = 20 WHERE 1").executeUpdate();
+                "ALTER TABLE gamemode_inventories " +
+                    "ADD COLUMN saturation FLOAT DEFAULT 0.0")
+                .executeUpdate();
+
+            SMDatabase.prepareStatement(
+                "ALTER TABLE gamemode_inventories " +
+                    "ADD COLUMN saturation FLOAT DEFAULT 0.0")
+                .executeUpdate();
+
+            SMDatabase.prepareStatement(
+                "UPDATE gamemode_inventories SET health = 20, saturation = 0 WHERE 1").executeUpdate();
         });
 
         SMEvent.register(PlayerGameModeChangeEvent.class, ctx -> {
@@ -176,6 +186,7 @@ public class SMGameModeInventories extends SMFeature {
         String enderChestContents = "";
         int food = 20;
         double health = 20.0d;
+        float saturation = 0.0f;
 
         world = getInventoryWorld(world);
 
@@ -197,6 +208,7 @@ public class SMGameModeInventories extends SMFeature {
                 enderChestContents = resultSet.getString("enderchest");
                 food = resultSet.getInt("food");
                 health = resultSet.getDouble("health");
+                saturation = resultSet.getFloat("saturation");
 
                 foundInventory = true;
             }
@@ -219,6 +231,7 @@ public class SMGameModeInventories extends SMFeature {
             xpc.setExp(xp);
             player.setFoodLevel(food);
             player.setHealth(health);
+            player.setSaturation(saturation);
         } else {
             playerInventory.clear();
             playerInventory.setBoots(null);
@@ -229,6 +242,7 @@ public class SMGameModeInventories extends SMFeature {
             xpc.setExp(0);
             player.setFoodLevel(20);
             player.setHealth(20.0d);
+            player.setSaturation(0.0f);
         }
 
         return success;
@@ -258,13 +272,14 @@ public class SMGameModeInventories extends SMFeature {
         String location = SMJson.toJson(player.getLocation(), Location.class);
         int food = player.getFoodLevel();
         double health = player.getHealth();
+        float saturation = player.getSaturation();
 
         world = getInventoryWorld(world);
 
         // Save player state
         try {
             PreparedStatement statement = SMDatabase.prepareStatement(
-                "INSERT INTO gamemode_inventories (uuid, death, location, gamemode, xp, inventory, armour, enderchest, reason, world, food, health) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                "INSERT INTO gamemode_inventories (uuid, death, location, gamemode, xp, inventory, armour, enderchest, reason, world, food, health, saturation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             statement.setString(1, uuid);
             statement.setInt(2, death == true ? 1 : 0);
             statement.setString(3, location);
@@ -277,6 +292,7 @@ public class SMGameModeInventories extends SMFeature {
             statement.setString(10, world);
             statement.setInt(11, food);
             statement.setDouble(12, health);
+            statement.setFloat(13, saturation);
             statement.executeUpdate();
             statement.close();
 
