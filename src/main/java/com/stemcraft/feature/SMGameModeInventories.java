@@ -124,11 +124,6 @@ public class SMGameModeInventories extends SMFeature {
                 .executeUpdate();
 
             SMDatabase.prepareStatement(
-                "ALTER TABLE gamemode_inventories " +
-                    "ADD COLUMN saturation FLOAT DEFAULT 0.0")
-                .executeUpdate();
-
-            SMDatabase.prepareStatement(
                 "UPDATE gamemode_inventories SET health = 20, saturation = 0 WHERE 1").executeUpdate();
         });
 
