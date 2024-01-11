@@ -64,6 +64,7 @@ TPALL_PLAYER_NOT_ONLINE: "That player is not online"
 
 TPALL_TO: "Teleported players to {player}"
 TPALL_BY: "Teleported to {to_player} by {by_player}"
+TPALL_BY_SAME: "Teleported to {to_player}"
 
 SEEN_USAGE: "Usage: /seen <player>"
 SEEN_RESULT: "{player} last loggin in on {last-login}"

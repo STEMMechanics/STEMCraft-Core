@@ -1,5 +1,6 @@
 package com.stemcraft.feature;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
@@ -50,8 +51,11 @@ public class SMTeleportAll extends SMFeature {
                 Location destination = targetPlayer.getLocation();
                 String toName = targetPlayer.getName();
                 String byName = targetPlayer.getName();
+                Collection<Player> selectedPlayers = new ArrayList<>(teleportPlayers);
+                selectedPlayers.remove(targetPlayer);
 
-                this.teleportAll(ctx.sender, destination, teleportPlayers, toName, byName);
+                this.teleportAll(ctx.sender, destination, selectedPlayers, toName,
+                    targetPlayer != ctx.player ? byName : null);
 
                 ctx.returnSuccessLocale("TPALL_TO", "player", toName);
             })
@@ -65,7 +69,11 @@ public class SMTeleportAll extends SMFeature {
         for (Player player : players) {
             player.teleport(destination);
 
-            SMMessenger.infoLocale(sender, "TPALL_BY", "to_player", toName, "by_player", byName);
+            if (byName == null) {
+                SMMessenger.infoLocale(player, "TPALL_BY_SAME", "to_player", toName);
+            } else {
+                SMMessenger.infoLocale(player, "TPALL_BY", "to_player", toName, "by_player", byName);
+            }
         }
     }
 }
