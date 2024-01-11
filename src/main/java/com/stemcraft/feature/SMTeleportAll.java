@@ -53,7 +53,7 @@ public class SMTeleportAll extends SMFeature {
 
                 this.teleportAll(ctx.sender, destination, teleportPlayers, toName, byName);
 
-                ctx.returnSuccessLocale("TPALL_TO", "to", toName);
+                ctx.returnSuccessLocale("TPALL_TO", "player", toName);
             })
             .register();
 
