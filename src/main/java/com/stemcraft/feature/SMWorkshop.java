@@ -1,14 +1,17 @@
 package com.stemcraft.feature;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
@@ -73,6 +76,48 @@ public class SMWorkshop extends SMFeature {
             }
 
             return list;
+        });
+
+        SMEvent.register(PlayerJoinEvent.class, (ctx) -> {
+            PlayerJoinEvent event = (PlayerJoinEvent) ctx.event;
+            Player player = event.getPlayer();
+
+            STEMCraft.runOnceDelay("workshop_join_" + player.getUniqueId(), 5, () -> {
+                RegionManager regionManager = container.get(BukkitAdapter.adapt(player.getLocation().getWorld()));
+                if (regionManager == null) {
+                    return;
+                }
+
+                Collection<String> activeGroups = SMLuckPerms.listGroups(player).stream()
+                    .filter(group -> group.endsWith("_active"))
+                    .collect(Collectors.toList());
+                List<String> currentRegions = new ArrayList<>();
+
+                ApplicableRegionSet regions = regionManager
+                    .getApplicableRegions(BukkitAdapter.adapt(player.getLocation()).toVector().toBlockPoint());
+                for (ProtectedRegion region : regions) {
+                    String regionId = region.getId();
+                    if (regionId.startsWith("workshop_")) {
+                        currentRegions.add(regionId);
+                    }
+                }
+
+                // remove workshops we are no longer in
+                for (String activeGroup : activeGroups) {
+                    String regionId = activeGroup.substring(0, activeGroup.length() - "_active".length());
+                    if (!currentRegions.contains(regionId)) {
+                        SMLuckPerms.removeGroup(player, activeGroup);
+                    }
+                }
+
+                // add workshops we are in
+                for (String currentRegion : currentRegions) {
+                    String activeGroup = currentRegion + "_active";
+                    if (!activeGroups.contains(activeGroup)) {
+                        SMLuckPerms.addGroup(player, activeGroup);
+                    }
+                }
+            });
         });
 
         SMEvent.register(PlayerTeleportEvent.class, ctx -> {
