@@ -25,6 +25,7 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 
 ### 1.4
 
+-   Workshop groups now sync on join
 -   Survival players can skip the night is at least 25% of them are sleeping
 -   When entering an invalid option, use the correct locale ID by default
 -   `/tpall` now outputs the players name correctly
