@@ -305,7 +305,7 @@ public class SMCommandContext {
      * Throw an exception on invalid arguments.
      */
     public final void returnInvalidArgs() {
-        throwCommandException(SMLocale.get(this.sender, "INVALID_ARGUMENT"));
+        throwCommandException(SMLocale.get(this.sender, "CMD_INVALID_OPTION"));
     }
 
     /**
