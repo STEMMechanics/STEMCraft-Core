@@ -26,10 +26,6 @@ import com.stemcraft.core.SMDependency;
 import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.SMJson;
 import com.stemcraft.core.event.SMEvent;
-import dev.lone.itemsadder.api.CustomFurniture;
-import dev.lone.itemsadder.api.CustomStack;
-import dev.lone.itemsadder.api.Events.FurnitureBreakEvent;
-import dev.lone.itemsadder.api.Events.FurnitureInteractEvent;
 
 public class SMGraves extends SMFeature {
     private HashMap<Inventory, UUID> trackedInventories = new HashMap<>();
