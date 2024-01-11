@@ -30,6 +30,7 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 -   Survival players can skip the night is at least 25% of them are sleeping
 -   When entering an invalid option, use the correct locale ID by default
 -   `/tpall` now outputs the players name correctly
+-   Notify players when teleported by `/tpall`
 
 ### 1.3.2
 
