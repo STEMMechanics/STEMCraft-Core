@@ -1,8 +1,10 @@
 package com.stemcraft.feature;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import com.stemcraft.STEMCraft;
@@ -13,6 +15,7 @@ import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.group.Group;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
+import net.luckperms.api.node.NodeType;
 import net.luckperms.api.node.types.InheritanceNode;
 import net.luckperms.api.node.types.PermissionNode;
 
@@ -159,5 +162,28 @@ public class SMLuckPerms extends SMFeature {
             user.data().remove(groupNode);
             luckPerms.getUserManager().saveUser(user);
         }
+    }
+
+    /**
+     * List player direct groups
+     * 
+     * @param player
+     * @param group
+     * @return
+     */
+    public static Collection<String> listGroups(Player player) {
+        Collection<String> groups = null;
+        LuckPerms luckPerms = LuckPermsProvider.get();
+        User user = luckPerms.getUserManager().getUser(player.getUniqueId());
+
+        if (user != null) {
+            groups = user.getNodes().stream()
+                .filter(NodeType.INHERITANCE::matches)
+                .map(NodeType.INHERITANCE::cast)
+                .map(InheritanceNode::getGroupName)
+                .collect(Collectors.toSet());
+        }
+
+        return groups;
     }
 }
