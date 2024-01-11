@@ -991,4 +991,15 @@ public class SMCommon {
 
         return false;
     }
+
+    public static Boolean isInArrayIgnoreCase(List<String> array, String value) {
+        for (String element : array) {
+            if (element.equalsIgnoreCase(value)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 }
