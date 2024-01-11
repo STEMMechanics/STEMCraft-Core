@@ -81,7 +81,7 @@ public class SMRestrictCreative extends SMFeature {
             Player player = (Player) ctx.event.getPlayer();
             if (player.getGameMode() == GameMode.CREATIVE && player.hasPermission(permission) == false) {
                 Material blockType = ctx.event.getBlockPlaced().getType();
-                if (blockType == Material.ENDER_EYE) {
+                if (blockType == Material.END_PORTAL_FRAME) {
                     SMMessenger.errorLocale(player, "RESTRICT_CREATIVE_NO_PLACE");
                     ctx.event.setCancelled(true);
                 }
