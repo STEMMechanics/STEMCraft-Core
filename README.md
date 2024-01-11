@@ -25,6 +25,8 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 
 ### 1.4
 
+-   Survival players can skip the night is at least 25% of them are sleeping
+
 ### 1.3.2
 
 -   NPCs are ignored with announcing player deaths in console
