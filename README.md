@@ -26,6 +26,7 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 ### 1.4
 
 -   When entering an invalid option, use the correct locale ID by default
+-   `/tpall` now outputs the players name correctly
 
 ### 1.3.2
 
