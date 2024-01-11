@@ -174,3 +174,7 @@ SPEED_USAGE: "/speed (fly|walk) <number> (player)"
 SPEED_NUMBER_USAGE: "Speed must be a number between 0.1 and 10"
 SPEED_CHANGED: "{type} speed changed to {speed}"
 SPEED_RESET: "Speed has been reset"
+
+SKIP_NIGHT_NEED_TO_WAIT_TO_SLEEP: "You need to wait before sleeping again"
+SKIP_NIGHT_ENOUGH_PLAYERS: "&3Enough players are sleeping to skip the night!"
+SKIP_NIGHT_BOSSBAR_TITLE: "&3Players Sleeping ({sleeping}/{required})"
