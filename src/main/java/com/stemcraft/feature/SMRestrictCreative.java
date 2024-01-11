@@ -7,6 +7,7 @@ import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.world.PortalCreateEvent;
 import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.SMMessenger;
 import com.stemcraft.core.event.SMEvent;
@@ -18,7 +19,8 @@ public class SMRestrictCreative extends SMFeature {
     protected Boolean onEnable() {
         SMEvent.register(PlayerInteractEntityEvent.class, ctx -> {
             Player player = ctx.event.getPlayer();
-            if(player.getGameMode() == GameMode.CREATIVE && ctx.event.getPlayer().hasPermission(this.permission) == false) {
+            if (player.getGameMode() == GameMode.CREATIVE
+                && ctx.event.getPlayer().hasPermission(this.permission) == false) {
                 SMMessenger.errorLocale(player, "RESTRICT_CREATIVE_NO_INTERACT");
                 ctx.event.setCancelled(true);
             }
@@ -61,7 +63,17 @@ public class SMRestrictCreative extends SMFeature {
                 }
             }
         });
-    
+
+        SMEvent.register(PortalCreateEvent.class, ctx -> {
+            if (ctx.event.getEntity() instanceof Player) {
+                Player player = (Player) ctx.event.getEntity();
+                if (player.getGameMode() == GameMode.CREATIVE && player.hasPermission(permission) == false) {
+                    SMMessenger.errorLocale(player, "RESTRICT_CREATIVE_NO_PORTALS");
+                    ctx.event.setCancelled(true);
+                }
+            }
+        });
+
         return true;
     }
 }
