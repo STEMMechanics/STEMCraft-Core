@@ -81,6 +81,8 @@ TPLOC_DELETE_FAILED: "Failed to delete location"
 RESTRICT_CREATIVE_NO_DROPS: "You cannot drop items in creative mode"
 RESTRICT_CREATIVE_NO_PICKUPS: "You cannot pick up items in creative mode"
 RESTRICT_CREATIVE_NO_INTERACT: "You cannot interact with that item in creative mode"
+RESTRICT_CREATIVE_NO_PORTALS: "You cannot create portals in creative mode"
+RESTRICT_CREATIVE_NO_PLACE: "You cannot place this block in creative mode"
 
 NO_BACK_LOCATION: "There is no location to teleport back to {player}"
 
