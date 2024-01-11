@@ -1,7 +1,10 @@
 package com.stemcraft.feature;
 
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -69,6 +72,17 @@ public class SMRestrictCreative extends SMFeature {
                 Player player = (Player) ctx.event.getEntity();
                 if (player.getGameMode() == GameMode.CREATIVE && player.hasPermission(permission) == false) {
                     SMMessenger.errorLocale(player, "RESTRICT_CREATIVE_NO_PORTALS");
+                    ctx.event.setCancelled(true);
+                }
+            }
+        });
+
+        SMEvent.register(BlockPlaceEvent.class, ctx -> {
+            Player player = (Player) ctx.event.getPlayer();
+            if (player.getGameMode() == GameMode.CREATIVE && player.hasPermission(permission) == false) {
+                Material blockType = ctx.event.getBlockPlaced().getType();
+                if (blockType == Material.ENDER_EYE) {
+                    SMMessenger.errorLocale(player, "RESTRICT_CREATIVE_NO_PLACE");
                     ctx.event.setCancelled(true);
                 }
             }
