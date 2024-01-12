@@ -31,6 +31,9 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 -   When entering an invalid option, use the correct locale ID by default
 -   `/tpall` now outputs the players name correctly
 -   Notify players when teleported by `/tpall`
+-   Added `/tphere` command
+-   Added `/muteall` and `/unmuteall`
+-   Fixed issue with SMPersistant not saving data correctly
 
 ### 1.3.2
 
