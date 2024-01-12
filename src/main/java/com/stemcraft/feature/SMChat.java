@@ -34,6 +34,7 @@ import org.bukkit.inventory.meta.BookMeta;
  * Set the player chat formatting
  */
 public class SMChat extends SMFeature {
+    private boolean muteAllPlayers = false;
 
     /**
      * The Chat Filter action data
@@ -338,7 +339,7 @@ public class SMChat extends SMFeature {
         /** Mute Player Command */
         new SMCommand("mute")
             .tabComplete("{player}")
-            .permission("stemcraft.chat.mute")
+            .permission("stemcraft.command.mute")
             .action(ctx -> {
                 ctx.checkArgs(1, SMLocale.get("CHAT_MUTE_USAGE"));
 
@@ -375,6 +376,25 @@ public class SMChat extends SMFeature {
             })
             .register();
 
+        /** Mute All Command */
+        new SMCommand("muteall")
+            .permission("stemcraft.command.mute")
+            .action(ctx -> {
+                muteAllPlayers = true;
+                ctx.returnInfoLocale("CHAT_MUTED_ALL");
+            })
+            .register();
+
+        /** Unmute All Command */
+        new SMCommand("unmuteall")
+            .permission("stemcraft.chat.mute")
+            .action(ctx -> {
+                muteAllPlayers = false;
+                ctx.returnInfoLocale("CHAT_UNMUTED_ALL");
+            })
+            .register();
+
+
         return true;
     }
 
@@ -406,8 +426,8 @@ public class SMChat extends SMFeature {
      * @return Boolean value if the player is muted.
      */
     public Boolean playerMuted(Player player) {
-        return player.hasPermission("stemcraft.chat.muted")
-            || SMPersistent.getBool(this, player.getUniqueId().toString(), false);
+        return !player.hasPermission("stemcraft.chat.mute.override")
+            && (SMPersistent.getBool(this, player.getUniqueId().toString(), false) || muteAllPlayers);
     }
 
     /**

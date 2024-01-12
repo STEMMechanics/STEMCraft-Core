@@ -42,9 +42,11 @@ public class SMLuckPerms extends SMFeature {
     protected Boolean onEnable() {
         SMLuckPerms.luckPerms = LuckPermsProvider.get();
 
-        SMTabComplete.register("group", () -> {
-            return SMLuckPerms.groups();
-        });
+        if (SMLuckPerms.luckPerms != null) {
+            SMTabComplete.register("group", () -> {
+                return SMLuckPerms.groups();
+            });
+        }
 
         return true;
     }
@@ -136,13 +138,14 @@ public class SMLuckPerms extends SMFeature {
      * @return
      */
     public static void addGroup(Player player, String group) {
-        LuckPerms luckPerms = LuckPermsProvider.get();
-        User user = luckPerms.getUserManager().getUser(player.getUniqueId());
+        if (luckPerms != null) {
+            User user = luckPerms.getUserManager().getUser(player.getUniqueId());
 
-        if (user != null) {
-            InheritanceNode groupNode = InheritanceNode.builder(group).build();
-            user.data().add(groupNode);
-            luckPerms.getUserManager().saveUser(user);
+            if (user != null) {
+                InheritanceNode groupNode = InheritanceNode.builder(group).build();
+                user.data().add(groupNode);
+                luckPerms.getUserManager().saveUser(user);
+            }
         }
     }
 
@@ -154,13 +157,14 @@ public class SMLuckPerms extends SMFeature {
      * @return
      */
     public static void removeGroup(Player player, String group) {
-        LuckPerms luckPerms = LuckPermsProvider.get();
-        User user = luckPerms.getUserManager().getUser(player.getUniqueId());
+        if (luckPerms != null) {
+            User user = luckPerms.getUserManager().getUser(player.getUniqueId());
 
-        if (user != null) {
-            InheritanceNode groupNode = InheritanceNode.builder(group).build();
-            user.data().remove(groupNode);
-            luckPerms.getUserManager().saveUser(user);
+            if (user != null) {
+                InheritanceNode groupNode = InheritanceNode.builder(group).build();
+                user.data().remove(groupNode);
+                luckPerms.getUserManager().saveUser(user);
+            }
         }
     }
 
@@ -173,15 +177,17 @@ public class SMLuckPerms extends SMFeature {
      */
     public static Collection<String> listGroups(Player player) {
         Collection<String> groups = null;
-        LuckPerms luckPerms = LuckPermsProvider.get();
-        User user = luckPerms.getUserManager().getUser(player.getUniqueId());
 
-        if (user != null) {
-            groups = user.getNodes().stream()
-                .filter(NodeType.INHERITANCE::matches)
-                .map(NodeType.INHERITANCE::cast)
-                .map(InheritanceNode::getGroupName)
-                .collect(Collectors.toSet());
+        if (luckPerms != null) {
+            User user = luckPerms.getUserManager().getUser(player.getUniqueId());
+
+            if (user != null) {
+                groups = user.getNodes().stream()
+                    .filter(NodeType.INHERITANCE::matches)
+                    .map(NodeType.INHERITANCE::cast)
+                    .map(InheritanceNode::getGroupName)
+                    .collect(Collectors.toSet());
+            }
         }
 
         return groups;

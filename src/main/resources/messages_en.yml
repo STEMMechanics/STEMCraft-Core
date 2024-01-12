@@ -144,6 +144,8 @@ ENCHANT_REMOVED_ALL: "All enchantments removed from item"
 TPTOP_TELEPORTED: "Teleported to a safe location above you"
 TPTOP_NO_SAFE_LOCATION: "There are no safe locations above you"
 
+TPHERE_TELEPORTED: "You have been teleported to {player}"
+
 VALUE_ITEM_NOT_FOUND: "The item was not found"
 VALUE_ITEM_NO_VALUE: "The item has no value"
 
