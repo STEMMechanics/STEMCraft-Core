@@ -167,6 +167,8 @@ CHAT_UNMUTED_PLAYER: "You have been unmuted by {player}"
 CHAT_UNMUTED_SENDER: "{player} has been unmuted"
 CHAT_UNMUTED_ALREADY: "{player} is already unmuted"
 CHAT_CURRENTLY_MUTED: "You are currently muted"
+CHAT_MUTE_ALL: "All players have been muted"
+CHAT_UNMUTE_ALL: "All players have been unmuted"
 
 STEMCRAFT_GIVE_USAGE_SHOW: "Usage: /stemcraft give <item> (amount) (player)"
 STEMCRAFT_GIVE_ITEM_NOT_FOUND: "Unknown item '{name}'"
