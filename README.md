@@ -34,6 +34,9 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 -   Added `/tphere` command
 -   Added `/muteall` and `/unmuteall`
 -   Fixed issue with SMPersistant not saving data correctly
+-   Graves have returned as signs and chests (if a safe location can be found up to 16 blocks from the death location)
+-   Added `SMCommon.getClosestBlockFace` and `SMCommon.regexMatch` methods
+-   `isSafeLocation` will now exclude above certain blocks such as beds, signs and fences
 
 ### 1.3.2
 
