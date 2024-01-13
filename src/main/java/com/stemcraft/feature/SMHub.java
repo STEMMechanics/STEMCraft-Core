@@ -15,11 +15,17 @@ import com.stemcraft.core.command.SMCommand;
 import com.stemcraft.core.exception.SMException;
 
 public class SMHub extends SMFeature {
+    SMJail jailFeature = null;
+
     /**
      * When the feature is enabled
      */
     @Override
     protected Boolean onEnable() {
+        if (STEMCraft.featureEnabled("jail")) {
+            jailFeature = STEMCraft.getFeature("jail", SMJail.class);
+        }
+
         new SMCommand("hub")
             .alias("lobby")
             .permission("stemcraft.command.hub")
@@ -34,6 +40,12 @@ public class SMHub extends SMFeature {
         SMEvent.register(PlayerJoinEvent.class, (ctx) -> {
             PlayerJoinEvent event = (PlayerJoinEvent) ctx.event;
             Player player = event.getPlayer();
+
+            if (jailFeature != null) {
+                if (jailFeature.isJailed(player)) {
+                    return;
+                }
+            }
 
             if (!player.hasPermission("stemcraft.hub.override")) {
                 teleportToHub(player);
