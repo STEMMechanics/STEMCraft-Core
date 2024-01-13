@@ -47,7 +47,7 @@ public class SMTeleportTop extends SMFeature {
                     }
                 }
 
-                ctx.returnErrorLocale("TPTOP_TELEPORTED");
+                ctx.returnErrorLocale("TPTOP_NO_SAFE_LOCATION");
 
             }).register();
 

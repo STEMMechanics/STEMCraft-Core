@@ -67,6 +67,16 @@ trader:
         - world_nether
         - world_the_end
 
+skip-night:
+    required: 0.25
+    random-tick-speed: 300
+    worlds:
+        - survival
+
+graves:
+    worlds:
+        - survival
+
 character-bindings:
     crafting_table: "\uE120"
     enchantment_table: "\uE121"

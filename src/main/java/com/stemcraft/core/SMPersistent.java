@@ -185,7 +185,7 @@ public class SMPersistent {
      * @param value The value to set.
      */
     public static void set(Object section, String key, Object value) {
-        set(section, key, value);
+        set(section, key, value, value.getClass());
     }
 
     /**

@@ -23,6 +23,21 @@ When your contribution is ready to be merged, create a Pull Request and once rea
 
 ## Changes
 
+### 1.4
+
+-   Deny creating portals in creative
+-   Workshop groups now sync on join
+-   Survival players can skip the night is at least 25% of them are sleeping
+-   When entering an invalid option, use the correct locale ID by default
+-   `/tpall` now outputs the players name correctly
+-   Notify players when teleported by `/tpall`
+-   Added `/tphere` command
+-   Added `/muteall` and `/unmuteall`
+-   Fixed issue with SMPersistant not saving data correctly
+-   Graves have returned as signs and chests (if a safe location can be found up to 16 blocks from the death location)
+-   Added `SMCommon.getClosestBlockFace` and `SMCommon.regexMatch` methods
+-   `isSafeLocation` will now exclude above certain blocks such as beds, signs and fences
+
 ### 1.3.2
 
 -   NPCs are ignored with announcing player deaths in console

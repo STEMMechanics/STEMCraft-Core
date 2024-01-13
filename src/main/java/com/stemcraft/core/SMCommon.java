@@ -151,16 +151,18 @@ public class SMCommon {
         Block aboveBlock = block.getRelative(BlockFace.UP);
         Block belowBlock = block.getRelative(BlockFace.DOWN);
 
+        final Material[] includeMaterials = {
+                Material.AIR, Material.GRASS
+        };
+
         // Check if the block and the block above are air blocks
-        if (block.getType() == Material.AIR && aboveBlock.getType() == Material.AIR && belowBlock.getType().isSolid()) {
-            // // Check if the block and the block above are not water or lava blocks
-            // if (block.getType() != Material.WATER && block.getType() != Material.LAVA &&
-            // aboveBlock.getType() != Material.WATER && aboveBlock.getType() != Material.LAVA) {
-            // // Check if the block and the block above are not solid blocks (excluding certain transparent blocks)
-            // if (!block.getType().isSolid() && !aboveBlock.getType().isSolid()) {
-            return true;
-            // }
-            // }
+        if (isInArray(includeMaterials, block.getType()) && aboveBlock.getType() == Material.AIR
+            && belowBlock.getType().isSolid()) {
+            String materialString = belowBlock.getType().toString();
+            if (!materialString.endsWith("_BED") && !materialString.endsWith("_SIGN")
+                && !materialString.contains("FENCE")) {
+                return true;
+            }
         }
 
         return false;
@@ -199,41 +201,48 @@ public class SMCommon {
      * @return
      */
     public static Location findSafeLocation(Location location, int rangeMin, int rangeMax, boolean random) {
-        World world = location.getWorld();
-        int x = location.getBlockX();
-        int y = location.getBlockY();
-        int z = location.getBlockZ();
-
+        Location closestLocation = null;
+        double minDistance = Double.MAX_VALUE;
         List<Location> safeLocations = new ArrayList<>();
 
-        for (int distance = rangeMin; distance <= rangeMax; distance++) {
-            for (int i = -distance; i <= distance; i++) {
-                for (int j = -distance; j <= distance; j++) {
-                    for (int k = -distance; k <= distance; k++) {
-                        // Skip iterations outside the shell of the current distance
-                        if (Math.abs(i) < distance && Math.abs(j) < distance && Math.abs(k) < distance) {
-                            continue;
-                        }
+        for (int x = location.getBlockX() - rangeMax; x <= location.getBlockX() + rangeMax; x++) {
+            for (int y = location.getBlockY() - rangeMax; y <= location.getBlockY() + rangeMax; y++) {
+                for (int z = location.getBlockZ() - rangeMax; z <= location.getBlockZ() + rangeMax; z++) {
+                    Location candidateLocation = new Location(location.getWorld(), x + 0.5, y, z + 0.5);
 
-                        Location checkLocation = new Location(world, x + i, y + j, z + k);
-                        if (isSafeLocation(checkLocation)) {
-                            if (!random) {
-                                return checkLocation;
+                    // Skip locations outside the specified range
+                    if (Math.abs(location.getBlockX() - x) > rangeMax ||
+                        Math.abs(location.getBlockY() - y) > rangeMax ||
+                        Math.abs(location.getBlockZ() - z) > rangeMax) {
+                        continue;
+                    }
+
+                    if (isSafeLocation(candidateLocation)) {
+                        if (random) {
+                            safeLocations.add(candidateLocation);
+                        } else {
+                            double distance = location.distance(candidateLocation);
+
+                            // Update closest location if the new candidate is closer
+                            if (closestLocation == null || distance < minDistance
+                                || (distance == minDistance && Math.abs(location.getBlockY() - y) < Math
+                                    .abs(location.getBlockY() - closestLocation.getBlockY()))) {
+                                closestLocation = candidateLocation;
+                                minDistance = distance;
                             }
-                            safeLocations.add(checkLocation);
                         }
                     }
                 }
             }
         }
 
-        if (!safeLocations.isEmpty() && random) {
+        if (random && !safeLocations.isEmpty()) {
             Random randomLoc = new Random();
             int randomIndex = randomLoc.nextInt(safeLocations.size());
             return safeLocations.get(randomIndex);
         }
 
-        return null;
+        return closestLocation;
     }
 
     /**
@@ -990,5 +999,75 @@ public class SMCommon {
         }
 
         return false;
+    }
+
+    public static Boolean isInArrayIgnoreCase(List<String> array, String value) {
+        for (String element : array) {
+            if (element.equalsIgnoreCase(value)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static <T> Boolean isInArray(T[] array, T value) {
+        for (T element : array) {
+            if (element.equals(value)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Return the direction from yaw
+     * 
+     * @param yaw The yaw value
+     * @param opposite Return the opposite direction
+     * @return
+     */
+    public static BlockFace getClosestBlockFace(double yaw, boolean opposite) {
+        if (yaw >= -45 && yaw <= 45) {
+            return opposite ? BlockFace.NORTH : BlockFace.SOUTH;
+        } else if (yaw >= 45 && yaw <= 135) {
+            return opposite ? BlockFace.EAST : BlockFace.WEST;
+        } else if (yaw >= -135 && yaw <= -45) {
+            return opposite ? BlockFace.WEST : BlockFace.EAST;
+        } else {
+            return opposite ? BlockFace.SOUTH : BlockFace.NORTH;
+        }
+    }
+
+    public static BlockFace getClosestBlockFace(double yaw) {
+        return getClosestBlockFace(yaw, false);
+    }
+
+    /**
+     * Check if a string matches an array of patterns
+     * 
+     * @param test The string to test
+     * @param patterns The patterns to test against
+     * @return
+     */
+    public static boolean regexMatch(String test, String[] patterns) {
+        for (String pattern : patterns) {
+            if (Pattern.compile(pattern).matcher(test).find()) {
+                return true;
+            }
+        }
+
+        return false; // No match found
+    }
+
+    public static boolean regexMatch(String test, Pattern[] patterns) {
+        for (Pattern pattern : patterns) {
+            if (pattern.matcher(test).find()) {
+                return true;
+            }
+        }
+
+        return false; // No match found
     }
 }
