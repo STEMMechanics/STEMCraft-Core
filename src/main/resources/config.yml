@@ -69,6 +69,11 @@ trader:
 
 skip-night:
     required: 0.25
+    random-tick-speed: 300
+    worlds:
+        - survival
+
+graves:
     worlds:
         - survival
 
