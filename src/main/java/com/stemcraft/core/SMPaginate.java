@@ -27,7 +27,7 @@ public class SMPaginate {
     public SMPaginate(CommandSender sender, String page) {
         try {
             this.page = Integer.parseInt(page);
-        } catch(Exception e) {
+        } catch (Exception e) {
             this.page = 0;
         }
     }
@@ -38,7 +38,12 @@ public class SMPaginate {
     }
 
     public SMPaginate command(String command) {
-        this.command = command;
+        if (!command.startsWith("/")) {
+            this.command = "/" + command;
+        } else {
+            this.command = command;
+        }
+
         return this;
     }
 
@@ -54,10 +59,10 @@ public class SMPaginate {
 
     public SMPaginate showItems(BiFunction<Integer, Integer, List<BaseComponent[]>> func) {
         int start = (page - 1) * ITEMS_PER_PAGE;
-        int maxPages = (int)Math.ceil(count / ITEMS_PER_PAGE);
+        int maxPages = (int) Math.ceil((double) count / ITEMS_PER_PAGE);
         List<BaseComponent[]> lines = func.apply(start, ITEMS_PER_PAGE);
 
-        if(lines.size() == 0) {
+        if (lines.size() == 0) {
             SMMessenger.error(sender, none);
             return this;
         }
@@ -71,27 +76,28 @@ public class SMPaginate {
 
         // Pagination
         BaseComponent prev = new TextComponent((page <= 1 ? ChatColor.GRAY : ChatColor.GOLD) + "<<< ");
-        if(page > 1) {
+        if (page > 1) {
             prev.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command + " " + (page - 1)));
             prev.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Previous page")));
         }
 
-        BaseComponent pageInfo = new TextComponent(ChatColor.YELLOW + "Page " + ChatColor.GOLD + page + ChatColor.YELLOW + " of " + maxPages);
+        BaseComponent pageInfo = new TextComponent(
+            ChatColor.YELLOW + "Page " + ChatColor.GOLD + page + ChatColor.YELLOW + " of " + maxPages);
 
         BaseComponent next = new TextComponent((page >= maxPages ? ChatColor.GRAY : ChatColor.GOLD) + " >>>");
-        if(page < maxPages) {
+        if (page < maxPages) {
             next.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command + " " + (page + 1)));
             next.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Next page")));
         }
 
-        BaseComponent components[] = { prev, pageInfo, next };
+        BaseComponent components[] = {prev, pageInfo, next};
         sender.spigot().sendMessage(createSeperatorString(components));
         return this;
     }
 
     private static BaseComponent[] createSeperatorString(String title) {
         TextComponent textComponent = new TextComponent(title);
-        return createSeperatorString(new BaseComponent[]{textComponent});
+        return createSeperatorString(new BaseComponent[] {textComponent});
     }
 
     private static BaseComponent[] createSeperatorString(BaseComponent[] titles) {
