@@ -1,6 +1,6 @@
 CONSOLE_NAME: "console"
 
-CMD_NO_PERMISSION: You don't have permission to use this command"
+CMD_NO_PERMISSION: "You don't have permission to use this command"
 CMD_ONLY_PLAYERS: "This command can only be run by a player"
 CMD_PLAYER_REQ_FROM_CONSOLE: "A player name is required when run from console"
 CMD_PLAYER_NOT_FOUND: "Player not found"
@@ -71,7 +71,7 @@ SEEN_RESULT: "{player} last loggin in on {last-login}"
 
 GMI_FAILED: "The server failed updating your inventory"
 
-TPLOC_USAGE:"Usage: /tploc <name>"
+TPLOC_USAGE:"Usage: /tploc <name> (player)"
 TPLOC_NOT_EXIST: "Teleport location '{name}' does not exist"
 
 TPLOC_SAVE_SUCCESSFUL: "Location saved successfully"
