@@ -133,10 +133,10 @@ public class SMJail extends SMFeature {
 
                 if (isJailed(targetPlayer)) {
                     unjailPlayer(targetPlayer);
-                    SMMessenger.infoLocale(targetPlayer, "JAILED");
-                    ctx.returnInfoLocale("JAILED_SUCCESS", "player", targetPlayer.getName());
+                    SMMessenger.infoLocale(targetPlayer, "UNJAILED");
+                    ctx.returnInfoLocale("UNJAILED_SUCCESS", "player", targetPlayer.getName());
                 } else {
-                    ctx.returnErrorLocale("JAILED_NOT_JAILED");
+                    ctx.returnErrorLocale("JAILED_NOT_UNJAILED");
                 }
             })
             .register();
