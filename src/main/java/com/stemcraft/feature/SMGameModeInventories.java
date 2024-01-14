@@ -145,6 +145,11 @@ public class SMGameModeInventories extends SMFeature {
         SMEvent.register(PlayerDeathEvent.class, ctx -> {
             if (ctx.event.getEventName().equalsIgnoreCase("playerdeathevent")) {
                 Player player = ctx.event.getEntity();
+
+                if (player.hasMetadata("NPC")) {
+                    return;
+                }
+
                 this.SaveInventory(player, true, "Player death");
             }
         });

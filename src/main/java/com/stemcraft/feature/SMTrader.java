@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
@@ -20,7 +21,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 import org.bukkit.entity.Villager.Profession;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.MerchantInventory;
@@ -220,7 +220,8 @@ public class SMTrader extends SMFeature {
 
             List<Player> filteredPlayers = new ArrayList<>();
             for (Player player : playerList) {
-                if (traderWorlds.contains(player.getLocation().getWorld().getName())) {
+                if (player.getGameMode() == GameMode.SURVIVAL
+                    && traderWorlds.contains(player.getLocation().getWorld().getName())) {
                     filteredPlayers.add(player);
                 }
             }

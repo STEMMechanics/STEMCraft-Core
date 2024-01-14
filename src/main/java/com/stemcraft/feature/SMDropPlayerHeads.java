@@ -21,6 +21,10 @@ public class SMDropPlayerHeads extends SMFeature {
                 Player player = ctx.event.getEntity();
                 Player killer = player.getKiller();
 
+                if (player.hasMetadata("NPC")) {
+                    return;
+                }
+
                 if (killer instanceof Player) {
                     if (killer.getUniqueId().equals(player.getUniqueId())) {
                         return;

@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import com.stemcraft.STEMCraft;
 import com.stemcraft.core.SMCommon;
 import com.stemcraft.core.SMDatabase;
@@ -47,10 +48,9 @@ public class SMTeleportLocation extends SMFeature {
 
         new SMCommand("teleportlocation")
             .alias("teleportloc", "tploc")
-            .tabComplete("{tplocations}")
+            .tabComplete("{tplocations}", "{player}")
             .permission("stemcraft.teleport.location")
             .action(ctx -> {
-                ctx.checkNotConsole();
                 ctx.checkArgsLocale(1, "TPLOC_USAGE");
                 String name = ctx.args.get(0).toLowerCase();
 
@@ -58,7 +58,10 @@ public class SMTeleportLocation extends SMFeature {
                     ctx.returnErrorLocale("TPLOC_NOT_EXIST", "name", ctx.args.get(0));
                 }
 
-                SMCommon.delayedPlayerTeleport(ctx.player, cacheList.get(name));
+                Player targetPlayer = ctx.getArgAsPlayer(2, ctx.player);
+                ctx.checkNotNullLocale(targetPlayer, "CMD_PLAYER_NOT_FOUND");
+
+                SMCommon.delayedPlayerTeleport(targetPlayer, cacheList.get(name));
             })
             .register();
 
@@ -190,6 +193,8 @@ public class SMTeleportLocation extends SMFeature {
                     }
 
                     int rowsAffected = statement.executeUpdate();
+
+                    this.buildCacheList();
                     if (rowsAffected > 0) {
                         ctx.returnSuccessLocale("TPLOC_SAVE_SUCCESSFUL");
                     } else {
@@ -198,8 +203,6 @@ public class SMTeleportLocation extends SMFeature {
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
-
-                this.buildCacheList();
             })
             .register();
 
@@ -223,6 +226,8 @@ public class SMTeleportLocation extends SMFeature {
                     statement.setString(1, name);
 
                     int rowsAffected = statement.executeUpdate();
+
+                    this.buildCacheList();
                     if (rowsAffected > 0) {
                         ctx.returnSuccessLocale("TPLOC_DELETE_SUCCESSFUL");
                     } else {
@@ -231,8 +236,6 @@ public class SMTeleportLocation extends SMFeature {
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
-
-                this.buildCacheList();
             })
             .register();
 

@@ -46,6 +46,10 @@ public class SMGraves extends SMFeature {
             if (ctx.event.getEventName().equalsIgnoreCase("playerdeathevent")) {
                 Player player = ctx.event.getEntity();
 
+                if (player.hasMetadata("NPC")) {
+                    return;
+                }
+
                 if (player.getGameMode() != GameMode.SURVIVAL || !worlds.contains(player.getLocation().getWorld())) {
                     return;
                 }
