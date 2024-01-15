@@ -55,17 +55,17 @@ public class SMWebServer extends SMFeature {
             File file = new File(wwwRoot, uri.substring(1));
 
             if (!file.getAbsolutePath().startsWith(wwwRoot.getAbsolutePath())) {
-                exchange.sendResponseHeaders(403, -1);
+                sendErrorResponse(exchange, 403, "Forbidden");
                 return;
             }
 
             if (file.isDirectory()) {
-                exchange.sendResponseHeaders(403, -1);
+                sendErrorResponse(exchange, 403, "Directory listing not permitted");
                 return;
             }
 
             if (!file.exists()) {
-                exchange.sendResponseHeaders(404, -1);
+                sendErrorResponse(exchange, 404, "File not found");
                 return;
             }
 
@@ -74,6 +74,13 @@ public class SMWebServer extends SMFeature {
             exchange.sendResponseHeaders(200, fileBytes.length);
             try (OutputStream os = exchange.getResponseBody()) {
                 os.write(fileBytes);
+            }
+        }
+
+        private void sendErrorResponse(HttpExchange exchange, int statusCode, String errorMessage) throws IOException {
+            exchange.sendResponseHeaders(statusCode, errorMessage.length());
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(errorMessage.getBytes());
             }
         }
     }
