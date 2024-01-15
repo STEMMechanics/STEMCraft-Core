@@ -14,12 +14,21 @@ import com.stemcraft.core.config.SMConfig;
 
 public class SMWebServer extends SMFeature {
     private HttpServer httpServer;
+    private File wwwRoot;
 
     @Override
     protected Boolean onEnable() {
         boolean enabled = SMConfig.main().getBoolean("web-server.enabled", false);
+        wwwRoot = new File(STEMCraft.getPlugin().getDataFolder(), "www");
 
         if (enabled) {
+            if (!wwwRoot.exists()) {
+                if (!wwwRoot.mkdirs()) {
+                    STEMCraft.severe("Failed to create 'www' directory");
+                    return true;
+                }
+            }
+
             int port = SMConfig.main().getInt("web-server.port", 8950);
             String ip = SMConfig.main().getString("web-server.ip", "0.0.0.0");
 
@@ -50,8 +59,6 @@ public class SMWebServer extends SMFeature {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             String uri = exchange.getRequestURI().getPath();
-
-            File wwwRoot = new File(STEMCraft.getPlugin().getDataFolder(), "www");
             File file = new File(wwwRoot, uri.substring(1));
 
             if (!file.getAbsolutePath().startsWith(wwwRoot.getAbsolutePath())) {
