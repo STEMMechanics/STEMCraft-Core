@@ -1,0 +1,98 @@
+# Changelog
+
+## 1.5
+
+## 1.4
+
+-   Deny creating portals in creative
+-   Workshop groups now sync on join
+-   Survival players can skip the night is at least 25% of them are sleeping
+-   When entering an invalid option, use the correct locale ID by default
+-   `/tpall` now outputs the players name correctly
+-   Notify players when teleported by `/tpall`
+-   Added `/tphere` command
+-   Added `/muteall` and `/unmuteall`
+-   Fixed issue with SMPersistant not saving data correctly
+-   Graves have returned as signs and chests (if a safe location can be found up to 16 blocks from the death location)
+-   Added `SMCommon.getClosestBlockFace` and `SMCommon.regexMatch` methods
+-   `isSafeLocation` will now exclude above certain blocks such as beds, signs and fences
+
+## 1.3.2
+
+-   NPCs are ignored with announcing player deaths in console
+-   Player health is now saved/restored when teleporting or changing gamemodes
+
+## 1.3.1
+
+-   Food level is now saved/restored when changing inventories
+
+## 1.3.0
+
+-   Added character bindings due to ItemsAdder removal.
+-   Added `givePlayerItem` helper in `SMCommon`.
+-   Show book will instead give the book to bedrock players (`openBook` is not compadible).
+-   Added SMItemAttribs for special attributes for items such as `destroy-on-drop`.
+-   Added `/stemcraft give <item> (quantity) (player)`
+-   Added players are invincilble if teleporting between worlds (except through portals), changing gamemodes or when joining the server.
+
+## 1.2.0
+
+-   Added `/t` to direct message a player
+-   Added chat/sign/book filtering
+-   Added support for retrieving a list of root keys in config files
+-   Added `addMissingDefaultValues` to allow syncing default/user config files
+-   Server locale files will now append missing strings when added in future versions
+-   Added moderation tools that override `/ban` and `/kick`
+
+## 1.1.0
+
+-   Added ability to customize stonecutter recipes in the configuration
+-   Graves will now spawn in the nearest safe location on land. If there is no suitable location, your items will just be dropped
+-   Coordination action and boss bar now available using `/coord` and `/coordbar`
+-   Trader villagers randomally spawn in survival worlds and keep a running tally of trades
+-   Tons of helper methods for coding features
+-   Tab completion shows options that contain the text instead of starts with
+-   Added `display-version` config option to override MOTD version
+-   Added /toolreset command to clear toolstats data on item
+-   Added values feature for item pricing
+-   Added workbench commands /anvil, /cartographytable, /grindstone, /loom, /smithingtable, /stonecutter
+-   Restores remaining player night vision duration when disabling command
+-   Added a simple persistent saving feature for other features to utilize
+-   Added the /enchant command that add or removes enchantments from player items
+-   Added the /tptop command that teleports a player upwards to the next safe location.
+
+## 1.0.2
+
+-   Added ability to link world inventories for nether/the end.
+
+## 1.0.1
+
+-   Internal code refactoring
+-   Fix shift click crafting tool stats
+-   Plugin version announced in server console on load
+-   Player heads only drop in survival PVP
+-   Waystones will now deactivate/reactive correctly when using pistons
+-   A player will now teleport to the nearest safe location when entering a workshop
+-   Workshop permissions and gamemode changes now work correctly
+
+## 1.0.0
+
+-   Rewrite of the framework to make adding features easier
+-   When clicking a waystone, if the nearest does not have a safe location, instead of giving up, it will try other waystones
+
+## 0.4.2
+
+-   Added Restrictive Creative which disables players interacting, dropping and picking items unless they have the `stemcraft.creative.override` permission.
+-   Added `/seen <player>` command requiring the `stemcraft.seen` permission
+-   Moved from custom YAML framework to [BoostedYAML](https://github.com/dejvokep/boosted-yaml)
+-   Added `/repair (<player>)` command to any repair in the main hand of a player
+-   `/back` will now teleport a player to their last death location
+-   Added this.plugin.DebugLog(String s) to output debug strings (if enabled in config)
+
+## 0.3.2
+
+-   Remove the usage of the System.Out method and instead use the Bukkit Logger methods
+
+## 0.3.1
+
+-   Fix players not being able to interact due to bug in the disable spawn eggs code
