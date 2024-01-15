@@ -2,11 +2,13 @@ package com.stemcraft.feature;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -156,7 +158,19 @@ public class SMGameModeInventories extends SMFeature {
             this.LoadLastInventory(player, player.getGameMode().toString(), ctx.event.getTo().getWorld().getName());
         });
 
+        SMEvent.register(PlayerQuitEvent.class, ctx -> {
+            Player player = ctx.event.getPlayer();
+            this.SaveInventory(player, true, "Player quit");
+        });
+
         return true;
+    }
+
+    @Override
+    protected void onDisable() {
+        for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+            this.SaveInventory(player, true, "GMI disable");
+        }
     }
 
     public Boolean LoadLastInventory(Player player) {
