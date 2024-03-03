@@ -1,16 +1,17 @@
 package com.stemcraft.feature;
 
+import com.stemcraft.STEMCraft;
+import com.stemcraft.core.SMFeature;
+import com.stemcraft.core.config.SMConfig;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
-import com.stemcraft.STEMCraft;
-import com.stemcraft.core.SMFeature;
-import com.stemcraft.core.config.SMConfig;
 
 /**
  * A simple web server that serves files from the 'www' directory in the plugin's data folder.
