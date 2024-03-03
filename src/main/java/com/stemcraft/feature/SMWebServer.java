@@ -12,10 +12,28 @@ import com.stemcraft.STEMCraft;
 import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.config.SMConfig;
 
+/**
+ * A simple web server that serves files from the 'www' directory in the plugin's data folder.
+ * The server is disabled by default and can be enabled by setting 'web-server.enabled' to true in the config.yml file.
+ * The server listens on the IP and port specified in the config.yml file.
+ * The default IP is
+ */
+@SuppressWarnings("unused")
 public class SMWebServer extends SMFeature {
+    /**
+     * The HTTP server
+     */
     private HttpServer httpServer;
+
+    /**
+     * The root directory for the web server
+     */
     private File wwwRoot;
 
+    /**
+     * Called when the feature is to be enabled. Return true if
+     * the feature was successfully enabled.
+     */
     @Override
     protected Boolean onEnable() {
         boolean enabled = SMConfig.main().getBoolean("web-server.enabled", false);
@@ -34,7 +52,7 @@ public class SMWebServer extends SMFeature {
 
             try {
                 httpServer = HttpServer.create(new InetSocketAddress(ip, port), 0);
-                httpServer.createContext("/", new MyHttpHandler());
+                httpServer.createContext("/", new SCHttpHandler());
                 httpServer.setExecutor(null);
                 httpServer.start();
                 STEMCraft.info("Web server started on http://" + ip + ":" + port);
@@ -47,6 +65,9 @@ public class SMWebServer extends SMFeature {
         return true;
     }
 
+    /**
+     * Called when the feature is to be disabled.
+     */
     @Override
     public void onDisable() {
         if (httpServer != null) {
@@ -55,7 +76,10 @@ public class SMWebServer extends SMFeature {
         }
     }
 
-    private class MyHttpHandler implements HttpHandler {
+    /**
+     * STEMCraft HTTP Handler class (internal)
+     */
+    private class SCHttpHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             String uri = exchange.getRequestURI().getPath();
