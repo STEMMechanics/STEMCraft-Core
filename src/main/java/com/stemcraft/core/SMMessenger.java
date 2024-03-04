@@ -1,13 +1,14 @@
 package com.stemcraft.core;
 
 import java.util.List;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import lombok.Getter;
 import lombok.Setter;
 
+@SuppressWarnings("unused")
 public class SMMessenger {
     @Getter
     @Setter
@@ -32,8 +33,8 @@ public class SMMessenger {
     /**
      * Send information message to sender.
      * 
-     * @param sender
-     * @param message
+     * @param sender the command sender
+     * @param message the message
      */
     public static void info(final CommandSender sender, final String message) {
         tell(sender, infoPrefix, message);
@@ -42,8 +43,8 @@ public class SMMessenger {
     /**
      * Send information message to sender.
      * 
-     * @param sender
-     * @param messages
+     * @param sender the command sender
+     * @param messages the messages
      */
     public static void info(final CommandSender sender, final List<String> messages) {
         tell(sender, infoPrefix, messages);
@@ -52,8 +53,8 @@ public class SMMessenger {
     /**
      * Send information message to sender.
      * 
-     * @param sender
-     * @param message
+     * @param sender the command sender
+     * @param id the message Locale id
      */
     public static void infoLocale(final CommandSender sender, final String id) {
         tell(sender, infoPrefix, SMLocale.get(sender, id));
@@ -62,8 +63,9 @@ public class SMMessenger {
     /**
      * Send information message to sender.
      * 
-     * @param sender
-     * @param message
+     * @param sender the command sender
+     * @param id the message Locale id
+     * @param replacements the replacements
      */
     public static void infoLocale(final CommandSender sender, final String id, String... replacements) {
         tell(sender, infoPrefix, SMReplacer.replaceVariables(SMLocale.get(sender, id), replacements));
@@ -72,8 +74,8 @@ public class SMMessenger {
     /**
      * Send information message to sender.
      * 
-     * @param player
-     * @param message
+     * @param player the player
+     * @param message the message
      */
     public static void info(final Player player, final String message) {
         tell(player, infoPrefix, message);
@@ -82,8 +84,8 @@ public class SMMessenger {
     /**
      * Send information message to sender.
      * 
-     * @param player
-     * @param messages
+     * @param player the player
+     * @param messages the messages
      */
     public static void info(final Player player, final List<String> messages) {
         tell(player, infoPrefix, messages);
@@ -92,8 +94,8 @@ public class SMMessenger {
     /**
      * Send information message to sender.
      * 
-     * @param player
-     * @param message
+     * @param player the player
+     * @param id the message Locale id
      */
     public static void infoLocale(final Player player, final String id) {
         tell(player, infoPrefix, SMLocale.get(player, id));
@@ -102,8 +104,9 @@ public class SMMessenger {
     /**
      * Send information message to sender.
      * 
-     * @param player
-     * @param message
+     * @param player the player
+     * @param id the message Locale id
+     * @param replacements the replacements
      */
     public static void infoLocale(final Player player, final String id, String... replacements) {
         tell(player, infoPrefix, SMReplacer.replaceVariables(SMLocale.get(player, id), replacements));
@@ -191,7 +194,6 @@ public class SMMessenger {
         tell(player, successPrefix, SMReplacer.replaceVariables(SMLocale.get(player, id), replacements));
     }
 
-    // For warn
     /**
      * Send warning message to sender with locale support.
      * 
@@ -361,8 +363,8 @@ public class SMMessenger {
     /**
      * Send announcement message to sender.
      * 
-     * @param player
-     * @param message
+     * @param player the command sender
+     * @param message the message
      */
     public static void announce(final CommandSender player, final String message) {
         tell(player, announcePrefix, message);
@@ -371,7 +373,7 @@ public class SMMessenger {
     /**
      * Send a blank line to the sender.
      * 
-     * @param player
+     * @param player the command sender
      */
     public static void blankLine(final CommandSender player) {
         player.sendMessage("   ");
