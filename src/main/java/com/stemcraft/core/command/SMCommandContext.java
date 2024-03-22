@@ -397,4 +397,8 @@ public class SMCommandContext {
     public String senderName() {
         return sender instanceof Player ? sender.getName() : SMLocale.get("CONSOLE_NAME");
     }
+
+    public String[] getSubCommandList() {
+        return command.getSubCommandList();
+    }
 }

@@ -386,4 +386,11 @@ public class SMCommand implements TabCompleter {
 
         return tabCompletionResults;
     }
+
+    public String[] getSubCommandList() {
+        return this.tabCompletionList.stream()
+                .filter(list -> list.length > 0 && !list[0].startsWith("{") && !list[0].endsWith("}"))
+                .map(list -> list[0])
+                .toArray(String[]::new);
+    }
 }
