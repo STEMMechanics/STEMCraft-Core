@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import com.stemcraft.STEMCraft;
 
 public class SMAdapterItemMeta implements SMJsonAdapter, JsonSerializer<ItemMeta>, JsonDeserializer<ItemMeta> {
     private final String META_TYPE_KEY = "meta-type";
@@ -63,15 +64,10 @@ public class SMAdapterItemMeta implements SMJsonAdapter, JsonSerializer<ItemMeta
             
             deserialize.put(FIREWORK_EFFECT_KEY, fireworkEffect);
 
-        } else if (metaType.equalsIgnoreCase("LEATHER_ARMOR")) {
+        } else if (metaType.equalsIgnoreCase("LEATHER_ARMOR") || metaType.equalsIgnoreCase("COLORABLE_ARMOR")) {
             Color color = SMAdapterItemMeta.deserializeRawColor(
                     (Map<String, Object>) deserialize.get(COLOR_KEY));
             
-            deserialize.put(COLOR_KEY, color);
-        } else if (metaType.equalsIgnoreCase("COLOR")) {
-            Color color = SMAdapterItemMeta.deserializeRawColor(
-                    (Map<String, Object>) deserialize.get(COLOR_KEY));
-
             deserialize.put(COLOR_KEY, color);
         }
 
