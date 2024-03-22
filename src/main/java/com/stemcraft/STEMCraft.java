@@ -11,6 +11,8 @@ import java.util.UUID;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.logging.Logger;
+
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -38,9 +40,14 @@ import lombok.NonNull;
 import net.md_5.bungee.api.ChatColor;
 
 public class STEMCraft extends JavaPlugin implements Listener {
+    /**
+     * -- GETTER --
+     *  Get the plugin instance.
+     */
     /*
      * Plugin instance.
      */
+    @Getter
     private static STEMCraft plugin;
 
     /**
@@ -56,12 +63,12 @@ public class STEMCraft extends JavaPlugin implements Listener {
     /**
      * A list of loaded features in the plugin.
      */
-    private static HashMap<String, SMFeature> features = new HashMap<>();
+    private static final HashMap<String, SMFeature> features = new HashMap<>();
 
-    private static HashMap<String, Long> runOnceMap = new HashMap<>();
-    private static HashMap<String, SMTask> runOnceMapDelay = new HashMap<>();
+    private static final HashMap<String, Long> runOnceMap = new HashMap<>();
+    private static final HashMap<String, SMTask> runOnceMapDelay = new HashMap<>();
 
-    private static List<UUID> recentlyJoinedPlayers = new ArrayList<>();
+    private static final List<UUID> recentlyJoinedPlayers = new ArrayList<>();
 
     /**
      * The display version. Can be set in config. Defaults to plugin version.
@@ -108,7 +115,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         // Can we be enabled?
-        if (this.allowEnable == false) {
+        if (!this.allowEnable) {
             getLogger().severe("STEMCraft was not enabled because a dependency was missing");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
@@ -139,9 +146,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
             return names;
         });
 
-        SMTabComplete.register("material", () -> {
-            return SMBridge.getMaterialList();
-        });
+        SMTabComplete.register("material", SMBridge::getMaterialList);
 
         SMTabComplete.register("world", () -> {
             List<String> names = new ArrayList<>();
@@ -195,7 +200,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
             .tabComplete("give", "{material}", "{quantity}", "{player}")
             .tabComplete("reload")
             .action(ctx -> {
-                if (ctx.args.size() == 0) {
+                if (ctx.args.isEmpty()) {
                     ctx.returnInvalidArgs();
                 } else {
                     if ("info".equalsIgnoreCase(ctx.args.get(0))) {
@@ -222,7 +227,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
                             ctx.fromConsole() || targetPlayer.getUniqueId().equals(ctx.player.getUniqueId()),
                             "stemcraft.command.give");
 
-                        Integer amount = ctx.getArgInt(3, 1);
+                        int amount = ctx.getArgInt(3, 1);
                         if (amount < 1) {
                             ctx.returnErrorLocale("STEMCRAFT_GIVE_ITEM_QTY_INVALID", "amount", ctx.args.get(2));
                         }
@@ -238,7 +243,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
                             displayName = "Unknown";
                         }
 
-                        ctx.returnInfoLocale("STEMCRAFT_GIVE_ITEM_RECEIVED", "amount", amount.toString(), "name",
+                        ctx.returnInfoLocale("STEMCRAFT_GIVE_ITEM_RECEIVED", "amount", Integer.toString(amount), "name",
                             displayName,
                             "player", targetPlayer.getName());
                     } else {
@@ -273,23 +278,12 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     /**
      * When receiving the Plugin Disable Event
-     * 
-     * @param event
      */
     @EventHandler
     public void onPluginDisable(PluginDisableEvent event) {
         if (event.getPlugin() == this) {
             onDisable();
         }
-    }
-
-    /**
-     * Get the plugin instance.
-     * 
-     * @return
-     */
-    public static STEMCraft getPlugin() {
-        return plugin;
     }
 
     /**
@@ -302,8 +296,6 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     /**
      * Iterate plugin files using the callback
-     * 
-     * @param callback
      */
     public static void iteratePluginFiles(String path, JarFileProcessor callback) {
         try {
@@ -312,7 +304,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
                 try (JarInputStream jarInputStream = new JarInputStream(new FileInputStream(pluginFile))) {
                     JarEntry jarEntry;
                     while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
-                        if (path != null && path != "") {
+                        if (path != null && !path.isEmpty()) {
                             String className = jarEntry.getName();
                             if (!className.startsWith(path)) {
                                 continue;
@@ -330,8 +322,6 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     /**
      * Get the plugin version.
-     * 
-     * @return
      */
     public static String getVersion() {
         return getPlugin().getDescription().getVersion();
@@ -355,9 +345,6 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     /**
      * Return if a specific feature is enabled.
-     * 
-     * @param name
-     * @return
      */
     public static Boolean featureEnabled(String name) {
         if (features.containsKey(name)) {
@@ -369,9 +356,6 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     /**
      * Return the instance of a specific feature.
-     * 
-     * @param name
-     * @return
      */
     public static <T extends SMFeature> T getFeature(String name, Class<T> featureClass) {
         if (features.containsKey(name)) {
@@ -404,7 +388,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
                         SMFeature featureInstance = (SMFeature) constructor.newInstance();
                         String featureName = featureInstance.getName();
 
-                        if (featureName.length() > 0 && !features.containsKey(featureName)) {
+                        if (!featureName.isEmpty() && !features.containsKey(featureName)) {
                             if (featureInstance.onLoad()) {
                                 features.put(featureName, featureInstance); // Store the instance, not the class
                             }
@@ -433,7 +417,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
                         }
                     }
 
-                    // perform any load befores
+                    // perform any load before
                     for (String loadAfter : instance.getLoadAfterFeatures()) {
                         enableFeature(loadAfter);
                     }
@@ -457,42 +441,24 @@ public class STEMCraft extends JavaPlugin implements Listener {
     }
 
     /**
-     * Send a info message to the console.
-     * 
-     * @param message
+     * Send an info message to the console.
      */
     public static void info(String message) {
-        if (Bukkit.getConsoleSender() != null) {
-            Bukkit.getConsoleSender().sendMessage("[" + getNamed() + "] " + SMCommon.colorize(message));
-        } else {
-            Bukkit.getLogger().info(SMCommon.stripColors(message));
-        }
+        Bukkit.getConsoleSender().sendMessage("[" + getNamed() + "] " + SMCommon.colorize(message));
     }
 
     /**
      * Send a warn message to the console.
-     * 
-     * @param message
      */
     public static void warning(String message) {
-        if (Bukkit.getConsoleSender() != null) {
-            Bukkit.getConsoleSender().sendMessage(SMCommon.colorize(message));
-        } else {
-            Bukkit.getLogger().warning(SMCommon.stripColors(message));
-        }
+        Bukkit.getConsoleSender().sendMessage(SMCommon.colorize(message));
     }
 
     /**
      * Send a severe message to the console.
-     * 
-     * @param message
      */
     public static void severe(String message) {
-        if (Bukkit.getConsoleSender() != null) {
-            Bukkit.getConsoleSender().sendMessage(ChatColor.COLOR_CHAR + "c" + SMCommon.colorize(message));
-        } else {
-            Bukkit.getLogger().severe(SMCommon.stripColors(message));
-        }
+        Bukkit.getConsoleSender().sendMessage(ChatColor.COLOR_CHAR + "c" + SMCommon.colorize(message));
     }
 
     public static void error(@NonNull Throwable throwable, final String... messages) {
@@ -513,9 +479,7 @@ public class STEMCraft extends JavaPlugin implements Listener {
         }
 
         try {
-            final SMTask task =
-                SMTask.fromBukkit(Bukkit.getScheduler().runTaskLater(STEMCraft.getPlugin(), runnable, delayTicks));
-            return task;
+            return SMTask.fromBukkit(Bukkit.getScheduler().runTaskLater(STEMCraft.getPlugin(), runnable, delayTicks));
         } catch (final NoSuchMethodError err) {
             return SMTask.fromBukkit(
                 Bukkit.getScheduler().scheduleSyncDelayedTask(STEMCraft.getPlugin(), runnable, delayTicks), false);
@@ -533,10 +497,9 @@ public class STEMCraft extends JavaPlugin implements Listener {
         }
 
         try {
-            final SMTask task = SMTask.fromBukkit(
-                Bukkit.getScheduler().runTaskLaterAsynchronously(STEMCraft.getPlugin(), runnable, delayTicks));
 
-            return task;
+            return SMTask.fromBukkit(
+                Bukkit.getScheduler().runTaskLaterAsynchronously(STEMCraft.getPlugin(), runnable, delayTicks));
 
         } catch (final NoSuchMethodError err) {
             return SMTask.fromBukkit(
@@ -600,10 +563,8 @@ public class STEMCraft extends JavaPlugin implements Listener {
             return null;
 
         try {
-            final SMTask task = SMTask.fromBukkit(Bukkit.getScheduler()
+            return SMTask.fromBukkit(Bukkit.getScheduler()
                 .runTaskTimerAsynchronously(STEMCraft.getPlugin(), runnable, delayTicks, repeatTicks));
-
-            return task;
         } catch (final NoSuchMethodError err) {
             return SMTask.fromBukkit(Bukkit.getScheduler().scheduleAsyncRepeatingTask(STEMCraft.getPlugin(), runnable,
                 delayTicks, repeatTicks), true);
@@ -634,10 +595,6 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     /**
      * Run a callback, cancelling any other requests with the same id within the blockingTime.
-     * 
-     * @param id
-     * @param blockingTime
-     * @param callback
      */
     public static void runOnce(final String id, final long blockingTime, final SMCallback callback) {
         long currentMs = System.currentTimeMillis();
@@ -651,10 +608,6 @@ public class STEMCraft extends JavaPlugin implements Listener {
     /**
      * Run a callback once after a delay. Calls with the same id will cancel within the delay will cancel the original
      * callback.
-     * 
-     * @param id
-     * @param delayTime
-     * @param callback
      */
     public static SMTask runOnceDelay(final String id, final long delayTicks, final SMCallback callback) {
         if (runOnceMapDelay.containsKey(id)) {
@@ -678,8 +631,6 @@ public class STEMCraft extends JavaPlugin implements Listener {
     /**
      * Run a callback once after a delay. Calls with the same id will cancel within the delay will cancel the original
      * callback.
-     * 
-     * @param id
      */
     public static void cancelRunOnceDelay(final String id) {
         if (runOnceMapDelay.containsKey(id)) {
@@ -689,8 +640,6 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     /**
      * Get the plugin name
-     * 
-     * @return
      */
     public static String getNamed() {
         return STEMCraft.getPlugin().getDescription().getName();
@@ -698,9 +647,6 @@ public class STEMCraft extends JavaPlugin implements Listener {
 
     /**
      * Has the player recently joined the server
-     * 
-     * @param player
-     * @return
      */
     public static Boolean hasPlayerRecentlyJoined(Player player) {
         return recentlyJoinedPlayers.contains(player.getUniqueId());
