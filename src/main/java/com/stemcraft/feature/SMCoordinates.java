@@ -2,6 +2,9 @@ package com.stemcraft.feature;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import com.stemcraft.core.SMReplacer;
+import com.stemcraft.core.config.SMConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
@@ -90,17 +93,41 @@ public class SMCoordinates extends SMFeature {
                 String direction = SMCommon.getCompassDirection(player.getLocation().getYaw());
 
                 if (coordData.bossBar != null) {
+                    String coordBarString = SMConfig.main().getString("coord.boss-bar", ":world: {world} :clock: {time} :compass: {direction}");
+                    coordBarString = SMReplacer.replaceVariables(
+                            coordBarString,
+                            "world",
+                            world,
+                            "time",
+                            time,
+                            "direction",
+                            direction,
+                            "x", String.valueOf(player.getLocation().getBlockX()),
+                            "y", String.valueOf(player.getLocation().getBlockY()),
+                            "z", String.valueOf(player.getLocation().getBlockZ())
+                    );
+
                     coordData.bossBar.setTitle(
-                        SMBridge.parse(":world: " + world + " :mc_clock: " + time + " :mc_compass: " + direction));
+                        SMBridge.parse(coordBarString));
                 }
 
                 if (coordData.actionBar) {
-                    String subtitle = String.format("&6XYZ: &f%d %d %d  &6%s      %s",
-                        player.getLocation().getBlockX(), player.getLocation().getBlockY(),
-                        player.getLocation().getBlockZ(), direction, time);
+                    String coordString = SMConfig.main().getString("coord.action-bar", "&6XYZ: &f{x} {y} {z}  &6{direction}      {time}");
+                    coordString = SMReplacer.replaceVariables(
+                            coordString,
+                            "world",
+                            world,
+                            "time",
+                            time,
+                            "direction",
+                            direction,
+                            "x", String.valueOf(player.getLocation().getBlockX()),
+                            "y", String.valueOf(player.getLocation().getBlockY()),
+                            "z", String.valueOf(player.getLocation().getBlockZ())
+                    );
 
                     player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                        TextComponent.fromLegacyText(SMCommon.colorize(subtitle)));
+                        TextComponent.fromLegacyText(SMCommon.colorize(coordString)));
                 }
             }
         });
