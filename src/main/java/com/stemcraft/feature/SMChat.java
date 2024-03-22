@@ -208,7 +208,7 @@ public class SMChat extends SMFeature {
                     () -> SMCommon.colorize(this.vaultChat.getPlayerSuffix(ctx.event.getPlayer())));
             }
 
-            ctx.event.setFormat(format);
+            ctx.event.setFormat(updateBindings(format));
         });
 
         /** Event Chat - Filter */
