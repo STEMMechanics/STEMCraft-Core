@@ -2,6 +2,7 @@ package com.stemcraft.feature;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 import com.stemcraft.core.config.SMConfig;
@@ -72,8 +73,21 @@ public class SMHub extends SMFeature {
 
         if (SMConfig.main().contains(key)) {
             SMConfig.main().getStringList(key).forEach(command -> {
-                SMReplacer.replaceVariables(command, "player", player.getName(), "hub-world", hubWorldName);
-                Bukkit.getServer().dispatchCommand(player, command);
+                String replacedCommand = SMReplacer.replaceVariables(command, "player", player.getName(), "hub-world", hubWorldName);
+                CommandSender sender;
+
+
+                if (replacedCommand.startsWith("SERVER:")) {
+                    replacedCommand = replacedCommand.substring(7); // remove "SERVER:"
+                    sender = Bukkit.getConsoleSender();
+                } else {
+                    sender = player;
+                    if (replacedCommand.startsWith("PLAYER:")) {
+                        replacedCommand = replacedCommand.substring(7); // remove "PLAYER:"
+                    }
+                }
+
+                Bukkit.getServer().dispatchCommand(sender, replacedCommand);
             });
         } else {
             player.teleport(hubWorld.getSpawnLocation());
