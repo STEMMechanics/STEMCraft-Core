@@ -202,11 +202,11 @@ public class STEMCraft extends JavaPlugin implements Listener {
             .tabComplete("help")
             .action(ctx -> {
                 if (ctx.args.isEmpty() || "help".equalsIgnoreCase(ctx.args.get(0))) {
-                    String subCommandList = String.join(" | ", ctx.getSubCommandList());
+                    String subCommandList = String.join("|", ctx.getSubCommandList());
                     if (subCommandList.isEmpty()) {
                         ctx.returnInvalidArgs();
                     } else {
-                        ctx.returnError("Usage: /stemcraft " + subCommandList);
+                        ctx.returnError("Usage: /stemcraft [" + subCommandList + "]");
                     }
                 } else {
                     if ("info".equalsIgnoreCase(ctx.args.get(0))) {
