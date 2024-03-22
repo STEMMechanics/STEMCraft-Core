@@ -16,24 +16,23 @@ import com.stemcraft.core.SMMessenger;
 import com.stemcraft.core.event.SMEvent;
 
 public class SMRestrictCreative extends SMFeature {
-    private String permission = "stemcraft.creative.override";
+    private final String permission = "stemcraft.creative.override";
 
     @Override
     protected Boolean onEnable() {
         SMEvent.register(PlayerInteractEntityEvent.class, ctx -> {
             Player player = ctx.event.getPlayer();
             if (player.getGameMode() == GameMode.CREATIVE
-                && ctx.event.getPlayer().hasPermission(this.permission) == false) {
+                && !ctx.event.getPlayer().hasPermission(this.permission)) {
                 SMMessenger.errorLocale(player, "RESTRICT_CREATIVE_NO_INTERACT");
                 ctx.event.setCancelled(true);
             }
         });
 
         SMEvent.register(InventoryClickEvent.class, ctx -> {
-            if (ctx.event.getWhoClicked() instanceof Player) {
-                Player player = (Player) ctx.event.getWhoClicked();
-                if (player.getGameMode() == GameMode.CREATIVE && player.hasPermission(permission) == false) {
-                    if (ctx.event.getView().getTitle().equals(player.getOpenInventory().getTitle()) == false) {
+            if (ctx.event.getWhoClicked() instanceof Player player) {
+                if (player.getGameMode() == GameMode.CREATIVE && !player.hasPermission(permission)) {
+                    if (!ctx.event.getView().getTitle().equals(player.getOpenInventory().getTitle())) {
                         ctx.event.setCancelled(true);
                     }
                 }
@@ -41,9 +40,8 @@ public class SMRestrictCreative extends SMFeature {
         });
 
         SMEvent.register(EntityDeathEvent.class, ctx -> {
-            if (ctx.event.getEntity() instanceof Player) {
-                Player player = (Player) ctx.event.getEntity();
-                if (player.getGameMode() == GameMode.CREATIVE && player.hasPermission(permission) == false) {
+            if (ctx.event.getEntity() instanceof Player player) {
+                if (player.getGameMode() == GameMode.CREATIVE && !player.hasPermission(permission)) {
                     ctx.event.getDrops().clear();
                 }
             }
@@ -51,16 +49,15 @@ public class SMRestrictCreative extends SMFeature {
 
         SMEvent.register(PlayerDropItemEvent.class, ctx -> {
             Player player = ctx.event.getPlayer();
-            if (player.getGameMode() == GameMode.CREATIVE && player.hasPermission(permission) == false) {
+            if (player.getGameMode() == GameMode.CREATIVE && !player.hasPermission(permission)) {
                 SMMessenger.errorLocale(player, "RESTRICT_CREATIVE_NO_DROPS");
                 ctx.event.setCancelled(true);
             }
         });
 
         SMEvent.register(EntityPickupItemEvent.class, ctx -> {
-            if (ctx.event.getEntity() instanceof Player) {
-                Player player = (Player) ctx.event.getEntity();
-                if (player.getGameMode() == GameMode.CREATIVE && player.hasPermission(permission) == false) {
+            if (ctx.event.getEntity() instanceof Player player) {
+                if (player.getGameMode() == GameMode.CREATIVE && !player.hasPermission(permission)) {
                     SMMessenger.errorLocale(player, "RESTRICT_CREATIVE_NO_PICKUPS");
                     ctx.event.setCancelled(true);
                 }
@@ -68,9 +65,8 @@ public class SMRestrictCreative extends SMFeature {
         });
 
         SMEvent.register(PortalCreateEvent.class, ctx -> {
-            if (ctx.event.getEntity() instanceof Player) {
-                Player player = (Player) ctx.event.getEntity();
-                if (player.getGameMode() == GameMode.CREATIVE && player.hasPermission(permission) == false) {
+            if (ctx.event.getEntity() instanceof Player player) {
+                if (player.getGameMode() == GameMode.CREATIVE && !player.hasPermission(permission)) {
                     SMMessenger.errorLocale(player, "RESTRICT_CREATIVE_NO_PORTALS");
                     ctx.event.setCancelled(true);
                 }
@@ -79,7 +75,7 @@ public class SMRestrictCreative extends SMFeature {
 
         SMEvent.register(BlockPlaceEvent.class, ctx -> {
             Player player = (Player) ctx.event.getPlayer();
-            if (player.getGameMode() == GameMode.CREATIVE && player.hasPermission(permission) == false) {
+            if (player.getGameMode() == GameMode.CREATIVE && !player.hasPermission(permission)) {
                 Material blockType = ctx.event.getBlockPlaced().getType();
                 if (blockType == Material.END_PORTAL_FRAME) {
                     SMMessenger.errorLocale(player, "RESTRICT_CREATIVE_NO_PLACE");
