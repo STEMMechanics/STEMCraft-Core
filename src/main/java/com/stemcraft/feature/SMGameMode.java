@@ -12,6 +12,7 @@ public class SMGameMode extends SMFeature {
     protected Boolean onEnable() {
         new SMCommand("gm")
             .alias("gma", "gmc", "gms", "gmsp")
+            .tabComplete("{player}")
             .permission("minecraft.command.gamemode")
             .action(ctx -> {
                 ctx.checkNotConsole();
@@ -19,8 +20,8 @@ public class SMGameMode extends SMFeature {
                 Player targetPlayer = ctx.player;
                 String gamemodeStr = "Unknown";
 
-                if (ctx.args.size() >= 1) {
-                    targetPlayer = SMCommon.findPlayer(ctx.args.get(1));
+                if (!ctx.args.isEmpty()) {
+                    targetPlayer = SMCommon.findPlayer(ctx.args.get(0));
                     if (targetPlayer == null) {
                         ctx.returnErrorLocale("CMD_PLAYER_NOT_FOUND");
                         return;
