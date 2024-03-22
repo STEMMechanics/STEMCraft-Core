@@ -68,6 +68,11 @@ public class SMAdapterItemMeta implements SMJsonAdapter, JsonSerializer<ItemMeta
                     (Map<String, Object>) deserialize.get(COLOR_KEY));
             
             deserialize.put(COLOR_KEY, color);
+        } else if (metaType.equalsIgnoreCase("COLOR")) {
+            Color color = SMAdapterItemMeta.deserializeRawColor(
+                    (Map<String, Object>) deserialize.get(COLOR_KEY));
+
+            deserialize.put(COLOR_KEY, color);
         }
 
         return (ItemMeta) ConfigurationSerialization.deserializeObject(deserialize, ConfigurationSerialization.getClassByAlias("ItemMeta"));
