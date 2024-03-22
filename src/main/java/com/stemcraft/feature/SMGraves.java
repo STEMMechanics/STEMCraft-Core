@@ -3,16 +3,18 @@ package com.stemcraft.feature;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.Chest;
-import org.bukkit.block.Sign;
+import org.bukkit.block.*;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
+import org.bukkit.block.data.Orientable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.Inventory;
@@ -22,16 +24,17 @@ import com.stemcraft.core.SMDatabase;
 import com.stemcraft.core.SMFeature;
 import com.stemcraft.core.config.SMConfig;
 import com.stemcraft.core.event.SMEvent;
+import org.bukkit.inventory.ItemStack;
 
 public class SMGraves extends SMFeature {
-    private List<World> worlds = new ArrayList<>();
+    private final List<World> worlds = new ArrayList<>();
 
     @Override
     protected Boolean onEnable() {
         SMDatabase.runMigration("240113000000_RemoveGravestoneTable", () -> {
             SMDatabase.prepareStatement(
-                "DROP TABLE IF EXISTS graves")
-                .executeUpdate();
+                            "DROP TABLE IF EXISTS graves")
+                    .executeUpdate();
         });
 
         List<String> worldsList = SMConfig.main().getStringList("graves.worlds");
@@ -86,6 +89,16 @@ public class SMGraves extends SMFeature {
 
                     // Calculate the closest BlockFace
                     BlockFace blockFace = SMCommon.getClosestBlockFace(yaw, true);
+
+                    // Check the blocks around the sign and set the rotation to face the first air block found
+                    BlockFace[] faces = {BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST};
+                    for (BlockFace face : faces) {
+                        if (block.getRelative(face).getType() == Material.AIR) {
+                            blockFace = face;
+                            break;
+                        }
+                    }
+
                     // Set the sign rotation using BlockFace
                     signData.setRotation(blockFace);
                 }
@@ -94,21 +107,41 @@ public class SMGraves extends SMFeature {
                 signState.setBlockData(signData);
                 signState.update();
 
-                Location graveLocation = SMCommon.findSafeLocation(signLocation, 64);
-                if (graveLocation == null) {
-                    STEMCraft.info("No suitable location was found near the player for a grave chest");
-                    return;
+                List<ItemStack> drops = new ArrayList<>(ctx.event.getDrops());
+                Iterator<ItemStack> iterator = drops.iterator();
+                while (iterator.hasNext()) {
+                    Location graveLocation = SMCommon.findSafeLocation(signLocation, 64);
+                    if (graveLocation == null) {
+                        STEMCraft.info("No suitable location was found near the player for a grave chest");
+                        break;
+                    }
+
+                    Block barrelBlock = graveLocation.getBlock();
+                    barrelBlock.setType(Material.BARREL);
+                    Barrel barrelState = (Barrel) barrelBlock.getState();
+
+                    Directional directional = (Directional) barrelState.getBlockData();
+                    directional.setFacing(BlockFace.UP);
+                    barrelState.setBlockData(directional);
+                    barrelState.update(true); // Update the block state to reflect changes
+
+                    Inventory barrelInventory = barrelState.getInventory();
+
+                    while (iterator.hasNext()) {
+                        ItemStack item = iterator.next();
+                        HashMap<Integer, ItemStack> notStored = barrelInventory.addItem(item);
+                        if (notStored.isEmpty()) {
+                            iterator.remove();
+                        } else {
+                            break;
+                        }
+                    }
                 }
 
-                graveLocation.getBlock().setType(Material.CHEST);
-                Chest grave = (Chest) graveLocation.getBlock().getState();
-                Inventory graveInventory = grave.getInventory();
-
-                ctx.event.getDrops().forEach((itemStack) -> {
-                    graveInventory.addItem(itemStack);
-                });
-
                 ctx.event.getDrops().clear();
+                if(!drops.isEmpty()) {
+                    ctx.event.getDrops().addAll(drops);
+                }
             }
         });
 
