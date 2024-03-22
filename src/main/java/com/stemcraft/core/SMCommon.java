@@ -854,7 +854,7 @@ public class SMCommon {
         int minutes = (int) ((adjustedTime % 1000) / 16.6667);
 
         // Convert to 12-hour time format with AM/PM
-        String am_pm = (hours < 6 || hours >= 18) ? "AM" : "PM";
+        String am_pm = (hours < 12) ? "AM" : "PM";
         hours = hours % 12;
         hours = (hours == 0) ? 12 : hours; // Convert hour 0 to 12
 
@@ -862,10 +862,10 @@ public class SMCommon {
     }
 
     /**
-     * Convert seconds to a relative date string
-     * 
-     * @param totalSeconds
-     * @return
+     * Convert seconds to a relative time string.
+     *
+     * @param totalSeconds The total seconds to convert.
+     * @return The relative time string.
      */
     public static String convertSecondsToRelative(long totalSeconds) {
         long days = totalSeconds / 86400;
