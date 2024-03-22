@@ -105,3 +105,8 @@ custom_items:
         item: "minecraft:stick"
         display_name: "Copper Coin"
         custom_model_data: 10000
+
+web-server:
+    enabled: false
+    ip: "0.0.0.0"
+    port: 8950
