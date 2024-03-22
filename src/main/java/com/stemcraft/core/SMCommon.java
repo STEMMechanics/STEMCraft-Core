@@ -152,7 +152,7 @@ public class SMCommon {
         Block belowBlock = block.getRelative(BlockFace.DOWN);
 
         final Material[] includeMaterials = {
-                Material.AIR, Material.GRASS
+                Material.AIR, Material.GRASS_BLOCK
         };
 
         // Check if the block and the block above are air blocks
