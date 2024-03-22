@@ -44,7 +44,7 @@ public class SMCoordinates extends SMFeature {
     /**
      * A list of CoordData per player (if enabled).
      */
-    private static Map<Player, CoordData> coordBars = new HashMap<>();
+    private static final Map<Player, CoordData> coordBars = new HashMap<>();
 
     /**
      * Called when the feature is requested to be enabled.
@@ -81,7 +81,7 @@ public class SMCoordinates extends SMFeature {
                 }
 
                 CoordData coordData = coordBars.get(player);
-                if (coordData.bossBar == null && coordData.actionBar == false) {
+                if (coordData.bossBar == null && !coordData.actionBar) {
                     return;
                 }
 
@@ -94,8 +94,8 @@ public class SMCoordinates extends SMFeature {
                         SMBridge.parse(":world: " + world + " :mc_clock: " + time + " :mc_compass: " + direction));
                 }
 
-                if (coordData.actionBar == true) {
-                    String subtitle = String.format("&6XYZ: &f%o %o %o  &6%s      %s",
+                if (coordData.actionBar) {
+                    String subtitle = String.format("&6XYZ: &f%d %d %d  &6%s      %s",
                         player.getLocation().getBlockX(), player.getLocation().getBlockY(),
                         player.getLocation().getBlockZ(), direction, time);
 
@@ -189,7 +189,7 @@ public class SMCoordinates extends SMFeature {
      */
     private static void toggleActionBar(Player player) {
         if (coordBars.containsKey(player)) {
-            if (coordBars.get(player).actionBar == true) {
+            if (coordBars.get(player).actionBar) {
                 removeActionBar(player);
                 return;
             }
