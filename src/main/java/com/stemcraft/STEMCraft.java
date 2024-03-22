@@ -199,9 +199,15 @@ public class STEMCraft extends JavaPlugin implements Listener {
             .tabComplete("info")
             .tabComplete("give", "{material}", "{quantity}", "{player}")
             .tabComplete("reload")
+            .tabComplete("help")
             .action(ctx -> {
-                if (ctx.args.isEmpty()) {
-                    ctx.returnInvalidArgs();
+                if (ctx.args.isEmpty() || "help".equalsIgnoreCase(ctx.args.get(0))) {
+                    String subCommandList = String.join(" | ", ctx.getSubCommandList());
+                    if (subCommandList.isEmpty()) {
+                        ctx.returnInvalidArgs();
+                    } else {
+                        ctx.returnError("Usage: /stemcraft " + subCommandList);
+                    }
                 } else {
                     if ("info".equalsIgnoreCase(ctx.args.get(0))) {
                         ctx.returnInfo("STEMCraft " + STEMCraft.getVersion());
